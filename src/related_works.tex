@@ -1,0 +1,17 @@
+\section{Related Works} \label{section:related}
+
+
+The first part of this work, the execution model, is partly inspired by some works on scalability for very large system, like MapReduce\cite{Dean2008}.
+It also took inspiration from more recent work, like the Data Stream Management System (DSMS).
+Among the most known, we cited in the introduction Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Marz2011}.
+
+The idea to split a task into independent parts go back to the Actor's model\cite{Hewitt1973} in 1973, and the first Functional programming Langage Lucid\cite{Ashcroft1977} in 1977 and all the following works on DataFlow leading up to Flow-Based programing (FBP)\cite{Morrison1994a} and Functional Reactive Programming (FRP)\cite{Elliott1997}.
+Both FBP and FRP, recently got some attention in the Javascript community with respectively the projects \textit{NoFlo}\cite{NoFlo} and \textit{Bacon.js}\cite{Paananen2012}.
+
+The first part of our work stands upon these thorough studies, however, we are taking a new approach on the second part of our work, to transform the sequential programing paradigm into a network of communicating parts known to have scalabitly advantages.
+There is some work on the transformation of a program into distributed parts\cite{Amini2012}, \cite{Petit2009}.
+But our approach using callbacks in Javascript seems unexplored yet.
+
+Our approach uses AST modification, as described in\cite{Jones2003}.
+
+Obviously, our implementation is based on the work by Ryan Dahl : \textit{Node.js}\cite{Dahl}, as well as on one of the most known web framework available for \textit{Node.js} : \textit{Express}\cite{express}.

@@ -1,0 +1,368 @@
+\section{Transformation}
+
+
+% Here we want to describe the identification and extraction - not the transformation yet - of fluxions from an imperative code.
+
+% We need to remind of the context, why we are doing this, to which purpose ...
+
+% Then we need to explain the idea of the extraction.
+
+% Then we need to detail the extraction steps.
+
+
+The last section describe the operating of the fluxionnal execution model, using a simple web service in listing \ref{lst:classique}.
+Using the same web service, we explain in this section how the tool identifies the fluxions chain from the original code to produce the chain in figure \ref{fig:fluxions}, and then generate the target code, in fluxionnal high-level language shown listing \ref{lst:fluxionnal}, and in Javascript.
+
+% Firstly, we explain the concepts and ideas behind the transformation from a functional code to a fluxionnal one.
+% We then show the different steps of this transformation, and explain the limitations of this method.
+
+\subsection{Concept}
+
+Fluxionnal and Functionnal paradigm, altough related, are very different on some points. To be able to identify fluxions in a Functionnal program, we need to understand these differences.
+
+
+
+
+
+Fluxionnal paradigm and Functionnal paradigm may seem similar because they share some common properties, like the uniqueness of return value, or the encapsulation of execution.
+However the call paradigm used in the functionnal paradigm is very different from the call paradigm used in the fluxionnal paradigm.
+The call, and the return value of a function share the same memory scope.
+This property allow functions to act as a meeting mechanism, gathering results from multiples functions to chain operations.
+A fluxion needs to persist memory to do the same because it can receive only one input at a time.
+
+Javascript is an unpure functionnal language, so functions aren't completly encapsulated, parents share their scope with callee functions.
+As fluxions can't share memory, they have to explicitly share these memory states via messages streams.
+
+With this differences, it's impossible to match function structuring of a program with the fluxion topology.
+
+As we want to match fluxions with existing data stream in the application, we need to identify and extract these data streams.
+
+A data stream is continuity of following processing operations.
+The output of one operation is directly feed into the next.
+To identify these streams in a program, we analyze the source code of this program to detect the dependencies between operations at the instruction level.
+
+\begin{code}[Javascript, caption={Hello World example for the transformation tool},label={lst:simpleA}]
+@\label{lst:simpleA_depA}@var express = require('express');
+@\label{lst:simpleA_depB}@var app = express();
+\end{code}
+
+In the listing \ref{lst:simple}, line \ref{lst:simple_dep} the variable \texttt{express} is initialized with the return value of the call \texttt{require('express')}, this variable is then used to initialize the variable \texttt{app}.
+The first initialization implies a dependency from the variable \texttt{express} to the function call \texttt{require('express')};
+The second initialization implies as well a dependency from the variable \texttt{app} to the function call \texttt{express()};
+The whole dependency chain is :
+\begin{center}
+$literal \texttt{"express"} \to call \texttt{require("express")} \to var \texttt{express} \to call \texttt{express()} \to var \texttt{app}$
+\end{center}
+
+The \texttt{express} variable here is only a placeholder for the result of the call to \texttt{require("express")}, waiting to be called to initialize variable \texttt{app}.
+If we bypasses this node, we obtain the listing \ref{lst:simpleB}, which correspond to the following dependency chain
+
+\begin{center}
+$literal \texttt{"express"} \to call \texttt{require("express")} \to call \texttt{require("express")()} \to var \texttt{app}$
+\end{center}
+
+\begin{code}[Javascript, caption={Hello World example for the transformation tool},label={lst:simpleB}]
+@\label{lst:simpleA_depA}@var app = require('express')();
+\end{code}
+
+These dependency chains represent the data streams between operations of an application at the instruction level.
+In these chains, a node is a stateless operation, and the edges are memory place holders, like variables.
+A node of a dependency chain is alike a fluxion : it receive a message, modify it, and send it back to the next node.
+The only difference is that a fluxion isn't stateless unlike the node of a dependency chain.
+
+
+
+From these chains, we want to build a complete dependency graph of a program.
+
+
+
+The dependency graph is very similar to the fluxion graph we aim to build.
+One difference is, the fluxion graph persist memory states inside fluxions, or inside passing messages.
+While the dependency graph doesn't precise how the memory states needs to be persisted.
+
+From this dependency graph, we build the fluxion graph, aggregating the nodes the more linked together into a fluxion.
+The link between the operations inside the fluxion are transformed into operation composition, or if not possible, into memory states persisted in the fluxion scope.
+
+Therefor, it's possible to output very different fluxionnal program adjusting the threeshold for the minimum number of links nodes share to be aggregated.
+Thus, it's possible to adjust the number of fluxions, and messages streams to optimize for different types of parallelism and communication.
+
+% However, the base concept of the fluxionnal execution model, like the functional paradigm is to link dependent part of the program together, and isolate the rest.
+% We use this similarity to transform from a functional model to a fluxionnal model.
+
+% TODO if else statements, how to represent it in the graph ?
+% TODO for while statements, how to represent it in the graph ?
+% TODO 
+
+\subsection{Steps}
+
+The source for this transformation is a classical Javascript programs.
+The result of this transformation is Javascript programs using fluxionnal paradigm to encapsulate the source program.
+
+We split the transformation into five different steps, which are : 
+\begin{itemize}
+\item[Parsing]
+\item[Dependencies Tree Building]
+\item[Resolution]
+\item[Reduction]
+\item[Building]
+\end{itemize}
+
+We illustrate the roles of these five steps with the very simple code in listing \ref{lst:orig}.
+
+\begin{code}[Javascript, caption={Original code},label={lst:orig}]
+function sub(a, b) {
+  return a - b;
+}
+function add(a, b) {
+  return sub(a, 2) + sub(b, 1);
+}
+var c = add(4, 5);
+var d = add(3, 9);
+\end{code}
+
+
+% \subsubsection{Parsing}
+
+The first step is to parse the source code to build the Abstract Syntax Tree (AST).
+The AST is a structured representation of the source code, following Mozilla's Parser API specification.
+It is a lot more verbose and longer than the source code but allow modifying it in more convenient ways.
+
+It's composed of nodes, described at least by a type, and different others attributes.
+These nodes are composed recursively to form a graph describing the whole source code.
+A more comprehensive documentation of the Mozilla's Parser API specification can be found online at this address : https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser\_API
+
+Listing \ref{lst:ast} is a portion of the AST of the listing \ref{lst:orig}.
+We can see the two \textit{Function Declaration}, and the two \textit{Variable Declaration}, but to keep it concise, only the first \textit{Variable Declaration} is kept whole.
+
+\begin{code}[Javascript, caption={parts of an AST},label={lst:ast}]
+{
+  "program": {
+    "type": "Program",
+    "body": [
+      {
+        "type": "FunctionDeclaration",
+        "id": {
+          "type": "Identifier",
+          "name": "sub"
+        },
+        ...
+      },
+      {
+        "type": "FunctionDeclaration",
+        "id": {
+          "type": "Identifier",
+          "name": "add"
+        },
+        ...
+      },
+      {
+        "type": "VariableDeclaration",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "id": {
+              "type": "Identifier",
+              "name": "c"
+            },
+            "init": {
+              "type": "CallExpression",
+              "callee": {
+                "type": "Identifier",
+                "name": "add"
+              },
+              "arguments": [
+                {
+                  "type": "Literal",
+                  "value": 4,
+                  "raw": "4"
+                },
+                {
+                  "type": "Literal",
+                  "value": 5,
+                  "raw": "5"
+                }
+              ]
+            }
+          }
+        ],
+        "kind": "var"
+      },
+      {
+        "type": "VariableDeclaration",
+       	...
+      }
+    ],
+    "errors": []
+  },
+  "type": "File"
+}
+\end{code}
+
+To build this AST, we used the \textit{npm} package \texttt{recast}\footnote{https://www.npmjs.org/package/recast}.
+
+% \subsubsection{Dependency Tree Building}
+
+From the Abstract Syntax Tree, we extract the dependencies between operations to build multiple dependency graphs.
+For the moment, we can only extract very simple dependencies, thus limiting the possibility for the input source code.
+Each dependency graph represent a different scope.
+
+For example of a dependency graph, in the listing \ref{lst:orig}, the \texttt{sub} function uses a \textit{Binary Operator}.
+This operator is turned into a node depending both on parameters \texttt{a} and \texttt{b} in the dependency graph.
+In the same way, the \textit{Return Statement} depend on the \textit{Binary Operator}.
+This \texttt{sub} dependency graph detailed here can be seen on Figure \ref{fig:depTrees}.
+
+% What are the basic pattern we are looking in the tree ?
+% How we construct the dependency graph ?
+% What are the crucial information to extract from this tree ?
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{depTrees.pdf}
+  \caption{Dependencies trees}
+  \label{fig:depTrees}
+\end{figure}
+
+
+% \subsubsection{Resolution}
+
+During the resolution step, all the dependency trees are merged into one by injecting the function definitions trees in place of the function calls.
+This step will likely produce a tree bigger than the sum of the initial trees, because each function call is replaced with the corresponding function definition trees.
+However, it's necessary because of the fluxionnal system, and it will allow the next steps to optimize the whole tree.
+Figure \ref{fig:resTree} represent the resolved tree.
+
+% How we merge all the tree inside only one ?
+% Write about the node beeing the call statement, not the function names, thus, each node contain a different signature.
+% How we resolve conflicts ?
+% How can we avoid code repetition ?
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{resTree.pdf}
+  \caption{Tree generated after resolution}
+  \label{fig:resTree}
+\end{figure}
+
+% \subsubsection{Reduction}
+
+We reduce the resolved tree by removing the nodes that simply pass a message, from one fluxion to another.
+If a nodes is dependent on multiple other nodes, as a fluxion can only receive one message at a time, that means the dependencies need to be merged, the node and its dependencies need to be in the same fluxion, to share persisted states, or the nodes need to implement a rendez-vous mechanism to store the first dependency result, while waiting for the second.
+The last reduction step create fluxions by merging the nodes linked together by too many links.
+The reduced graph of our example is pictured in Figure \ref{fig:redTree}.
+
+% What are the patterns we are looking in the graph to reduce it ?
+% What kind of optimisation could we do ?
+
+% \begin{figure}[h!]
+%   \begin{center}
+%     \includegraphics[width=0.4\linewidth]{redTree.pdf}
+%   \end{center}
+%   \caption{Tree generated after reduction}
+%   \label{fig:redTree}
+% \end{figure}
+
+
+% \subsubsection{Building}
+
+The fluxionnal graph is then transformed again into source code, following the fluxionnal execution model paradigm.
+
+% How to be sure all the pipes are well plugged between each others ?
+
+\begin{code}[Javascript, caption={Fluxionnal code},label={lst:flxcode}]
+TODO
+\end{code}
+
+
+\subsection{Limitations}
+
+For the moment, the program we can successfully transform to use the fluxionnal execution model are really few.
+Not because of technical limitations, but because the implementation of the transformation process isn't finished
+
+We can build dependency graph using only \textit{Functional Declaration}, \textit{Binary Operator} and \textit{Variable Declarator}.
+We aim at expanding the possibility to conditional branch and loop.
+
+
+
+
+\section{Transformation}
+
+	We are detailling here, the necessary compilations steps to transform a program expressed with a classical approach, using Javascript, to the fluxionnal execution model described in the previous section.
+
+	As the fluxionnal execution model is written in Javascript, most of the initial code can be preserved.
+	However, here is the list of the differences between the two models.
+	These differences need a transformation from one model to another.
+
+	We consider a web service is in a subset of the classical programs, written in dynamic language.
+	This subset implies the program to be structured in a fashion sucha as to chain processing sequentially, one after the other.
+	\TODO{The subset is badly described}
+
+	\subsection{Différences entre les deux modèles}
+
+		\subsubsection{Utilisation de la mémoire}
+
+			Dans le modèle classique, la mémoire est centrale.
+			Elle est cependant cloisonné en scopes de fonctions, et en contexte d'exécution.
+			Une fonction n'as accès qu'à son scope, et au contexte dans lequel elle est exécutée.
+
+			Dans le modèle fluxionnel, la mémoire est décentralisé et encapsulé dans des scopes.
+
+			1. Une fonction n'utilise aucune mémoire, ou n'utilise aucune persistance entre ses invocations.
+			    -> pas de scope
+
+			\begin{code}[Javascript, caption={Code fluxionnel},label={lst:mem1}]
+				function(mon_argument) {
+				    return mon_argument + 3; // traitements
+				}
+			\end{code}
+
+
+			2. Une fonction utilise une closure comme scope et elle est la seule à accéder à cette closure.
+			    -> scope représentant la closure
+
+			\begin{code}[Javascript, caption={Code fluxionnel},label={lst:mem2}]
+				function(mon_scope) {
+				    // mon_scope accessible
+				    return function(mon_argument) {
+				        // mon_argument et mon_scope accessible
+				        return mon_scope + mon_argument; // traitements
+				    }
+				}
+			\end{code}
+
+			3. Une fonction utilise une closure comme scope et elle n'est pas la seule à accéder à cette closure, cas de l'objet global.
+			    -> scope représentant la closure, partagé entre les fluxions.
+
+			\begin{code}[Javascript, caption={Code fluxionnel},label={lst:mem3}]
+				var global ...
+
+				function fn1(mon_scope) {
+				    // global, mon_argument accessibles
+				    return mon_scope + global; // traitements
+				}
+
+				function fn2(mon_scope) {
+				    // global, mon_argument accessibles
+				    return mon_scope + global; // traitements
+				}
+			\end{code}
+
+		\subsubsection{Appel de fonction}
+
+			Dans le modèle classique d'un service web, les fonctions de traitement sont appelé les unes après les autres en suivant un principe de chaîne de traitement.
+
+			Dans le modèle fluxionnel, le pointeur d'exécution est passé de manière événementiel, porté par le système de messagerie.
+
+			1. Une fonction appelle une autre fonction à la fin de son exécution
+			    -> la fluxion représentant la fonction appelante envoie un message à la fluxion représentant la fonction appelée.
+
+			\begin{code}[Javascript, caption={Code fluxionnel},label={lst:fn1}]
+				function(req) {
+				    // traitements sur req
+				    return next(req);
+				}
+			\end{code}
+
+			fluxion appelante -> fluxion appelée
+
+			2. Une fonction appelle une autre fonction avant la fin de son exécution.
+			    -> la fonction appelante est découpé en deux fluxions.
+			    la fluxion représentant la fonction appelée va servir d'intermédiaire entre ces deux fluxions.
+
+			fluxion appelante 1 -> fluxion appelée -> fluxion appelante 2
