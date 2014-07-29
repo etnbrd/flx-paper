@@ -59,30 +59,59 @@ In most imperative languages the execution is synchronous by default, while spec
 However, Node.js imposes natively both synchronous and asynchronous paradigms, as seen above, listing \ref{lst:callback}.
 The invocation of \texttt{asyncFn}, \circled{3}, and the code following the invocation, \circled{2}, are independent from each other because the execution order isn't deterministic.
 This invocation of an asynchronous function virtually splits the execution and create a possible parallelism between these two execution paths.
-Because of the parallelism implied by this independence, we think it is possible to isolate these parts enough to encapsulate them in fluxions, and migrate their execution onto different machines.
-Figure \ref{fig:callback} illustrates the two isolated parts encapsulated in fluxions from listing \ref{lst:callback}.
+Because of the parallelism implied by this independence, we think it is possible to isolate these parts for the execution to be parallel.
+However, breaking
 
-\begin{figure}[h!]
-  \includegraphics[width=\linewidth]{callbackFlx.pdf}
-  \caption{Illustration of listing \ref{lst:callback} broken into fluxions}
-  \label{fig:callback}
-\end{figure}
 
-In the next subsections, we describe our work on a compiler to break a program into many independent parts and enclose them in fluxion.
-We then address the limitations of this method, and possible future improvements.
 
-\subsection{Breaking the program}
+% ... to encapsulate them in fluxions, and migrate their execution onto different machines.
+% Figure \ref{fig:callback} illustrates the two isolated parts encapsulated in fluxions from listing \ref{lst:callback}.
 
-As asynchronous functions indicates frontier along which the program is breakable into independent parts, the very first step of the compilation process is to spot them by analyze of the source code.
-We statically analyze the source code using an intermediate representation of it : the Mozilla Javascript Abstract Syntax Tree (AST)\footnote{\raggedright https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser\_API}.
+% \begin{figure}[h!]
+%   \includegraphics[width=\linewidth]{callbackFlx.pdf}
+%   \caption{Illustration of listing \ref{lst:callback} broken into fluxions}
+%   \label{fig:callback}
+% \end{figure}
+
+
+The compiler uses program from the community, they are described in the first subsection along with the first compilation step.
+Then, we describe the two following, important compilation steps : the \textit{pruner} breaks a program into many independent parts and the \textit{linker} resolves inconsistencies in the shattered functions scopes.
+
+% In the next subsections, we describe our work on a compiler to break a program into many independent parts and enclose them in fluxion.
+% We then address the limitations of this method, and possible future improvements.
+
+\subsection{Parser}
+
+The first step for the compiler is to parse the source file to extract the semantic of the source program, and to produce an in-memory object to work on.
+
+Some tools already exists to statically analyze Javascript source code (Esprima, Acorn ...).
+
+We use a serie of tool written by Ariya Hidayat and Yusuke Suzuki : Esprima, Estraverse, Escope, Escodegen.
+
+These tools use the specification for an intermediate representation of the Javascript source code from the Mozilla Javascript Parser API : the Abstract Syntax Tree (AST)\footnote{\raggedright https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser\_API}.
+
 This structured representation breaks the source into a tree of nodes, each representing a construct from the source, like an operation or an identifier.
 It can be traversed and allow easy modification of its structure, without the risk of errors involved by direct source manipulation.
+
+
+
+\subsection{Pruner : breaking the program}
+
+As asynchronous functions indicates frontier along which the program is breakable into independent parts, the very first step of the compilation process is to spot them by analyze of the source code.
+
 In an AST, the node of a function call is of type \textit{CallExpression}, and contains a reference to the callee and an array of the arguments.
 As an asynchronous function call marks the frontier between two fluxions, most modifications required to split the execution paths happen around the nodes of this type.
 
 We distinguish two types of asynchronous functions in the \textit{Node.js} I/O API : the functions handling a series of I/O events, and the functions handling only one I/O event.
 We details in the next paragraphs how the compiler modify these two types of asynchronous functions.
 We explain in section \ref{ss:Limitations} why the compiler needs a list of asynchronous function with their type to distinguish between the two types.
+
+% TODO two types, because we want to distinguish between start and post to be able to do dynamic analysis, see part 3 : dynamic analysis
+
+
+
+
+
 
 \subsubsection{Series of events} \label{sss:start}
 
