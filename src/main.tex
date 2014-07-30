@@ -14,6 +14,7 @@
 \usepackage{pgfplots}
 \usepgfplotslibrary{external} 
 \tikzexternalize
+\tikzsetexternalprefix{figures/}
 \newcommand*\circled[1]{\tikz[baseline=(char.base)]{
             \node[shape=circle,draw,inner sep=0.8pt] (char) {#1};}}
 
@@ -33,7 +34,7 @@
 \bibliography{../src/bib/Dataflow.bib}
 \bibliography{../src/bib/Web & Social Networks.bib}
 \bibliography{../src/bib/Others.bib}
-\bibliography{../src/bib/Actor model.bib}
+\bibliography{../src/bib/Actor Model.bib}
 \bibliography{../src/bib/Misc.bib}
 \bibliography{../src/bib/Parallelisation.bib}
 \bibliography{../src/bib/Others.bib}
@@ -119,6 +120,7 @@ Frédéric Oblé\\
 \terms{Compilation}
 
 \keywords{Flow programming, Web, Javascript} % NOT required for Proceedings
+% TODO Flow programming might not be the best keywords
 
 \input{introduction}
 \input{model}

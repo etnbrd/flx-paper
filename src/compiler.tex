@@ -1,66 +1,96 @@
 \section{Compiler} \label{section:compiler}
 
-Promises\cite{Liskov1988} describes a mechanism to replace RPCs in order to allow concurent parallelism in a distributed system.
+The fluxionnal execution model is a framework to build distributed web applications, no better than so many already out.
+This paper is about allowing any web application to run on this distributed execution model.
 
-They argue that for performance concerns, are better because asynchronous, but harder for the developer to develop.
-So their solution is to provide a mechanism allowing asynchronism between the caller and the callee, with a promise about the result of this call for the caller to manipulate the result.
+We want to enable parallelism in web applications.
+To enable parallelism, we need to split a program into the many parts parallelisable.
 
-Promises are about distributed system already, it's exactly like fluxions : a system to help the developer abstract parallelism in distributed system, without sacrificing performance.
+Promises and Futures are abstractions for apparent synchronous program to run in an asynchronous fashion.
+They abstract synchronous long waiting operation into asynchronous operation allowing an application to be parallelised, while conserving an imperative programming style.
+This asynchronous shift allow parallelization because it creates a fork in the execution flow.
+The execution will continue with the instructions that don't needs the waiting operation to complete, while the instructions that needs the operation to complete are just waiting for it.
+This two execution paths could possibly run in parallel, because the two are made independent by the future or the promise : if one need the other, it simply waits for it to finish.
+We call rupture points, the points where the execution flow forks in two distinct and parallelisable paths.
 
-Futures allow parallelisation of evaluation in a programming language, by stopping processes that need a value not yet ready.
+% Promises\cite{Liskov1988} describes a mechanism to replace RPCs in order to allow concurent parallelism in a distributed system.
 
-message passing is better for performance, but call is better for human (see Promises: linguistic support for efficient asynchronous procedure calls in distributed systems).
+% They argue that for performance concerns, are better because asynchronous, but harder for the developer to develop.
+% So their solution is to provide a mechanism allowing asynchronism between the caller and the callee, with a promise about the result of this call for the caller to manipulate the result.
 
-Promises and Futures are a synchronisation mechanism to abstract call into message passing.
+% Promises are about distributed system already, it's exactly like fluxions : a system to help the developer abstract parallelism in distributed system, without sacrificing performance.
 
+% Futures allow parallelisation of evaluation in a programming language, by stopping processes that need a value not yet ready.
 
+% message passing is better for performance, but call is better for human (see Promises: linguistic support for efficient asynchronous procedure calls in distributed systems).
 
-
-
-
-
-
+% Promises and Futures are a synchronisation mechanism to abstract call into message passing.
 
 Javascript is a functional and dynamically typed language initially introduced to handle user interactions within Web pages.
 While Javascript isn't natively event-based, the DOM used in Web pages is.
 The latter uses an event-loop to handle events happening on the Web page, and then triggers associated functions the developer provides.
-Javascript is not a pure functional language.
-As functions have access to the scope of their parents, multiple handlers can share a context.
-However, there is no possible concurrence between the handlers as there is only one execution thread.
 
 More recently, \textit{Node.js} used the same event-loop based structure, to propose a non-blocking, event-based execution environment, specifically adapted for real-time I/O intensive applications like Web services.
 Because of this event-loop based architecture, the I/O API \textit{Node.js} provides is non-blocking and asynchronous.
 The invocation of any function from this API returns immediately not to block the execution with time consuming I/O operations.
-The last argument provided by the developer to this function must be a handler function to invoke when the operation completes.
-This function is commonly named a callback.
+The developer provide an handler function as argument for this asynchronous function to invoke when the operation completes.
+This handler function is commonly named a callback, \textit{Node.js} uses the convention to place the callback as the last parameter.
 The \textit{Node.js} event-loop receives and gathers every I/O event, waiting its turn in the loop to invoke the associated callback.
-Listing \ref{lst:callback} illustrates the call of the asynchronous function \texttt{asyncFn} with the callback \texttt{callbackFn}.
+% Listing \ref{lst:callback} illustrates the call of the asynchronous function \texttt{asyncFn} with the callback \texttt{callbackFn}.
 
-\begin{code}[Javascript, caption={Example of an asynchronous function call},label={lst:callback}]
-function MyFn() { 
-  var a = 1,@\Comment{\circled{1}}@
-      b = 2,
-      c = 3;
-  asyncFn(a, b, function callbackFn(result) {
-    // process the result of asyncFn @\Comment{\circled{3}}@
-    // Use variables b, and c.
-  });
-  // result is not yet ready @\Comment{\circled{2}}@
-}
-\end{code}
+In most imperative languages the execution is synchronous by default, while special libraries handle parallelism, some using asynchronism like Promises\cite{Liskov1988} and Futures.
+However, Node.js imposes natively both synchronous and asynchronous paradigms.
+The asynchronicity of I/O Operations splits the execution and parallelize these two execution paths.
 
-\begin{figure}[h!]
-  \includegraphics[width=\linewidth]{callback.pdf}
-  \caption{Illustration of listing \ref{lst:callback}}
-  \label{fig:callback}
-\end{figure}
+A rupture point is an asynchronous function call, defined by these two properties :
+\begin{itemize}
+ \item the function is asynchronous
+ \item the function is of higher order
+\end{itemize}
 
-In most imperative languages the execution is synchronous by default, while special libraries handle parallelism, some using asynchronism and callbacks\cite{Liskov1988}.
-However, Node.js imposes natively both synchronous and asynchronous paradigms, as seen above, listing \ref{lst:callback}.
-The invocation of \texttt{asyncFn}, \circled{3}, and the code following the invocation, \circled{2}, are independent from each other because the execution order isn't deterministic.
-This invocation of an asynchronous function virtually splits the execution and create a possible parallelism between these two execution paths.
-Because of the parallelism implied by this independence, we think it is possible to isolate these parts for the execution to be parallel.
-However, breaking
+% \begin{code}[Javascript, caption={Example of an asynchronous function call},label={lst:callback}]
+% function MyFn() { 
+%   var a = 1,@\Comment{\circled{1}}@
+%       b = 2,
+%       c = 3;
+%   asyncFn(a, b, function callbackFn(result) {
+%     // process the result of asyncFn @\Comment{\circled{3}}@
+%     // Use variables b, and c.
+%   });
+%   // result is not yet ready @\Comment{\circled{2}}@
+% }
+% \end{code}
+
+% \begin{figure}[h!]
+%   \includegraphics[width=\linewidth]{callback.pdf}
+%   \caption{Illustration of listing \ref{lst:callback}}
+%   \label{fig:callback}
+% \end{figure}
+
+
+The ruptures points mark out the parallelisables parts of a web application.
+One of the compiler step, the pruner, spot the rupture points, and split the application along them.
+
+But as long as the memory is shared, the application can't be distributed on multiple nodes.
+The compiler need to split the shared memory into the application parts.
+
+A function define its own scope, child of the function's scope the child function is defined within.
+A child function can access every of its parent scope up to the root scope.
+The root scope is called global, or window, wether you are in node.js or a browser.
+
+In Javascript, the memory is enclosed in nested scopes, like russian dolls.
+Each function create a new scope containing variables local to itself.
+This scope is chained to the scope of the parent function, so that the child function can access the scope of the parent.
+Callbacks defined inside a scope can access the same scope as the calling function, allowing them to share variables.
+% This functionning is what allow closures : function acceding its parent scope, long after the parent finished its execution.
+
+Rupture points define application parts along scopes frontier.
+A scope is never shared two fluxions.
+However, two nested scopes can be separated in two different fluxions.
+As there is a root scope, parent of every scope, this root scope can't be in two different fluxions.
+But childs scopes could be in different fluxions, thus, these childs wouldn't have access to the root scope variables, because encapsulated inside fluxions.
+So variables from the parents would be made unavailable if the two scopes were spearated into two distributed application parts.
+Another compiler step, the linker, understand and resolve dependenciy conflicts between the distributed functions scopes.
 
 
 
@@ -73,75 +103,66 @@ However, breaking
 %   \label{fig:callback}
 % \end{figure}
 
-
+In the next subsections, we describe the different compilation steps.
 The compiler uses program from the community, they are described in the first subsection along with the first compilation step.
 Then, we describe the two following, important compilation steps : the \textit{pruner} breaks a program into many independent parts and the \textit{linker} resolves inconsistencies in the shattered functions scopes.
 
 % In the next subsections, we describe our work on a compiler to break a program into many independent parts and enclose them in fluxion.
 % We then address the limitations of this method, and possible future improvements.
 
-\subsection{Parser}
+\subsection{Common Tools}
 
-The first step for the compiler is to parse the source file to extract the semantic of the source program, and to produce an in-memory object to work on.
-
-Some tools already exists to statically analyze Javascript source code (Esprima, Acorn ...).
-
+The first step for the compiler is to parse the source file to extract the semantic of the web application, and to produce a representation to work on.
+Some tools exist to parse and analyze Javascript source code (Esprima, Acorn ...).
 We use a serie of tool written by Ariya Hidayat and Yusuke Suzuki : Esprima, Estraverse, Escope, Escodegen.
-
 These tools use the specification for an intermediate representation of the Javascript source code from the Mozilla Javascript Parser API : the Abstract Syntax Tree (AST)\footnote{\raggedright https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser\_API}.
 
 This structured representation breaks the source into a tree of nodes, each representing a construct from the source, like an operation or an identifier.
 It can be traversed and allow easy modification of its structure, without the risk of errors involved by direct source manipulation.
 
+An example node in the AST is :
+
+\begin{code}[Javascript, caption={Example of an AST node},label={lst:astnode}]
+CallExpression {
+    type: "CallExpression";
+    callee: <Expression>;
+    arguments: [ <Expression> ];
+}
+\end{code}
+
+We use Esprima to parse the source and generate the AST.
+We use Escope to detect function scope in this previously generated AST. 
+We use Escodegen to print back AST into plain Javascript.
+We use Estraverse to traverse and modify the AST.
+
+\TODO what more here ?
 
 
 \subsection{Pruner : breaking the program}
 
-As asynchronous functions indicates frontier along which the program is breakable into independent parts, the very first step of the compilation process is to spot them by analyze of the source code.
-
+The pruner detect rupture points, breaking the program along them, and map every function scope to its corresponding fluxion.
+Rupture points are calls of asynchronous function of higher order.
 In an AST, the node of a function call is of type \textit{CallExpression}, and contains a reference to the callee and an array of the arguments.
-As an asynchronous function call marks the frontier between two fluxions, most modifications required to split the execution paths happen around the nodes of this type.
-
-We distinguish two types of asynchronous functions in the \textit{Node.js} I/O API : the functions handling a series of I/O events, and the functions handling only one I/O event.
-We details in the next paragraphs how the compiler modify these two types of asynchronous functions.
-We explain in section \ref{ss:Limitations} why the compiler needs a list of asynchronous function with their type to distinguish between the two types.
-
-% TODO two types, because we want to distinguish between start and post to be able to do dynamic analysis, see part 3 : dynamic analysis
 
 
 
 
+We distinguish specials rupture points for asynchronous function handling series of external requests.
+Unlike basic rupture points indicating a continuity in the execution flow.
+The reception of an external request indicate a starting point in the execution flow.
+These two types of rupture points corresond to different asynchronous functions in the \textit{Node.js} I/O API : the functions handling a series of I/O events, and the functions handling only one I/O event.
 
+We distinguish these two types of rupture points to simplify later the system load dynamic analysis.
+The system load is only dependent at run time of the input in the system, everything else can be infered before run-time.
 
 \subsubsection{Series of events} \label{sss:start}
 
 Some asynchronous functions provide a callback for a series of future event.
-Like the function \texttt{app.get} from listing \ref{lst:classique}, line \ref{lst:classique_get}.
+The handler of a network socket is called once for each incoming request.
 The callbacks of these functions indicate the input of a data stream in the program, and the beginning of a fluxions chain.
 As the callbacks mark the frontier between the current fluxion and the beginning fluxions chain, the compiler replaces the callback by a placeholder function starting the chain.
-This placeholder function uses the function \texttt{start(<msg)} provided by the fluxionnal execution model described section \ref{section:model}.
-The placeholder function is detailed later, section \ref{ss:Scope}.
-
-Algorithm \ref{alg:CallExpressionStart} details the \texttt{StartCallExpression} function called while walking the AST to do the callback replacement.
-On line number \ref{alg:CallExpressionStartCreateFluxion}, it creates the first fluxion of the chain to include the callback previously parsed.
-On line number \ref{alg:CallExpressionStartPlaceholder}, the callback is replaced with a placeholder function.
-
-\begin{algorithm}
-\caption{Algorithm to replace callback from start function call}
-\label{alg:CallExpressionStart}
-\begin{algorithmic}[1]
-\Function{StartCallExpression}{\null}
-\For{$argument$ \textbf{in} $arguments$}
-\If{$argument$ is a Function}
-\State $argument.name + unique identifier \to name$
-\State Create fluxion $name$ parsing $argument$ \label{alg:CallExpressionStartCreateFluxion}
-\State Register output to $name$
-\State $placeholder \to argument$ \label{alg:CallExpressionStartPlaceholder}
-\EndIf
-\EndFor
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
+% This placeholder function uses the function \texttt{start(<msg)} provided by the fluxionnal execution model described section \ref{section:model}.
+% The placeholder function is detailed later, section \ref{ss:Scope}.
 
 \subsubsection{One-time event} \label{sss:post}
 
@@ -149,44 +170,62 @@ The other type of asynchronous functions provides immediate I/O operation.
 Callbacks of these functions are invoked only once, and continue the execution after the completion of the I/O operation.
 Because of their asynchronism, these function calls mark the frontier between the current fluxion and the next one, inside a chain of fluxion.
 The compiler replaces the asynchronous function call by a call to a placeholder function.
-This placeholder function uses the function \texttt{post(<msg>)} provided by the fluxionnal execution model described section \ref{section:model}.
-The placeholder function is detailed later, section \ref{ss:Scope}.
+% This placeholder function uses the function \texttt{post(<msg>)} provided by the fluxionnal execution model described section \ref{section:model}.
+% The placeholder function is detailed later, section \ref{ss:Scope}.
 
-Algorithm \ref{alg:CallExpressionPost} details how the \texttt{PostCallExpression} function replace the asynchronous function call.
-Line number \ref{alg:CallExpressionPostCreateFluxion}, the compiler parses the current node containing the \textit{CallExpression} to create the next fluxion.
-It creates the next fluxion enclosing the asynchronous function call into a simple function together with the callback declaration.
-Callbacks declared \textit{in situ} in the arguments are trivially spotted.
-However to accurately detect every callbacks, the compiler needs to track and resolve every identifier used in the program to identify their type.
-We address the problem of unresolvable callbacks in section \ref{ss:Limitations}.
-On line number \ref{alg:CallExpressionPostPlaceholder}, a placeholder function call replace the asynchronous function call.
-This placeholder is invoked instead of the asynchronous function and sends a message to the next fluxion.
 
-\begin{algorithm}
-\caption{Algorithm to replace post function call}
-\label{alg:CallExpressionPost}
-\begin{algorithmic}[1]
-\Function{PostCallExpression}{$node$}
-\If{$node.callee$ is asynchronous}
-\State $node.callee.name + unique identifier \to name$
-\State Create fluxion $name$ parsing $node$ \label{alg:CallExpressionPostCreateFluxion}
-\State Register output to $name$
-\State $placeholder \to node$ \label{alg:CallExpressionPostPlaceholder}
-\EndIf
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
+The compiler detects rupture points with their type during the static analysis, with a dictionnary of asynchronous functions.
 
-These two compilation algorithms break the program into fluxions, and register the inputs and outputs of each to build a network map of the program.
-The compiler uses this map to resolve the remaining dependencies between this parts.
-We address in the next section this dependencies problem, as well as the placeholder function.
+If the compiler detects the express module, a famous node.js web framework, it builds the dictionnary to detect later the variable declared for this module.
+To find possible rupture points, the compiler tests the callee expression against this dictionnary for each callExpression node in the AST.
 
-\subsection{Scope sharing and Concurrency} \label{ss:Scope}
+The compiler detects one rupture point for the following hello world program: 
 
-In Javascript, each function create a new scope containing variables local to itself.
-This scope is chained to the scope of the parent function, so that the child function can access the scope of the parent.
-Callbacks defined inside a scope can access the same scope as the calling function, allowing them to share variables even while their executions are asynchronous.
-As an example, in listing \ref{lst:callback}, \texttt{callbackFn} is defined inside \texttt{MyFn}, so it can access \texttt{MyFn}'s scope containing variables \texttt{a}, \texttt{b} and \texttt{c}.
-By isolating a callback, we break its dependencies with its parent scope. These needs to be resolved.
+\begin{code}[Javascript, caption={Hello World},label={lst:astnode}]
+var app = require('express');
+app.get('/', function(req, res) {
+  res.send("Hello World :)");
+});
+\end{code}
+
+% TODO insert the graph for this program
+
+There is in this program only two scopes, the global scope, and the scope of the anonymous function.
+These two scopes don't share any variable.
+
+
+\begin{code}[Javascript, caption={Counter},label={lst:astnode}]
+var app = require('express'),
+    rep = "Hello World :)";
+app.get('/', function(req, res) {
+  res.send(rep);
+});
+\end{code}
+
+In this slightly more complex programme, the two fluxion share a common variable : \texttt{rep}.
+The pruner don't do anything to resolve this lacking dependency.
+We see in the next subsection how this variable is handled by the linker.
+
+\subsection{Linker} \label{ss:linker}
+
+
+According to Brewer's theorem, formalized later by [??], a distributed application can only have two among the three options, Consistency, Availability, Partition tolerance.
+Brewer said this article is "pretty good" http://codahale.com/you-cant-sacrifice-partition-tolerance/
+Partition tolerance can't be avoided, a distributed system can't avoid to have failure.
+So the only possible trade off is between consistency and availability.
+
+In http://voltdb.com/blog/voltdb-products/clarifications-cap-theorem-and-data-related-errors/ Mike Stonebraker says that the trends is to make big data applications run on larger cluster of unreliable servers.
+But his point in this article is to say that a 200 machines cluster with SQL is equivalent of a 4 machines custer with VoltDB, but 4 machines are less likely to crash.
+
+As the trend is to use larger and larger cluster of commodity machines, transactional systems trading availability for consistency, will become slower and slower.
+Choosing to sacrifice consistency might make more sense.
+It let design a lot more flexible solution, which might have a better chance to cope with this kind of highly distributed architecture.
+
+There exist solution to minimize the impact of error due to inconsistency.
+Dynamo system : http://s3.amazonaws.com/AllThingsDistributed/sosp/amazon-dynamo-sosp2007.pdf
+
+
+
 
 While walking the AST, the compiler register and track every use of variables to determine which ones and what type of access the fluxion needs, and which scope they belong to.
 This set of variables needed by a fluxion represent its signature.
@@ -195,16 +234,16 @@ To resolve these dependencies, during the execution, the parent function sends t
 As the placeholder function call have the same scope than the asynchronous function call or callback it replaces, it is responsible for gathering the variables from the signature in a message along with the result of the operation and send it to the next fluxion.
 The placeholder function call replacing \texttt{asyncFn} after compilation of listing \ref{lst:callback} is described in listing \ref{lst:placeholder}, line \ref{lst:placeholdercall}.
 
-\begin{code}[Javascript, caption={Example of a placeholder function call},label={lst:placeholder}]
-function MyFn() {
-  var a = 1,
-      b = 2,
-      c = 3;
+% \begin{code}[Javascript, caption={Example of a placeholder function call},label={lst:placeholder}]
+% function MyFn() {
+%   var a = 1,
+%       b = 2,
+%       c = 3;
 
-  // Placeholder for asyncFn-uid
-  flx.post(flx.m("asyncFn-uid", {a, b, c})); @\label{lst:placeholdercall}@
-}
-\end{code}
+%   // Placeholder for asyncFn-uid
+%   flx.post(flx.m("asyncFn-uid", {a, b, c})); @\label{lst:placeholdercall}@
+% }
+% \end{code}
 
 
 
@@ -216,34 +255,25 @@ The compiler has to resolve the content of these message streams beginning by th
 Figure \ref{fig:streamline} illustrate this principle : since fluxion \textit{C} needs the variable \textit{z}, fluxion \textit{B} needs the variable \textit{z} as well to pass it along to fluxion \textit{C}.
 
 \begin{figure}[h!]
-  \includegraphics[width=\linewidth]{streamline.pdf}
+  \includegraphics[width=\linewidth]{ressources/streamline.pdf}
   \caption{Fluxion C needs the variable z, so does fluxion B}
   \label{fig:streamline}
 \end{figure}
 
 \subsection{Limitations} \label{ss:Limitations}
 
-\textit{Node.js} uses the convention to place the callback as the last parameter.
-While most of the \textit{Node.js} API is asynchronous and uses this convention, Javascript allows to pass a function as an argument whether the callee is asynchronous or not.
-For example, functions from the \texttt{Array} prototype ask functions as parameters for a behavior to call on each iteration over the array.
-Listing \ref{lst:array} presents an example of this structure.
-This iteration is synchronous, so the function passed as an argument, \circled{1}, and the code following the function call, \circled{2}, are somehow dependent.
+% For example, functions from the \texttt{Array} prototype ask functions as parameters for a behavior to call on each iteration over the array.
+% Listing \ref{lst:array} presents an example of this structure.
+% This iteration is synchronous, so the function passed as an argument, \circled{1}, and the code following the function call, \circled{2}, are somehow dependent.
 Leaving an asynchronous function call as is doesn't introduce bugs, however breaking a synchronous function by replacing its callback leads to bugs.
 To avoid introducing new bugs, it is important for the compiler to be able to distinguish between these synchronous and asynchronous functions.
 
-\begin{code}[Javascript, caption={Example of a synchronous function using a callback},label={lst:array}]
-  my_modified_array = my_array.map(function(element) {
-    // Modifying element @\Comment{\circled{1}}@
-  })
-  // Following code @\Comment{\circled{2}}@
-\end{code}
-
-The compiler is unable to distinguish by itself between the synchronous and asynchronous functions, or between the two types of asynchronous functions described in section \ref{sss:start} and \ref{sss:post}.
-We propose to provide for the compiler a list of every asynchronous function likely to be broken into fluxions, with their type specified.
-With this list, the compiler is able to modify asynchronous functions accordingly to their type, while leaving untouched every other function.
-
-Even synchronous, the use of a callback by the \texttt{map} function indicate an independence between the callback and the main execution thread.
-For future improvements, we focus on studying these independences to allow the compiler to spot and break into fluxions these patterns of synchronous function call using callbacks.
+% \begin{code}[Javascript, caption={Example of a synchronous function using a callback},label={lst:array}]
+%   my_modified_array = my_array.map(function(element) {
+%     // Modifying element @\Comment{\circled{1}}@
+%   })
+%   // Following code @\Comment{\circled{2}}@
+% \end{code}
 
 % Problem with dynamically typed functions
 
@@ -264,51 +294,57 @@ onEvent(function(event) {
 })
 \end{code}
 
+
+\subsection{Futur Works}
+
+Even synchronous, the use of a callback by the \texttt{map} function indicate an independence between the callback and the main execution thread.
+For future improvements, we focus on studying these independences to allow the compiler to spot and break into fluxions these patterns of synchronous function call using callbacks.
+
 For future improvements, we focus on a solution to dynamically compile fluxions and resolve dependencies, allowing to compile programs containing dynamic structures described in the last paragraph.
 
-\subsection{Compilation example}
+% \subsection{Compilation example}
 
-As of today our work on the compiler is still incomplete, there is inconsistencies between the high-level language detailed in section \ref{section:model} and the compilation results.
-For documentation purposes, this section details the compiler current state of progress.
+% As of today our work on the compiler is still incomplete, there is inconsistencies between the high-level language detailed in section \ref{section:model} and the compilation results.
+% For documentation purposes, this section details the compiler current state of progress.
 
-Listing \ref{lst:compsource} is a simplified version of the example listing \ref{lst:classique} in section \ref{section:model}.
-We use this simplified version as a test for our compiler, as it is yet unable to handle dynamic resolution, like used with the object \texttt{count} line \ref{lst:classique_dynres} in listing \ref{lst:classique}.
-The result of this compilation is listing \ref{lst:comptarget}.
-In the compilation result, the fluxion \textit{id-1000} should hold a context containing the variable \texttt{count}, like the object \texttt{uid} in the context of fluxion \textit{logic}, listing \ref{lst:fluxionnal}.
-But our compiler is yet unable to correctly resolve dependencies and fluxion contexts, so this counter service is unable to increment visits.
+% Listing \ref{lst:compsource} is a simplified version of the example listing \ref{lst:classique} in section \ref{section:model}.
+% We use this simplified version as a test for our compiler, as it is yet unable to handle dynamic resolution, like used with the object \texttt{count} line \ref{lst:classique_dynres} in listing \ref{lst:classique}.
+% The result of this compilation is listing \ref{lst:comptarget}.
+% In the compilation result, the fluxion \textit{id-1000} should hold a context containing the variable \texttt{count}, like the object \texttt{uid} in the context of fluxion \textit{logic}, listing \ref{lst:fluxionnal}.
+% But our compiler is yet unable to correctly resolve dependencies and fluxion contexts, so this counter service is unable to increment visits.
 
-\begin{code}[Javascript, caption={Simplified version of the initial service},label={lst:compsource}]
-var app = require('express')();
-var count = 0;
+% \begin{code}[Javascript, caption={Simplified version of the initial service},label={lst:compsource}]
+% var app = require('express')();
+% var count = 0;
 
-app.get("/:id", function id(req, res){
-  count = count + 1;
-  res.send(count);
-});
+% app.get("/:id", function id(req, res){
+%   count = count + 1;
+%   res.send(count);
+% });
 
-app.listen(8080);
-\end{code}
+% app.listen(8080);
+% \end{code}
 
-\begin{code}[Javascript, caption={Compilation result of code listing \ref{lst:compsource}},label={lst:comptarget}]
-// Main >> id
-  var flx = require('fluxion');
-  var app = require('express')();
-  var count = 0;
+% \begin{code}[Javascript, caption={Compilation result of code listing \ref{lst:compsource}},label={lst:comptarget}]
+% // Main >> id
+%   var flx = require('fluxion');
+%   var app = require('express')();
+%   var count = 0;
  
-  app.get("/:id"n function placeholder(req, res) {
-    flx.start(flx.message("id-1000", {
-      res: res,
-      count: count
-    }))
-  })
+%   app.get("/:id"n function placeholder(req, res) {
+%     flx.start(flx.message("id-1000", {
+%       res: res,
+%       count: count
+%     }))
+%   })
  
-  app.listen(8080);
+%   app.listen(8080);
 
-// id-1000
-  flx.register("id-1000", function id-1000(msg){
-    res.send(msg.count = msg.count + 1);
-  })
-\end{code}
+% // id-1000
+%   flx.register("id-1000", function id-1000(msg){
+%     res.send(msg.count = msg.count + 1);
+%   })
+% \end{code}
 
 
 
