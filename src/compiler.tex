@@ -1,25 +1,30 @@
 \section{Compiler} \label{section:compiler}
 
-The fluxionnal execution model is a framework to build distributed web applications, no better than so many already out.
-The first section of this paper describe an execution model to run application in a distribution fashion.
-This section describe the method we developped to transform almost any web application to be compatible with this distributed exectuion model.
-A distributed system run in a parallel fashion by design.
-We describe a compiler capable to split a program into many parallelisable parts, and to turn these parts into a network capable to run on te execution model described in the previous secion.
+The first section of this paper describe the fluxionnal execution model, a framework to run web application in a distributed environment.
+This section explains a method we developed to transform a subset of classic web application to be compliant with the execution model previously described.
+This transformation unveils two problems.
+A distributed system is defined in the first section by the parallel execution of its parts, and the independence of this parts from common memory.
+While a classic web application is not composed of many independent parts, and relies on a central memory.
+The problems are, firstly to parallelize the execution of a monolithic application into many parts, and secondly to distribute the central memory among these independent parts.
+\TODO{does it need a definition of the classic web application ? if so, should be in the introduction, not here}
+We describe a compiler as a solution to this problems, hence capable to turn a classic web application into a scaling distributed system. \TODO{scaling is a bold claim, need some background}
 
-Promises\cite{Liskov1988} and Futures are abstractions between an imperative, synchronous programmation style, and an asynchronous execution model.
-They transparently transform synchronous long waiting operations into asynchronous operations allowing some parts of an application to run in parallel.
+The parallelization of a mono threaded program is a trending problem since the multiplication of the number of cores available on a machine.\TODO{references}
+Asynchronism is different than parallelism, but in certain cases, one allow the other.
+Promises\cite{Liskov1988} and Futures[??] are abstractions from an imperative, synchronous programing style, to an asynchronous execution model.
+They transform synchronous, long waiting operations - like RPC or I/O - into asynchronous operations.
+In a synchronous execution, the requested operation block the main thread until computation completes.
+While in an asynchronous execution, the requested operation run along the main thread until the value is needed, releasing the main thread from waiting the operation to complete.
+This asynchronism make the two execution paths independent, thus they can run in parallel until they are not independent enough - when one needs results from another.
+We call rupture points, points where the execution flow forks in two independent and parallel paths.
+These points mark out the limits between independent parts.
 
-In a synchronous execution, the requested operation block the main thread until the value is computed.
-While in an asynchronous execution, the requested operation run along the main thread until the value is needed.
-The promise make this two execution paths independent, thus can run in parallel, if one need the other, it will waits for it to finish.
-This allows every independent parts of the applicaiton tu run in parallel, waiting for one to finish only when needed, thus leaving the computation processor to compute the values.
-
-We call rupture points, the points where the execution flow forks in two distinct and parallelisable paths.
-
+\TODO{next paragraph is a draft, needs rewrite}
 Javascript is a functional and dynamically typed language initially introduced to handle user interactions within Web pages.
 While Javascript isn't natively event-based, the DOM used in Web pages is.
 The latter uses an event-loop to handle events happening on the Web page, and then triggers associated functions the developer provides.
-
+\TODO{libevent, nginx : papers please ?}
+\TODO{référence to interruptions}
 More recently, \textit{Node.js} used the same event-loop based structure, to propose a non-blocking, event-based Javascript execution environment, specifically adapted for real-time I/O intensive applications like Web services.
 Because of this event-loop based architecture, the I/O API \textit{Node.js} provides is non-blocking and asynchronous.
 The invocation of any function from this API returns immediately not to block the execution with time consuming I/O operations.
@@ -27,20 +32,20 @@ The developer provide an handler function as argument for this asynchronous func
 This handler function is commonly named a callback, \textit{Node.js} uses the convention to place the callback as the last parameter.
 The \textit{Node.js} event-loop receives and gathers every I/O event, waiting its turn in the loop to invoke the associated callback.
 % Listing \ref{lst:callback} illustrates the call of the asynchronous function \texttt{asyncFn} with the callback \texttt{callbackFn}.
-
 In most imperative languages the execution is synchronous by default, while special libraries handle parallelism, some using asynchronism like Promises and Futures cited above.
 However, Node.js imposes natively both synchronous and asynchronous paradigms.
 The asynchronicity of I/O Operations in \textit{Node.js} naturally splits the execution along two execution paths.
 In \textit{Node.js}, a rupture point is an asynchronous function call, defined by these two properties :
 \begin{itemize}
  \item the function is asynchronous
- \item the function is of higher order
+ \item the function is of higher order \TODO{needs explications}
 \end{itemize}
-
 The two distinct execution paths are the synchronous following instructions after the asynchronous function call, and the callback after the asynchronous operation is completed.
 A rupture point marks out two parallelisables parts of a web application.
-One of the compiler step, the pruner, spot the rupture points, and split the application along them.
+One of the compiler step, the mapper, spot the rupture points, and split the application along them.
 
+
+\TODO {Solutions to split memory into distributed parts ?}
 With Promises and Futures, the memory is already either shared, or distributed, and left as is.
 In \textit{Node.js}, the memory is shared, and the execution model expect it to be shattered into the application parts.
 As long as the memory is shared, the application can't be distributed on multiple nodes.
@@ -62,12 +67,15 @@ Another compiler step, the linker, understand and resolve dependenciy conflicts 
 
 In the next subsections, we describe the different compilation steps.
 The compiler uses program from the community, they are described in the first subsection along with the first compilation step.
-Then, we describe the two following, important compilation steps : the \textit{pruner} breaks a program into many independent parts and the \textit{linker} resolves inconsistencies in the shattered functions scopes.
+Then, we describe the two following, important compilation steps : the \textit{mapper} breaks a program into many independent parts and the \textit{linker} resolves inconsistencies in the shattered functions scopes.
 
 % In the next subsections, we describe our work on a compiler to break a program into many independent parts and enclose them in fluxion.
 % We then address the limitations of this method, and possible future improvements.
 
 \subsection{Common tools : parser and code generation}
+
+\TODO{The compiler take javascript program, and output different things : fluxionnal high level langage program, javascript middleware ready, graphs.
+So it needs a parser and a code generation tool.}
 
 Parsing code and generating code back are common tasks.
 There exist projects to fulfill these tasks, like \textit{Esprima} and \textit{Acorn}, two Javascript parser.
@@ -93,9 +101,9 @@ Thes AST can be traversed and explore with the use of \textit{Estraverse}.
 One of the last compilation step is to produce a Javascript executable which uses the fluxionnal execution model.
 To generate this Javascript code, the compiler use Escodegen, to transform back the AST into Javascript source code.
 
-\subsection{Pruner : breaking the program}
+\subsection{Mapper : breaking the program}
 
-The pruner detects rupture points, breaks the application into parts along them, and map every function scope to its corresponding application part.
+The mapper detects rupture points, breaks the application into parts along them, and map every function scope to its corresponding application part.
 Rupture points are indicated by calls of asynchronous function of higher order.
 
 We distinguish specials rupture points indicated by asynchronous function handling series of external requests.
@@ -227,6 +235,37 @@ The placeholder function call replacing \texttt{asyncFn} after compilation of li
 %   flx.post(flx.m("asyncFn-uid", {a, b, c})); @\label{lst:placeholdercall}@
 % }
 % \end{code}
+
+
+
+
+
+
+
+\subsection{Fluxionnal high level language printer}
+
+
+
+
+
+
+\subsection{Fluxionnal execution model printer}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
