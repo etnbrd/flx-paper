@@ -5,7 +5,7 @@ This section explains a method we developed to transform a subset of classic web
 This transformation unveils two problems.
 A distributed system is defined in the first section by the parallel execution of its parts, and the independence of this parts from common memory.
 While a classic web application is not composed of many independent parts, and relies on a central memory.
-The problems are, firstly to parallelize the execution of a monolithic application into many parts, and secondly to distribute the central memory among these independent parts.
+The problems are, firstly to parallelize the execution of a mono-thread application into many parts, and secondly to distribute the central memory among these independent parts.
 \TODO{does it need a definition of the classic web application ? if so, should be in the introduction, not here}
 We describe a compiler as a solution to this problems, hence capable to turn a classic web application into a scaling distributed system. \TODO{scaling is a bold claim, need some background}
 
@@ -27,58 +27,49 @@ The latter uses an event-loop to handle events happening on the Web page, and th
 \TODO{référence to interruptions}
 More recently, \textit{Node.js} used the same event-loop based structure, to propose a non-blocking, event-based Javascript execution environment, specifically adapted for real-time I/O intensive applications like Web services.
 Because of this event-loop based architecture, the I/O API \textit{Node.js} provides is non-blocking and asynchronous.
-The invocation of any function from this API returns immediately not to block the execution with time consuming I/O operations.
+% The invocation of any function from this API returns immediately not to block the execution with time consuming I/O operations.
 The developer provide an handler function as argument for this asynchronous function to invoke when the operation completes.
-This handler function is commonly named a callback, \textit{Node.js} uses the convention to place the callback as the last parameter.
+This handler function is commonly named a callback.%, \textit{Node.js} uses the convention to place the callback as the last parameter.
 The \textit{Node.js} event-loop receives and gathers every I/O event, waiting its turn in the loop to invoke the associated callback.
 % Listing \ref{lst:callback} illustrates the call of the asynchronous function \texttt{asyncFn} with the callback \texttt{callbackFn}.
-In most imperative languages the execution is synchronous by default, while special libraries handle parallelism, some using asynchronism like Promises and Futures cited above.
-However, Node.js imposes natively both synchronous and asynchronous paradigms.
-The asynchronicity of I/O Operations in \textit{Node.js} naturally splits the execution along two execution paths.
-In \textit{Node.js}, a rupture point is an asynchronous function call, defined by these two properties :
-\begin{itemize}
- \item the function is asynchronous
- \item the function is of higher order \TODO{needs explications}
-\end{itemize}
-The two distinct execution paths are the synchronous following instructions after the asynchronous function call, and the callback after the asynchronous operation is completed.
-A rupture point marks out two parallelisables parts of a web application.
+% In most imperative languages the execution is synchronous by default, while special libraries handle parallelism, some using asynchronism like Promises and Futures cited above.
+% However, 
+\textit{Node.js} imposes natively both synchronous and asynchronous paradigms.
+The asynchronous functions provided by \textit{Node.js} split the execution along two execution paths.
+We defined rupture points in \textit{Node.js} as an asynchronous function call using a callback mechanism.
+The two distinct execution paths are the synchronous instructions following the asynchronous function call, and the callback.
+A rupture point marks out two independent parts of a web application.
 One of the compiler step, the mapper, spot the rupture points, and split the application along them.
 
+\TODO {References of solutions to split memory into distributed parts ?}
+Parallelism is not sufficient for an application to be distributed, because of the central memory.
+Promises and Futures don't transform a central memory into a distributed memory.
+\textit{Node.js} provide a central memory, while the execution model expect it to be distributed into the application parts.
+The compiler needs to split the shared memory into the application parts for the application to be compliant with the execution model previously described.
 
-\TODO {Solutions to split memory into distributed parts ?}
-With Promises and Futures, the memory is already either shared, or distributed, and left as is.
-In \textit{Node.js}, the memory is shared, and the execution model expect it to be shattered into the application parts.
-As long as the memory is shared, the application can't be distributed on multiple nodes.
-The compiler need to split the shared memory into the application parts.
-
-In Javascript, a function define its own scope, child of the function's scope the child function is defined within.
-A child function can access every of its parent scope up to the root scope.
-The root scope is called global, or window, wether you are in node.js or a browser.
-
-In Javascript, the memory is enclosed in nested or chained scopes.
+In Javascript, scopes are nested and only defined by functions.
 Each function create a new scope containing variables local to itself.
-This scope is chained to the scope of the parent function, so that the child function can access variables in the scope of the parent function.
+This scope is chained to the scope of the parent function, so that the child function can access variables in the scope of the parent function, up to the global scope.
 Callbacks defined inside a scope can access the same scope as the calling function, allowing them to share variables.
+This feature is named closure.
 
-Rupture points define application parts along scopes frontier, so a scope is never shared between two application parts.
-However, parent and child scopes might be separated in two application parts.
+Rupture points are always situated along scopes limits.
+A scope is never shared between two application parts.
+However, a child scopes separated in another application parts than its parent can't access the scopes it expects.
 If the two scopes don't share the same memory, variables from the parent are unavailable for the child.
-Another compiler step, the linker, understand and resolve dependenciy conflicts between the distributed functions scopes.
+Another compiler step, the linker, understand and resolve dependencies conflicts between the distributed functions scopes.
 
-In the next subsections, we describe the different compilation steps.
-The compiler uses program from the community, they are described in the first subsection along with the first compilation step.
-Then, we describe the two following, important compilation steps : the \textit{mapper} breaks a program into many independent parts and the \textit{linker} resolves inconsistencies in the shattered functions scopes.
-
-% In the next subsections, we describe our work on a compiler to break a program into many independent parts and enclose them in fluxion.
-% We then address the limitations of this method, and possible future improvements.
+In the next subsections, we describe the compilation steps.
+The compiler uses program from the community, they are described in the first subsection along with the trivial compilation step.
+Then, we describe two important compilation steps corresponding to the two previously described problems.
+The \textit{mapper} breaks a program into many independent parts and the \textit{linker} resolves inconsistencies in the shattered memory scopes.
 
 \subsection{Common tools : parser and code generation}
 
-\TODO{The compiler take javascript program, and output different things : fluxionnal high level langage program, javascript middleware ready, graphs.
-So it needs a parser and a code generation tool.}
-
+The first compilation step is to parse the source code taken as input.
+The last compilation step is to output Javascript code either as a Javascript source code to run on the fluxionnal execution model, or as code in another high-level langage describing the fluxions and their content.
 Parsing code and generating code back are common tasks.
-There exist projects to fulfill these tasks, like \textit{Esprima} and \textit{Acorn}, two Javascript parser.
+There exist community projects to fulfill these tasks, like \textit{Esprima} and \textit{Acorn}, two Javascript parser.
 For this compiler we use a serie of tool written by Ariya Hidayat and Yusuke Suzuki for the projects \textit{Esprima} and \textit{Esmangle}.
 These tools follow the specification for an intermediate representation of the Javascript source code from the Mozilla Javascript Parser API : the Abstract Syntax Tree (AST)\footnote{\raggedright https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser\_API}.
 This structured representation breaks the source into a tree of nodes, each representing a construct from the source, like an operation or an identifier.
