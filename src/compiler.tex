@@ -200,7 +200,7 @@ The variable is needed read-only by an upstream fluxion : ???? (lacking)
   The signature of a fluxion is added in the message body between two fluxions.
 
   Every reference of this variable is replaced by a reference pointing in the signature part of the message.
-  (basically reference -> msg._sign.reference)
+  (basically reference -> msg.\_sign.reference)
 
   As a fluxion is only called on a message reception, the variable should never be lacking.
   If there is a problem in this situation, it is most likely a compilation error : the reference has not been replaced correctly, or the code is a corner case the compiler can't resolve yet.
