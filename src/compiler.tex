@@ -88,17 +88,16 @@ CallExpression {
 The compiler uses \textit{Esprima} to parse the source and generate the AST.
 It is the first compilation step.
 Thes AST can be traversed and explore with the use of \textit{Estraverse}.
-\textit{Escope} detects function scopes and variables declaration using the previously generated AST, and output an object to represent the organisation of these scopes inside the source code.
+\textit{Escope} detects function scopes and variables declaration using the previously generated AST, and output an object to represent the organization of these scopes inside the source code.
 One of the last compilation step is to produce a Javascript executable which uses the fluxionnal execution model.
 To generate this Javascript code, the compiler use Escodegen, to transform back the AST into Javascript source code.
 
-\subsection{Mapper : breaking the program}
+\subsection{Analyzer : spotting the rupture points}
 
-The mapper detects rupture points, breaks the application into parts along them, and map every function scope to its corresponding application part.
-Rupture points are indicated by calls of asynchronous function of higher order.
+The analyzer detects rupture points.
+Rupture points are an asynchronous continuity in the execution flow, indicated by calls of asynchronous function with a callback in the parameters.
 
-We distinguish specials rupture points indicated by asynchronous function handling series of external requests.
-Unlike basic rupture points indicating an asynchronous continuity in the execution flow, the reception of an external request indicate the start of a virtualy new execution flow.
+We distinguish specials rupture points indicated by asynchronous functions handling series of external requests.
 We distinguish these two types of rupture points to simplify later the dynamic analysis of system load.
 Each new incoming request represent an additional load for the system, and is the main unpredictable factor.
 While the incoming request load is taken into account, the load of every application part following in the continuity of the execution flow can be infered before run-time. 
@@ -112,7 +111,8 @@ These two types of rupture points corresond to different asynchronous functions 
 Basic rupture points are indicated by asynchronous functions providing immediate I/O operation.
 Callbacks of these functions are invoked only once, and continue the execution after the completion of the I/O operation.
 Because of their asynchronism, these function calls mark the frontier between the current fluxion and the next one, inside a chain of fluxion.
-The compiler replaces the asynchronous function call by a call to a placeholder function.
+The compiler break the program before the call to the asynchronous function, but after the resolution of the arguments.
+The javascript middleware printer replaces the asynchronous function call by a call to a placeholder function.
 % This placeholder function uses the function \texttt{post(<msg>)} provided by the fluxionnal execution model described section \ref{section:model}.
 % The placeholder function is detailed later, section \ref{ss:Scope}.
 
@@ -144,9 +144,18 @@ app.get('/', function(req, res) {
 There is in this program only two scopes, the global scope, and the scope of the anonymous function.
 These two scopes don't share any variable.
 
+
+
+\subsection{Mapper : correspondence between function scope and fluxion}
+
+The rupture points placed by the analyzer delimit the application parts along with the contained function scopes.
+A scope contains identifiers which are used as references to variables.
+This variable can be in the same scope than the identifier, or in any parent scope.
+That means an identifier and the refereed variable might be in different application parts, therefor, separated once the application is distributed.
+The mapper linnk every scope to its corresponding scope, for the Linker later to be able to resolve these unmet dependencies.
+
 \subsection{Linker : resolving dependencies} \label{ss:linker}
 
-In real world application, unlike in the previous example, the previously split applicaiton parts share variables, like the following example.
 In this example web application, the two fluxions share a common variable : \texttt{rep}.
 
 \begin{code}[Javascript, caption={Hello World with a shared variable},label={lst:sharedhello}]
@@ -163,10 +172,10 @@ Mike Stonebraker explain in another blog post\footnote{http://voltdb.com/blog/vo
 Partition tolerance can't be avoided, so the only possible trade off is between consistency and availability.
 These two tradeoff are defined in the literature as ACID (Atomicity, Consistency, Isolation, Durability) for consistency over availability, and BASE (Basically Available, Soft state, Eventual consistency) for availability over consistency.
 
-If this trends is verified, transactional systems trading off availability for consistency, will become slower and slower.
+If this trends is verified, transactional systems trading off availability for consistency, will become slower and slower, until they are considered unavailable because of the response time.
 It is hard to assure the atomicity of a transaction on a large cluster of machines, because it implies to block it [bullshit alert].
-Choosing to sacrifice consistency might improve performance, without durable inconsistency in the datas.
-It let design a lot more flexible solution, which have a better chance to cope with this kind of highly distributed architecture.
+Choosing to sacrifice consistency might improve performance, without durable inconsistency in the data.
+It let design a more flexible solution, which have a better chance to cope with this kind of highly distributed architecture.
 
 
 Dynamo system\footnote{http://s3.amazonaws.com/AllThingsDistributed/sosp/amazon-dynamo-sosp2007.pdf} already provides techniques to avoid complete chaos in a distributed system favoring availability.
@@ -182,7 +191,10 @@ To resolve the dependencies in a fluxion's signature, the compiler uses differen
 The variable is modified by one fluxion : Scope
 The variable is modified by at least two fluxion : Sync
 The variable is needed read-only by a downstream fluxion : signature
-The variable is needed read-only by an upstream fluxion : ???? (lacking)
+The variable is needed read-only by an upstream fluxion : ???? (lacking, and probably impossible)
+
+TODO :
+The two types of rupture points - corresponding to one-time event, and series of events - are broken differently by the mapper.
 
 
 \subsubsection{Signature}
