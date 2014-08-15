@@ -2,19 +2,22 @@
 
 The first section of this paper describe the fluxionnal execution model, a framework to run web application in a distributed environment.
 This section explains a method we developed to transform a subset of classic web application to be compliant with the execution model previously described.
-This transformation unveils two problems.
-A distributed system is defined in the first section by the parallel execution of its parts, and the independence of this parts from common memory.
-While a classic web application is not composed of many independent parts, and relies on a central memory.
-The problems are, firstly to parallelize the execution of a mono-thread application into many parts, and secondly to distribute the central memory among these independent parts.
+This transformation unveils two problems due to the differences between a web application and the execution model.
+In the first section, a distributed system is defined by the parallel execution of its parts, and the distribution of its memory.
+A classic web application is not composed of many independent parts, and relies on a central memory.
+The problems are to parallelize the execution of a mono-thread application into many parts, and to distribute the central memory among these independent parts.
 \TODO{does it need a definition of the classic web application ? if so, should be in the introduction, not here}
 We describe a compiler as a solution to this problems, hence capable to turn a classic web application into a scaling distributed system. \TODO{scaling is a bold claim, need some background}
 
-The parallelization of a mono threaded program is a trending problem since the multiplication of the number of cores available on a machine.\TODO{references}
-Asynchronism is different than parallelism, but in certain cases, one allow the other.
+The parallelization of a program designed for a mono thread architecture is a trending problem since the multiplication of the number of cores available on a machine.\TODO{references, see parallelization in my biblio}
+It would allow developers to continue design application the same way they used to, while leveraging the performance of a multi-core architecture.
+% Asynchronism is different than parallelism, but in certain cases, one allow the other.
+From the sun programming guide\footnote{http://docs.oracle.com/cd/E19455-01/806-5257/6je9h032b/index.html}, parallelism is \textit{a condition that arises when at least two threads are executing simultaneously}, and concurrency is \textit{a condition that exists when at least two threads are making progress. A more generalized form of parallelism that can include time-slicing as a form of virtual parallelism}.
+Asynchronism is a condition that arises during a communication, when a point doesn't wait for the answer to his request to continue processing an independent thread of execution.
+In an asynchronous execution, the requested operation run along the main thread until the value is needed, releasing the main thread from waiting the operation to complete.
 Promises\cite{Liskov1988} and Futures[??] are abstractions from an imperative, synchronous programing style, to an asynchronous execution model.
-They transform synchronous, long waiting operations - like RPC or I/O - into asynchronous operations.
-In a synchronous execution, the requested operation block the main thread until computation completes.
-While in an asynchronous execution, the requested operation run along the main thread until the value is needed, releasing the main thread from waiting the operation to complete.
+They transform synchronous, long waiting operations - like remote procedure calls or input output operations - into asynchronous operations.
+% In a synchronous execution, the requested operation block the main thread until computation completes.
 This asynchronism make the two execution paths independent, thus they can run in parallel until they are not independent enough - when one needs results from another.
 We call rupture points, points where the execution flow forks in two independent and parallel paths.
 These points mark out the limits between independent parts.
@@ -23,8 +26,8 @@ These points mark out the limits between independent parts.
 Javascript is a functional and dynamically typed language initially introduced to handle user interactions within Web pages.
 While Javascript isn't natively event-based, the DOM used in Web pages is.
 The latter uses an event-loop to handle events happening on the Web page, and then triggers associated functions the developer provides.
-\TODO{libevent, nginx : papers please ?}
-\TODO{référence to interruptions}
+\TODO{libevent, nginx : cite papers}
+\TODO{references to interruptions}
 More recently, \textit{Node.js} used the same event-loop based structure, to propose a non-blocking, event-based Javascript execution environment, specifically adapted for real-time I/O intensive applications like Web services.
 Because of this event-loop based architecture, the I/O API \textit{Node.js} provides is non-blocking and asynchronous.
 % The invocation of any function from this API returns immediately not to block the execution with time consuming I/O operations.
@@ -34,12 +37,12 @@ The \textit{Node.js} event-loop receives and gathers every I/O event, waiting it
 % Listing \ref{lst:callback} illustrates the call of the asynchronous function \texttt{asyncFn} with the callback \texttt{callbackFn}.
 % In most imperative languages the execution is synchronous by default, while special libraries handle parallelism, some using asynchronism like Promises and Futures cited above.
 % However, 
-\textit{Node.js} imposes natively both synchronous and asynchronous paradigms.
-The asynchronous functions provided by \textit{Node.js} split the execution along two execution paths.
-We defined rupture points in \textit{Node.js} as an asynchronous function call using a callback mechanism.
+\textit{Node.js} imposes natively an asynchronous paradigms along with the classic synchronous execution flow.
+An asynchronous functions split the execution along two concurrent execution paths, the path independent from the asynchronous request, and the path handling the answer of the request.
+We defined rupture points in \textit{Node.js} as an asynchronous function call using a callback mechanism to handle the result.
 The two distinct execution paths are the synchronous instructions following the asynchronous function call, and the callback.
 A rupture point marks out two independent parts of a web application.
-One of the compiler step, the mapper, spot the rupture points, and split the application along them.
+One of the compilation step, the analyzer, spot the rupture points for the another compilation step, the mapper, to split the application along them.
 
 \TODO {References of solutions to split memory into distributed parts ?}
 Parallelism is not sufficient for an application to be distributed, because of the central memory.
@@ -47,11 +50,11 @@ Promises and Futures don't transform a central memory into a distributed memory.
 \textit{Node.js} provide a central memory, while the execution model expect it to be distributed into the application parts.
 The compiler needs to split the shared memory into the application parts for the application to be compliant with the execution model previously described.
 
-In Javascript, scopes are nested and only defined by functions.
+In Javascript, scopes are nested one in the other, the parent being the global scope.
 Each function create a new scope containing variables local to itself.
 This scope is chained to the scope of the parent function, so that the child function can access variables in the scope of the parent function, up to the global scope.
 Callbacks defined inside a scope can access the same scope as the calling function, allowing them to share variables.
-This feature is named closure.
+% This feature is named closure.
 
 Rupture points are always situated along scopes limits.
 A scope is never shared between two application parts.
@@ -60,9 +63,9 @@ If the two scopes don't share the same memory, variables from the parent are una
 Another compiler step, the linker, understand and resolve dependencies conflicts between the distributed functions scopes.
 
 In the next subsections, we describe the compilation steps.
-The compiler uses program from the community, they are described in the first subsection along with the trivial compilation step.
-Then, we describe two important compilation steps corresponding to the two previously described problems.
-The \textit{mapper} breaks a program into many independent parts and the \textit{linker} resolves inconsistencies in the shattered memory scopes.
+Some part of the compilation chain are tools from the community, they are described in the first subsection along with the trivial compilation step.
+Then, we describe three important compilation steps relevant to the two previously described problems.
+The \textit{analyzer} detects rupture points in an application, later for the \textit{mapper} to break the application into many independent parts along the rupture points, then the \textit{linker} resolves inconsistencies between the shattered memory scopes.
 
 \subsection{Common tools : parser and code generation}
 
@@ -95,64 +98,143 @@ To generate this Javascript code, the compiler use Escodegen, to transform back 
 \subsection{Analyzer : spotting the rupture points}
 
 The analyzer detects rupture points.
+A rupture point is composed of an asynchronous function, and a callback.
+We define in this section what a rupture point is, and how we detect them.
+
+\subsubsection{Rupture points}
+
 Rupture points are an asynchronous continuity in the execution flow, indicated by calls of asynchronous function with a callback in the parameters.
+We distinguish specials rupture points indicated by asynchronous functions handling series of external requests, from basic rupture points indicated by asynchronous functions handling only a one time event inside of the application.
+We distinguish these two types of rupture points to simplify later the dynamic analysis of the system load.
+The special rupture points are the entry point for the flow of request, and so is a point of choice to measure the load during run-time.
+We explain this point in details in the next section of this paper. \TODO{if we have the time to make the analysis}
+% In a special rupture point, each new incoming request represent an additional load for the system.
+% While the incoming request load is taken into account, the load of every application part following in the continuity of the execution flow can be infered before run-time. 
+% The system load is only dependent at run time of the input in the system, everything else can be infered before run-time.
+These two types of rupture points corresond to different asynchronous functions in the \textit{Node.js} I/O API : the functions handling only one I/O event, or a bounded series of I/O events, and the functions handling an unbounded serie of I/O events.
 
-We distinguish specials rupture points indicated by asynchronous functions handling series of external requests.
-We distinguish these two types of rupture points to simplify later the dynamic analysis of system load.
-Each new incoming request represent an additional load for the system, and is the main unpredictable factor.
-While the incoming request load is taken into account, the load of every application part following in the continuity of the execution flow can be infered before run-time. 
-The system load is only dependent at run time of the input in the system, everything else can be infered before run-time.
-We explain this point in details in the next section of this paper.
-
-These two types of rupture points corresond to different asynchronous functions in the \textit{Node.js} I/O API : the functions handling only one I/O event, or a bounded serie of I/O events, and the functions handling an unbounded serie of I/O events.
-
-\subsubsection{One-time event} \label{sss:post}
+\paragraph{One-time event} \label{sss:post}
 
 Basic rupture points are indicated by asynchronous functions providing immediate I/O operation.
 Callbacks of these functions are invoked only once, and continue the execution after the completion of the I/O operation.
-Because of their asynchronism, these function calls mark the frontier between the current fluxion and the next one, inside a chain of fluxion.
-The compiler break the program before the call to the asynchronous function, but after the resolution of the arguments.
+Because of their asynchronism, these function calls mark the frontier between the current application part and the next one, inside a chain of fluxion.
+The rupture point is placed before the call to the asynchronous function, but after the resolution of the arguments.
 The javascript middleware printer replaces the asynchronous function call by a call to a placeholder function.
 % This placeholder function uses the function \texttt{post(<msg>)} provided by the fluxionnal execution model described section \ref{section:model}.
 % The placeholder function is detailed later, section \ref{ss:Scope}.
 
-\subsubsection{Series of events} \label{sss:start}
+\paragraph{Series of events} \label{sss:start}
 
 Special rupture points are indicated by asynchronous functions providing a callback for a series of future event.
-The handler of a network socket is called once for each incoming request.
+For example, the handler of a network socket is called once for each incoming request.
 The callbacks of these functions indicate the input of a data stream in the program, and the beginning of a fluxions chain.
 As the callbacks mark the frontier between the current fluxion and the beginning fluxions chain, the compiler replaces the callback by a placeholder function starting the chain.
 % This placeholder function uses the function \texttt{start(<msg)} provided by the fluxionnal execution model described section \ref{section:model}.
 % The placeholder function is detailed later, section \ref{ss:Scope}.
 
-The compiler uses a dictionnary of asynchronous functions to detect rupture points during the static analysis.
-The compiler build this dictionnary when finding in the source, modules providing asynchronous function.
+\subsubsection{Detection}
+
+To detect a rupture point, it require to detect successfully the two components : the asynchronous function and the callback function.
+
+\paragraph{Asynchronous functions}
+
+Asynchronous functions are detected from their call name, linked from the module exposing them.
+In Javascript, modules are included and stored in variables via the call to the \texttt{require} function.
+The name of the variable holding the module is specified by the developer, so the only constant hold onto the asynchronous function is the call to the \texttt{require} function
+The compiler uses a dictionnary of known asynchronous functions in modules to detect rupture points during the static analysis.
 Such modules are \textit{Express} and \textit{fs}.
-To find possible rupture points, the compiler tests the callee expression against this dictionnary for each callExpression node in the AST.
+To find possible rupture points, the compiler tests the callee expression against the variable known for holding these modules.
 
-The compiler detects one rupture point for the following hello world web application. 
+To accurately detect the asynchronous function, we need to track the variables holding asynchronous functions.
+The more accurately we can track changes in this variables, the more rupture points we can find, the better the application can be distributed.
+This detection is done by traversing the AST, to find the node responsible for the assignment of modules in variables.
+More advanced tracking technique could be used later to improve the efficiency of the compiler.
 
-\begin{code}[Javascript, caption={Hello World},label={lst:hello}]
-var app = require('express');
-app.get('/', function(req, res) {
-  res.send("Hello World :)");
-});
-\end{code}
+
+% The compiler detects one rupture point for the following hello world web application. 
+
+% \begin{code}[Javascript, caption={Hello World},label={lst:hello}]
+% var app = require('express');
+% app.get('/', function(req, res) {
+%   res.send("Hello World :)");
+% });
+% \end{code}
 
 % TODO insert the graph for this program
 
-There is in this program only two scopes, the global scope, and the scope of the anonymous function.
-These two scopes don't share any variable.
+% There is in this program only two scopes, the global scope, and the scope of the anonymous function.
+% These two scopes don't share any variable.
 
+
+\paragraph{Callback function}
+
+To detect a callback function, we track every argument of an asynchronous function call to test if it is a function.
+Some callback functions are declared \textit{in situ}, and are trivially detected.
+For every other variable identifier, we track the declaration to recursively test the initialization value.
+This method is not exhaustive, but it is a first step to increase the detection of rupture points.
 
 
 \subsection{Mapper : correspondence between function scope and fluxion}
 
-The rupture points placed by the analyzer delimit the application parts along with the contained function scopes.
-A scope contains identifiers which are used as references to variables.
-This variable can be in the same scope than the identifier, or in any parent scope.
-That means an identifier and the refereed variable might be in different application parts, therefor, separated once the application is distributed.
-The mapper linnk every scope to its corresponding scope, for the Linker later to be able to resolve these unmet dependencies.
+% The rupture points placed by the analyzer delimit all the application parts.
+
+% A scope contains identifiers which are used as references to variables.
+% These variables can be in the same scope than the identifier, or in any parent scope.
+% That means an identifier and the refereed variable might be in different application parts, therefor, separated once the application is distributed.
+% The mapper link every scope to the application part it is in, later for the Linker to be able to resolve unmet dependencies between scopes in different application parts.
+
+
+% A rupture points is composed of two things : the asynchronous call, and the callback.
+% The asynchronous call marks the execution limit between two application parts.
+% The execution before and after the asynchronous call, the execution belong to a first application part.
+% The execution of the asynchronous callback belongs to a second application part.
+% The execution of the asynchronous function belonging depends of the type of the rupture point, determined by the type of the asynchronous function.
+
+% The callback marks the scopes limit between two parts.
+% The calling function's scope, and the callback function's scope belong in two different application parts.
+
+% The callback might not be defined in the same scope as the asynchronous function, and might even be completely independent, relayed by assignation from one scope to another.
+% To map the scopes to application parts, we must follow the callback limits : we enter a new application parts when we encounter a function flagged as a rupture point.
+
+% However, application parts connectivity, by sending message occurs around the other component of a rupture point : the asynchronous function call.
+% During this call, we send a message for the next application part to receive.
+
+
+% Breaking the program.
+
+The mapper breaks the program along rupture points to create application parts, later for these parts to be enclosed in fluxions as described in the previous section.
+The two types of rupture points break differently.
+The basic rupture point is an asynchronous continuity in the execution flow, it breaks before the asynchronous call, but after the resolution of the arguments.
+\TODO{Why does it makes sense to include the asynchronous call in the next fluxion ?}
+
+The special rupture point is an entry point into the system, making the system reacts for every request.
+The asynchronous function of this type of rupture point is called one time, while the callback handling the event is triggered for each event.
+That means the application parts containing the asynchronous function is executed one time, while the parts containing the callback is executed multiple times.
+They cannot be in the same application parts, and be broken apart into two fluxions.
+
+
+
+% There is two types of rupture points, and two type of situation for the callback definition.
+% Rupture point can be of type start or post.
+% The callback function can be declared anonymously, or not.
+% As we are going to tamper with the code, we need to make the safest assumptions possible.
+% If a function isn't anonymously declared in situ, there is chances it is used elsewhere, we need to be sure it is not the case before splitting the program into parts.
+
+% To do that, we track the identifier used to pass the function in every scope it is accessible : the scope it is declared in, and every child scope.
+
+% We encounter a limitation here.
+% Because of conditional execution, we can't be sure of the alteration of a variable, and of its final value.
+% We consider only the safest assumptions, so if an identifier is used beside its declaration, we assume the function it is referring to is used, and we can't simply remove it from the scope.
+
+
+
+
+% \TODO{what about member expressions like handlers.event1}
+
+
+
+
+
 
 \subsection{Linker : resolving dependencies} \label{ss:linker}
 
@@ -166,6 +248,7 @@ app.get('/', function(req, res) {
 });
 \end{code}
 
+\TODO {context about ACID and BASE}
 According to Brewer's theorem, formalized by Seth Gilbert and Nancy Lynch \cite{Gilbert2002}, a web application can only have two among the three options, Consistency, Availability, Partition tolerance.
 As Coda Hale explained in one of his blog post\footnote{http://codahale.com/you-cant-sacrifice-partition-tolerance/}, network and node failures are unavoidable, a distributed system can't avoid to have failure.
 Mike Stonebraker explain in another blog post\footnote{http://voltdb.com/blog/voltdb-products/clarifications-cap-theorem-and-data-related-errors/} that the trends is to make big data applications run on larger cluster of unreliable commodity machines.
@@ -177,25 +260,19 @@ It is hard to assure the atomicity of a transaction on a large cluster of machin
 Choosing to sacrifice consistency might improve performance, without durable inconsistency in the data.
 It let design a more flexible solution, which have a better chance to cope with this kind of highly distributed architecture.
 
-
 Dynamo system\footnote{http://s3.amazonaws.com/AllThingsDistributed/sosp/amazon-dynamo-sosp2007.pdf} already provides techniques to avoid complete chaos in a distributed system favoring availability.
 
 
-
-
-
-While walking the AST, the compiler register every use of variables in a scope to determine what type of access is needed.
-There is two type of access : read-only and modification.
+The linker analyzes how scopes are distributed among the application parts, and which variables are distributed on multiple application parts.
+\textit{Escope} gives the compiler informations about the references of every variables in the application.
+Among these references, we track the modifications of variables.
+% There is two type of access : read-only and modification.
 To resolve the dependencies in a fluxion's signature, the compiler uses different techniques.
 
 The variable is modified by one fluxion : Scope
 The variable is modified by at least two fluxion : Sync
 The variable is needed read-only by a downstream fluxion : signature
-The variable is needed read-only by an upstream fluxion : ???? (lacking, and probably impossible)
-
-TODO :
-The two types of rupture points - corresponding to one-time event, and series of events - are broken differently by the mapper.
-
+% The variable is needed read-only by an upstream fluxion : ???? (lacking, and probably impossible)
 
 \subsubsection{Signature}
 
@@ -217,16 +294,27 @@ The two types of rupture points - corresponding to one-time event, and series of
 
 \subsubsection{Sync}
 
-  If 
-
   If a variable is needed for modification by more than one fluxion, this variable needs to be synchronised between the fluxions.
-  Here we want to apply some BASIC and Dynamo magic.
+  Here we want to apply some BASIC, Dynamo magic.
+
+
+% As fluxions are chained one after another, a fluxion must provide every dependency for the next one, even if some of this dependencies miss from its own scope or signature.
+% These dependencies must be passed fluxion after fluxion from the producing fluxion, to the consuming fluxion.
+% So, the message stream linking one fluxion to another includes the signature of the next fluxion as well as dependencies targeting downstream fluxions.
+% The compiler has to resolve the content of these message streams beginning by the last fluxions and going upstream to the first ones.
+% Figure \ref{fig:streamline} illustrate this principle : since fluxion \textit{C} needs the variable \textit{z}, fluxion \textit{B} needs the variable \textit{z} as well to pass it along to fluxion \textit{C}.
+
+% \begin{figure}[h!]
+%   \includegraphics[width=\linewidth]{ressources/streamline.pdf}
+%   \caption{Fluxion C needs the variable z, so does fluxion B}
+%   \label{fig:streamline}
+% \end{figure}
 
 
 
-, the parent function sends the signature of the next fluxion in the same message together with the result of the asynchronous operation.
-As the placeholder function call have the same scope than the asynchronous function call or callback it replaces, it is responsible for gathering the variables from the signature in a message along with the result of the operation and send it to the next fluxion.
-The placeholder function call replacing \texttt{asyncFn} after compilation of listing \ref{lst:callback} is described in listing \ref{lst:placeholder}, line \ref{lst:placeholdercall}.
+% , the parent function sends the signature of the next fluxion in the same message together with the result of the asynchronous operation.
+% As the placeholder function call have the same scope than the asynchronous function call or callback it replaces, it is responsible for gathering the variables from the signature in a message along with the result of the operation and send it to the next fluxion.
+% The placeholder function call replacing \texttt{asyncFn} after compilation of listing \ref{lst:callback} is described in listing \ref{lst:placeholder}, line \ref{lst:placeholdercall}.
 
 % \begin{code}[Javascript, caption={Example of a placeholder function call},label={lst:placeholder}]
 % function MyFn() {
@@ -243,25 +331,44 @@ The placeholder function call replacing \texttt{asyncFn} after compilation of li
 
 
 
+\subsection{Printers}
+
+The last compilation step is to print the descriptive object of the applications parts into different form.
+We developed three different printers.
+One to describe exhaustively the application parts in a new high-level language we designed.
+One to output a javascript executable file compliant with the distributed execution model described in the previous section.
+Finally, one to describe concisely the applications parts and the message passing into a graph. 
 
 
-\subsection{Fluxionnal high level language printer}
+\subsubsection{Fluxionnal high level language printer}
+
+The Fluxionnal high level language describe the application into fluxion.
+Each application part is preceded by its declaration : its name, the next downstream fluxion it sends message to, and the variables needed from other fluxions.
+Following is the javascript code of the application part.
+
+\subsubsection{Fluxionnal execution model printer}
+
+This printer encapsulate the previously prepared application parts into execution ready fluxions.
+
+To hold heterogeneous pieces of code in a single container like a fluxion, this printer put some glue code in between.
+This glue code is mainly trivial.
+
+We call the code provided modifying the execution context using the method \texttt{apply}.
+It execute the application parts processing function within an artificially similar context to the one expected in the original application.
+
+There is limitations in this method.
+The context is not identically reproduced.
+For example, the \texttt{caller} variable is not reproduced.
+Programs relying on this variable might contains bugs after compilation.
 
 
 
 
+When a variable is modified by more than one application part, the glue code synchronizes it between them.
+There is two part in this synchronization, the sending of the modified variable, and the reception and actualization of the modified variable.
 
-
-\subsection{Fluxionnal execution model printer}
-
-
-
-
-
-
-
-
-
+The first part is a message sent from the fluxion modifying the variable at the end of its execution, after the processing function executed.
+When a fluxion receives a message updating a variable, it just update the variable, and does not execute the processing function, as there is no message to process.
 
 
 
@@ -273,17 +380,6 @@ The placeholder function call replacing \texttt{asyncFn} after compilation of li
 
 
 % Stream line
-As fluxions are chained one after another, a fluxion must provide every dependency for the next one, even if some of this dependencies miss from its own scope or signature.
-These dependencies must be passed fluxion after fluxion from the producing fluxion, to the consuming fluxion.
-So, the message stream linking one fluxion to another includes the signature of the next fluxion as well as dependencies targeting downstream fluxions.
-The compiler has to resolve the content of these message streams beginning by the last fluxions and going upstream to the first ones.
-Figure \ref{fig:streamline} illustrate this principle : since fluxion \textit{C} needs the variable \textit{z}, fluxion \textit{B} needs the variable \textit{z} as well to pass it along to fluxion \textit{C}.
-
-\begin{figure}[h!]
-  \includegraphics[width=\linewidth]{ressources/streamline.pdf}
-  \caption{Fluxion C needs the variable z, so does fluxion B}
-  \label{fig:streamline}
-\end{figure}
 
 \subsection{Limitations} \label{ss:Limitations}
 
