@@ -238,64 +238,68 @@ They cannot be in the same application parts, and be broken apart into two fluxi
 
 \subsection{Linker : resolving dependencies} \label{ss:linker}
 
-In this example web application, the two fluxions share a common variable : \texttt{rep}.
+% In this example web application, the two fluxions share a common variable : \texttt{rep}.
 
-\begin{code}[Javascript, caption={Hello World with a shared variable},label={lst:sharedhello}]
-var app = require('express'),
-    rep = "Hello World :)";
-app.get('/', function(req, res) {
-  res.send(rep);
-});
-\end{code}
+% \begin{code}[Javascript, caption={Hello World with a shared variable},label={lst:sharedhello}]
+% var app = require('express'),
+%     rep = "Hello World :)";
+% app.get('/', function(req, res) {
+%   res.send(rep);
+% });
+% \end{code}
 
-\TODO {context about ACID and BASE}
-According to Brewer's theorem, formalized by Seth Gilbert and Nancy Lynch \cite{Gilbert2002}, a web application can only have two among the three options, Consistency, Availability, Partition tolerance.
+According to Brewer's theorem, formalized by Seth Gilbert and Nancy Lynch \cite{Gilbert2002}, a distributed application can only have two among the three options, Consistency, Availability, Partition tolerance.
 As Coda Hale explained in one of his blog post\footnote{http://codahale.com/you-cant-sacrifice-partition-tolerance/}, network and node failures are unavoidable, a distributed system can't avoid to have failure.
 Mike Stonebraker explain in another blog post\footnote{http://voltdb.com/blog/voltdb-products/clarifications-cap-theorem-and-data-related-errors/} that the trends is to make big data applications run on larger cluster of unreliable commodity machines.
 Partition tolerance can't be avoided, so the only possible trade off is between consistency and availability.
 These two tradeoff are defined in the literature as ACID (Atomicity, Consistency, Isolation, Durability) for consistency over availability, and BASE (Basically Available, Soft state, Eventual consistency) for availability over consistency.
 
-If this trends is verified, transactional systems trading off availability for consistency, will become slower and slower, until they are considered unavailable because of the response time.
-It is hard to assure the atomicity of a transaction on a large cluster of machines, because it implies to block it [bullshit alert].
-Choosing to sacrifice consistency might improve performance, without durable inconsistency in the data.
-It let design a more flexible solution, which have a better chance to cope with this kind of highly distributed architecture.
+If this trends is verified, transactional systems trading off availability for consistency might suffer from slower and slower response time, because of the rigidity of the requirements.
+Choosing to sacrifice consistency might improve performance, because of the flexibility allowing to cope with problems emerging from highly distributed architecture, without durable inconsistency in the data because they are avoided by different synchronization techniques.
+Amazon Dynamo system\cite{DeCandia2007} already demonstrated that these techniques can successfully be used to build a distributed system favoring availability without loosing consistency.
+In the article presenting Amazon Dynamo system, the authors said that \textit{experience at Amazon has shown that data stores that provide ACID guarantees tend to have poor availability. This has been widely acknowledged by both the industry and academia}
+This citation take reference from another paper\cite{Fox1997} where Eric Brewer is one of the author.
 
-Dynamo system\footnote{http://s3.amazonaws.com/AllThingsDistributed/sosp/amazon-dynamo-sosp2007.pdf} already provides techniques to avoid complete chaos in a distributed system favoring availability.
+From the Amazon Dynamo system paper : 
+``Dynamo uses a synthesis of well known techniques to achieve scalability and availability: Data is partitioned and replicated using consistent hashing\cite{Karger1997}, and consistency is facilitated by object versioning\cite{Lamport1978}. The consistency among replicas during updates is maintained by a quorum-like technique and a decentralized replica synchronization protocol. Dynamo employs a gossip based distributed failure detection and membership protocol. Dynamo is a completely decentralized system with minimal need for manual administration. Storage nodes can be added and removed from Dynamo without requiring any manual partitioning or redistribution''.
 
+We use these papers to justify our choice for the linker to favor availability over consistency.
+We believe we can make use of this well-known technique in the execution model.
+As these techniques are already well-known, we focused our work on different problematics.
 
+In the following section, we explain the different cases of inconsistency emerging from the partitioning of a central memory.
 The linker analyzes how scopes are distributed among the application parts, and which variables are distributed on multiple application parts.
 \textit{Escope} gives the compiler informations about the references of every variables in the application.
 Among these references, we track the modifications of variables.
-% There is two type of access : read-only and modification.
-To resolve the dependencies in a fluxion's signature, the compiler uses different techniques.
 
-The variable is modified by one fluxion : Scope
-The variable is modified by at least two fluxion : Sync
-The variable is needed read-only by a downstream fluxion : signature
-% The variable is needed read-only by an upstream fluxion : ???? (lacking, and probably impossible)
+To resolve the dependencies in a fluxion's signature, the compiler uses different techniques.
+\begin{description}
+\item[Signature] If the variable is needed read-only by a downstream fluxion, it is sent following the message chain, from the upstream to the downstream fluxion.
+\item[Scope] If the variable is modified by one fluxion, the variable is placed in the own memory of the application part, called scope. 
+\item[Sync] If the variable is modified by at least two fluxion, the variable is synchronized between these fluxions.
+\end{description}
+
 
 \subsubsection{Signature}
 
   The variables needed for read-only access by one of the scope of a fluxion and modified by another fluxion represent its signature.
   The signature of a fluxion is added in the message body between two fluxions.
-
-  Every reference of this variable is replaced by a reference pointing in the signature part of the message.
-  (basically reference -> msg.\_sign.reference)
-
-  As a fluxion is only called on a message reception, the variable should never be lacking.
-  If there is a problem in this situation, it is most likely a compilation error : the reference has not been replaced correctly, or the code is a corner case the compiler can't resolve yet.
+  The code inside the application part is modified to shift the corresponding references to point to the message.
+  % Every reference of this variable is replaced by a reference pointing in the signature part of the message.
+  % (basically reference -> msg.\_sign.reference)
+  % As a fluxion is only called on a message reception, the variable should never be lacking.
+  % If there is a problem in this situation, it is most likely a compilation error : the reference has not been replaced correctly, or the code is a corner case the compiler can't resolve yet.
 
 \subsubsection{Scope}
 
-  The scope of a fluxion holds the variables needed for modification, and never modified in another fluxion.
-  Every reference of this variable is replaced by a reference pointing in the signature part of the message.
-  (basically reference -> this.reference)
-  If a variable in scope is read by another fluxion downstream, this variable is part of the signature of the downstream fluxion.
+  The own memory of an application parts holds the variables needed for modification, and never modified in another application part.
+  This memory is stored in the scope of the fluxion encapsulating the application part.
+  If one of this variables is needed for read by another fluxion downstream, this variable become part of the signature of the downstream fluxion.
 
 \subsubsection{Sync}
 
-  If a variable is needed for modification by more than one fluxion, this variable needs to be synchronised between the fluxions.
-  Here we want to apply some BASIC, Dynamo magic.
+  If a variable is needed for modification by more than one fluxion, this variable needs to be synchronised between the fluxions' scopes.
+  In this context, we use techniques described earlier to reach eventual consistency.
 
 
 % As fluxions are chained one after another, a fluxion must provide every dependency for the next one, even if some of this dependencies miss from its own scope or signature.
