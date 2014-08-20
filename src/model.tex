@@ -8,7 +8,8 @@ We named this execution unit a fluxion.
 That is a function, as in functional programming, only dependent from data streams.
 It is composed of a unique name, a processing function, and a persisted memory context.
 
-Messages are composed of the name of the recipient fluxion, a body, and are carried by a messaging system.
+Messages are carried by a distributed messaging system.
+They are composed of the name of the recipient fluxion and a body.
 While processing a message, the fluxion modifies its context, and sends back messages on its output streams.
 The fluxion's execution context is defined as the set of state variables whose the fluxion depends on, between two rounds of execution.
 
@@ -34,7 +35,8 @@ The life cycle of a fluxionnal application is pictured on figure \ref{fig:MesSys
 The messaging system needs every fluxion to be registered.
 This registration matchs a processing function with a unique name and an initial execution context.
 The messaging system carries messages streams based on the names of the recipients fluxions.
-That's why two fluxions with the same name would lead the system in a conflicting situation.
+If two fluxions share a name, the messaging system would be in a conflicting situation.
+% That's why two fluxions with the same name would lead the system in a conflicting situation.
 The registration is done using the function \texttt{register(<nom>, <fn>, <context>)}, step \circled{1} on figure \ref{fig:MesSys}.
 % A fluxion can dynamically register other fluxions
 
@@ -137,7 +139,8 @@ In listing \ref{lst:classique}, three elements are worth noticing.
   The hidden processing chain is : $\texttt{get} \to \texttt{reply} \to \texttt{send}$
 \end{itemize}
 
-This minimal service is transformed with our automatic tool into the Figure \ref{fig:fluxions} fluxions chain.
+This minimal service is transformed manually into the Figure \ref{fig:fluxions} fluxions chain.
+We expect a similar result with the compiler described in following section. 
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/flux.pdf}
@@ -157,7 +160,7 @@ Horizontal dashed lines show message virtual transmission between fluxion althou
 Listing \ref{lst:fluxionnal} describes this counting service in our fluxionnal language.
 This new language brings a stricter segmentation than the initial code by allowing the developer only to define and register fluxions.
 And so, it allows an additional system to optimize how the system is organized on different physical machines according to the cost of fluxions' streams and processing.
-A fluxion is defined by a name, and a list of destination preceded by the operator \texttt{>}\texttt{>}.
+A fluxion is defined by a name, and a list of destination preceded by the operator \texttt{-}\texttt{>}.
 Fluxions can access and manipulate only two objects : \texttt{msg} and \texttt{this}.
 The first is the received message, the second is the persisted object linked to the fluxion.
 Fluxions use the Javascript language syntax inside their definition.
@@ -169,12 +172,12 @@ Fluxions use the Javascript language syntax inside their definition.
 \begin{code}[Javascript, caption={Fluxionnal sample},label={lst:fluxionnal}]
 use web
 
-fluxion logic >> view
+fluxion logic -> view
   this.uid[msg.uid] = this.uid[msg.uid] + 1 || 1
   msg.count = this.uid[msg.uid]
   post msg
 
-fluxion view >> output
+fluxion view -> output
   msg.view = msg.uid + " connected " + msg.count + " times."
   msg.uid = undefined
   msg.count = undefined
