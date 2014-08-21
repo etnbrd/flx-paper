@@ -4,10 +4,13 @@ The section \ref{section:model} of this paper describes the fluxionnal execution
 This section explains the compiler we developed to transform a subset of classic web application to be compliant with the execution model previously described.
 % This transformation unveils two problems due to the differences between a web application and the execution model.
 % In the first section, a distributed system is defined by the parallel execution of its parts, and the distribution of its memory.
-A classic web application is not composed of many independent parts, and relies on a central memory.
-We wants to parallelize the execution of a mono-thread application into many independent parts, and to distribute the central memory among these parts.
-We describe a compiler as a solution to this problem, hence capable to transform a classic web application into a distributed system.
-In this section, we describe the two compilation steps responsible of resolving parallelization and distribution.
+Current Web applications are mostly written in Java. The langage proposes both data encapsulation and threading model, that ease the development of distributed applications. Yet, Java framework for developing efficient application are complex systems that impose new API (Servlet en référence) to the developers. Since 2009, \textit{Node.js} provides a simple Javascript Web programming system. We focus on this promising environment for its initial simplicity and efficiency. We develop a compiler that transforms a simple javascript application into a fluxionnal system compliant to the architecture described in section \ref{section:model}.
+As javascript forbids user-space thread API, a javascript application is developed as a mono-threaded application. Moreover, in Javascript  the memory is hierarchical and the root scope may be accessed by any function, that leads to bad component isolation. Our compiler finds fluxions into most of Web based Javascript application. It finds component isolation through the the analyzer step and memory consistency through the linker step. We do not target all Javascript Web based application but if we are able to transform either some part of application or 50\% of currently running applications without external developer help, we except a real execution gain in a cloud environment. 
+The remaining of this section describes the two parts of the compiler.
+% A classic web application is not composed of many independent parts, and relies on a central memory.
+% We wants to parallelize the execution of a mono-thread application into many independent parts, and to distribute the central memory among these parts.
+% We describe a compiler as a solution to this problem, hence capable to transform a classic web application into a distributed system.
+% In this section, we describe the two compilation steps responsible of resolving parallelization and distribution.
 Section \ref{section:analyzer} explains how the \textit{analyzer} detects rupture points in the web application to mark out the independent parts.
 Section \ref{section:linker} explains how the \textit{linker} resolves the missing dependencies due to the distribution of the central memory.
 
@@ -60,18 +63,37 @@ console.log('>> first concurrent execution path');
 % console.log('server listening to 8080');
 % \end{code}
 
-There is two types of rupture points.
-\begin{description}
-  \item[Basic rupture points] represent a simple continuity in the execution flow after a finite asynchronous operation, like reading a file in listing \ref{hello}.
-  The function calls from basic rupture points mark the interface between the current application part and the next one.
-  This frontier is placed before the call to the asynchronous function, but after the resolution of the arguments.
-  The result of this asynchronous operation probably being a voluminous object, this placement allow the asynchronous function call to occur in the same application parts as the callback, avoiding the transfer of this voluminous result.
-  \item[Special rupture points] differ in that they are on the interface between the whole application and the outside, continuously handling incoming user requests, like \texttt{app.get()} in listing \ref{lst:rupturepoints}.
-  The callbacks of these functions indicate the input of a data stream in the program, and the beginning of a chain of application parts following this stream.
-  The \textit{start} rupture points will later be used to monitor the load from incoming external requests.
-  Because the asynchronous function is called only once, while the callback is triggered multiple times, this interface is placed between the two.
-\end{description}
+There is two types of rupture points, basic and special, illustrated respectively in figure \ref{fig:basicrp} and \ref{fig:specialrp}.
+In these figures, the two concurrent execution path distributed in two application parts are indicated by \circled{1} and \circled{2}.
+
+\textbf{Basic rupture points} represent a simple continuity in the execution flow after a finite asynchronous operation, like reading a file in listing \ref{lst:hello}.
+The function calls from basic rupture points mark the interface between the current application part and the next one.
+This frontier is placed before the call to the asynchronous function, but after the resolution of the arguments.
+The result of this asynchronous operation probably being a voluminous object, this placement allow the asynchronous function call to occur in the same application parts as the callback, avoiding the transfer of this voluminous result, as illustrated in figure \ref{fig:basicrp}.
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[width=0.8\linewidth]{ressources/basicrp.pdf}
+  \caption{Basic rupture point interface. \textnormal{The interface is placed before the asynchronous operation, to avoid moving the result from one application part to another.}}
+  \label{fig:basicrp}
+\end{center}
+\end{figure}
+
+\textbf{Special rupture points} differ in that they are on the interface between the whole application and the outside, continuously handling incoming user requests, like \texttt{app.get()} in listing \ref{lst:rupturepoints}.
+The callbacks of these functions indicate the input of a data stream in the program, and the beginning of a chain of application parts following this stream.
+The \textit{start} rupture points will later be used to monitor the load from incoming external requests.
+Because the asynchronous function is called only once, while the callback is triggered multiple times, this interface is placed between the two, as illustrated in figure \ref{fig:specialrp}.
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[width=0.8\linewidth]{ressources/specialrp.pdf}
+  \caption{Special rupture point interface. \textnormal{The interface is placed after the asynchronous operation, for the downstream application part to be triggered for each event.}}
+  \label{fig:specialrp}
+\end{center}
+\end{figure}
+
 In the following, basic rupture points are called \textit{post}, and special rupture points are called \textit{start}
+
 
 \begin{code}[Javascript, caption={Example of an application presenting the two types of rupture points : a \texttt{start} with the call to \texttt{app.get()}, and a \texttt{post} with the call to \texttt{fs.readFile()}},label={lst:rupturepoints}]
 var app = require('express')();
@@ -143,7 +165,7 @@ This counter would be in the scope of the application part handling requests rec
 If a variable is needed for modification by more than one distributed application parts, this variable needs to be synchronized between the fluxions' scopes.
 Memory synchronization in a distributed system is a well-known problem.
 According to Brewer's theorem, formalized by Seth Gilbert and Nancy Lynch \cite{Gilbert2002}, an application can only have two among the three options, Consistency, Availability, Partition tolerance.
-Partition tolerance can't be avoided in a distributed system\footnote{http://codahale.com/you-cant-sacrifice-partition-tolerance/}, so the only possible tradeoff is between consistency and availability.
+Partition tolerance can't be avoided in a distributed system\footnote{\raggedright http://codahale.com/you-cant-sacrifice-partition-tolerance/}, so the only possible tradeoff is between consistency and availability.
 These two tradeoffs are defined in the literature as ACID (Atomicity, Consistency, Isolation, Durability) for consistency over availability, and BASE (Basically Available, Soft state, Eventual consistency)\cite{Fox1997} for availability over consistency.
 The goal for this compiler is to be able to transform a subset of web application with a satisfying result.
 We choose not to sacrifice neither consistency nor availability, therefor we must sacrifice partition tolerance and keep these application parts together.

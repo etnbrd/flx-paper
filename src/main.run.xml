@@ -90,7 +90,7 @@
       <file>../src/bib/Misc.bib</file>
       <file>../src/bib/Parallelisation.bib</file>
       <file>../src/bib/Distributed Systems.bib</file>
-      <file>../src/bib/sigproc.bib</file>
+      <file>../src/bib/Compilation.bib</file>
     </requires>
   </external>
 </requests>

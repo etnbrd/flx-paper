@@ -22,7 +22,7 @@ The messaging system is the core of our fluxionnal execution model.
 It carries messages along stream, and invokes fluxion at a message reception.
 
 It is built around a message queue.
-Each message is processed one after another by invocation of the recipient fluxion.
+Each message is processed one after the other by invocation of the recipient fluxion.
 Using a message queue allows to execute multiple processing chain fairly and concurrently, without difference in scheduling local messages, or network messages.
 The life cycle of a fluxionnal application is pictured on figure \ref{fig:MesSys}.
 
@@ -33,7 +33,7 @@ The life cycle of a fluxionnal application is pictured on figure \ref{fig:MesSys
 \end{figure}
 
 The messaging system needs every fluxion to be registered.
-This registration matchs a processing function with a unique name and an initial execution context.
+This registration matches a processing function with a unique name and an initial execution context.
 The messaging system carries messages streams based on the names of the recipients fluxions.
 If two fluxions share a name, the messaging system would be in a conflicting situation.
 % That's why two fluxions with the same name would lead the system in a conflicting situation.
@@ -148,7 +148,7 @@ We expect a similar result with the compiler described in following section.
   \label{fig:fluxions}
 \end{figure}
 
-Figure \ref{fig:fluxions}, circles represent registered fluxions.
+The circles in figure \ref{fig:fluxions} represent registered fluxions.
 Envelope symbols represent exchanged messages between fluxions with the data transmitted from one fluxion to the other. Finally squares stored in the messaging system hold the \textit{execution context} for the logic and \textbf{Out} fluxions.
 When a new \texttt{get} REST message is received at the \textbf{In} end point, a \texttt{start} message triggers the flow.
 Concurrently the \textbf{In} fluxion set a \texttt{cid} parameter to the \textbf{Out} fluxion execution context.
@@ -199,7 +199,7 @@ Except from the two interface components, the service is split as follow :
 \end{itemize}
 
 We use this interface to develop web services using the fluxionnal execution model.
-But our goal, as described in the introduction, is to automate this architecture shift, not to impose a new programming paradigm onto the developer.
+But our goal, as described in the introduction, is to automate this architecture shift, not to impose a new programming paradigm on the developer.
 % We now evaluate this model against the basic one.
 
 
