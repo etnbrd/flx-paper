@@ -1,20 +1,18 @@
 \section{Related Works} \label{section:related}
 
-The first part of this work, the execution model, is partly inspired by some works on scalability for very large system, like the Staged Event-Driven Architecture (SEDA) by Matt Welsh\cite{Welsh2000} and later the MapReduce architecture\cite{Dean2008}.
-It also took inspiration from more recent work following SEDA.
-Among the most known following works, we cited in the introduction Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Marz2011}.
-We cite the work on the BASE\cite{Fox1997} and ACID data semantics, but the compiler doesn't use these works.
+The execution model, is partly inspired by some works on scalability for very large system, like the Staged Event-Driven Architecture (SEDA) by Matt Welsh\cite{Welsh2000} and later the MapReduce architecture\cite{Dean2008}.
+It also drew its inspiration from more recent work following SEDA.
+Among the best-known following works, we cited in the introduction Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Marz2011}.
 % The compiler makes use of the work on the BASE\cite{Fox1997} data semantics to justify trading off consitency for availability.
+% We cite the work on the BASE\cite{Fox1997} and ACID data semantics, but the compiler doesn't use these works.
+The idea to split a task into independent parts goes back to the Actor's model\cite{Hewitt1973} in 1973, and to Functional programming, like Lucid\cite{Ashcroft1977} in 1977 and all the following works on DataFlow leading up to Flow-Based programming (FBP)\cite{Morrison1994a} and Functional Reactive Programming (FRP)\cite{Elliott1997}.
+Both FBP and FRP, recently got some attention in the Javascript community with, respectively, the projects \textit{NoFlo}\cite{NoFlo} and \textit{Bacon.js}\cite{Paananen2012}.
 
-The idea to split a task into independent parts go back to the Actor's model\cite{Hewitt1973} in 1973, and to Functional programming, like Lucid\cite{Ashcroft1977} in 1977 and all the following works on DataFlow leading up to Flow-Based programing (FBP)\cite{Morrison1994a} and Functional Reactive Programming (FRP)\cite{Elliott1997}.
-Both FBP and FRP, recently got some attention in the Javascript community with respectively the projects \textit{NoFlo}\cite{NoFlo} and \textit{Bacon.js}\cite{Paananen2012}.
-
-The first part of our work stands upon these thorough studies, however, we are taking a new approach on the second part of our work, to transform the sequential programing paradigm into a network of communicating parts known to have scalabitly advantages.
+The first part of our work stands upon these thorough studies, however, we are taking a new approach on the second part of our work, to transform the sequential programming paradigm into a network of communicating parts known to have scalability advantages.
 % TODO
 % There is some work on the transformation of a program into distributed parts\cite{Amini2012, Petit2009}.
-Promises\cite{Liskov1988} and Futures are related to our work as they are abstractions from a concurrent programing style, to an asynchronous and parallel execution model.
+Promises\cite{Liskov1988} and Futures are related to our work as they are abstractions from a concurrent programming style, to an asynchronous and parallel execution model.
 However, our approach using Node.js asynchronicity via callbacks to automate this abstraction seems unexplored yet.
 
 The compiler uses AST modification, as described in\cite{Jones2003}.
-
-Obviously, our implementation is based on the work by Ryan Dahl : \textit{Node.js}\cite{Dahl}, as well as on one of the most known web framework available for \textit{Node.js} : \textit{Express}\cite{express}.
+Our implementation is based on the work by Ryan Dahl : \textit{Node.js}\cite{Dahl}, as well as on one of the best-known web framework available for \textit{Node.js} : \textit{Express}\cite{express}.

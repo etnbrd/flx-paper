@@ -2,7 +2,7 @@
 
 In this paper, we presented our work to enable a \textit{Node.js} application to be dynamically and automatically scalable.
 The emerging design for an application to be scalable is to split it into parts to reduce coupling.
-From this insight, we designed an execution model for applications structured as a network of independent parts communicating by stream of messages.
+From this insight, we designed an execution model for applications structured as a network of independent parts communicating by streams of messages.
 In a second part, we presented a compiler to transform a Javascript application into a network of independent parts.
-To identify these parts, we spot rupture points, as indicators for a possible parallelism and memory distribution.
-This compilation tool allow to make use of the distributed architecture previously described to enable scalability, with a minimum change on the imperative programming style mastered by most developers.
+To identify these parts, we spotted rupture points as indicators for a possible parallelism and memory distribution.
+This compilation tool allow for the use of the distributed architecture previously described to enable scalability, with a minimum change on the imperative programming style mastered by most developers.
