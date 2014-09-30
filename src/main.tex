@@ -1,4 +1,5 @@
-\documentclass{acm_proc_article-sp}
+\documentclass{utils/sig-alternate}
+% \documentclass{utils/acm_proc_article-sp}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -45,9 +46,8 @@
 % \bibliographystyle{abbrv}
 % \bibliography{../src/bib/OS.bib,../src/bib/Flow-Based Programming.bib,../src/bib/Functional Programming-Functional Reactive Programming.bib,../src/bib/Stream.bib,../src/bib/Dataflow.bib,../src/bib/Web & Social Networks.bib,../src/bib/Others.bib,../src/bib/Actor model.bib,../src/bib/Misc.bib,../src/bib/Parallelisation.bib,../src/bib/Others.bib,../src/bib/Distributed Systems.bib}
 
-\input{_todos}
-% \input{alias}
-\input{code}
+\input{utils/_todos}
+\input{utils/code}
 
 
 % Document starts
@@ -132,17 +132,13 @@ Gautier di Folco\\
 \terms{Compilation}
 
 \keywords{Flow programming, Web, Javascript} % NOT required for Proceedings
-% TODO Flow programming might not be the best keywords
 
 \input{introduction}
 \input{model}
 \input{compiler}
-% \input{analysis}
 \input{related_works}
 \input{conclusion}
-% \input{evaluation}
 
 \printbibliography[]
-% \input{appendix}
 
 \end{document}

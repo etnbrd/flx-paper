@@ -1,7 +1,7 @@
 \section{Introduction}
 
 
-The growth of web platforms is partially caused by Internet's capacity to stimulate services development, allowing very quick releases of minimal viable products.
+The growth of web platforms is partially due to Internet's capacity to stimulate services development, allowing very quick releases of minimal viable products.
 In a matter of hours, it is possible to upload a first product and start gathering a user community around.
 \textit{``Release early, release often''} is commonly heard as an advice to quickly gather a user community, as the size of the community is a factor of success.
 
@@ -9,8 +9,8 @@ If the service complies successfully with users requirements, the community will
 To cope with this growth, the resources quantity taken up by the service shall grow exponentially.
 It continues until the amount of data to treat requires the development team to use a more efficient processing model.  %to make better use of the resources.
 Many of the most efficient models split the system into parts to reduce the coupling and migrate these parts to more resourceful environment.
-They are also based on a cluster of commodity machines\cite{Fox1997} to allow incremental scalability.
-The Staged Event-driven Architecture (SEDA)\cite{Welsh2000} and MapReduce \cite{Dean2008} are examples of that trend.
+They are based on a cluster of commodity machines\cite{Fox1997} to allow incremental scalability.
+System S\cite{Jain2006,Wu2007}, the Staged Event-driven Architecture (SEDA)\cite{Welsh2000} and MapReduce \cite{Dean2008} are examples of that trend.
 Once split, the service parts are connected by a messaging system, often asynchronous, using communication paradigms like \textit{three-tiers} architecture, events, messages or streams.
 Many tools have been developed to express and manage these service parts and their communications.
 We can cite Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Marz2011}.
@@ -18,16 +18,15 @@ However, these tools propose specific interfaces and languages, generally differ
 Thus, it requires the development team to be trained, to hire experts and to start over the initial code base, since this new architecture is not as flexible and adaptable for quick modifications as the initial code base was.
 Therfore, these modifications cause the development team to take risks without adding concrete value to the service.
 
-% We propose a tool able to automate this technical shift without the need of an architecture shift.
-% We propose a tool able to automate this technological shift, and avoiding the development team a shift in the code base.
-We propose a tool to free the development team of a technological shift wiping the code base, while automating this shift at a lower level to enable scalability.
-Such a tool may lift the risks described above.
+We propose a tool to free the development team of this technological shift wiping the code base, while automating it with a compiler.
+This compiler may lift the risks described above.
 We aim at providing this tool to Web applications whose load comes from users requests streams.
 We focus on applications whose initial development uses a simple web paradigm consisting of a web server, data processing logic, and a database.
-We think that it is possible to analyze this type of application to express it using autonomous, movable functions communicating by data streams, and to shift architecture as soon as the first public release, without wiping off the initial code base.
+We think that it is possible to analyze this type of application to express it using autonomous, movable functions communicating by data streams, and compile each public release, avoiding wiping off the initial code base.
 
-We assume these applications are developed in a dynamic language like Javascript using \textit{Node.js} execution environment, and we propose a tool able to identify internal streams and stream processing units, and to dynamically manage these units.
-The tool aims not to modify the existing code, but proposes a layer of meta information over the initial code.
-This layer uses the paradigm of fluxion defined in section \ref{section:model}, and will be at the core of our proposition of automation, described in section \ref{section:compiler}.
+We assume these applications are developed in a dynamic language like Javascript using \textit{Node.js} execution environment, and we propose a compiler able to identify internal streams and stream processing units, and an execution model to dynamically manage these units.
+Both tools aim not to modify the existing code, but rely on a common layer of meta information over the initial code.
+The execution environment is described in section \ref{section:model}.
+The compiler is described in section \ref{section:compiler}.
 In section \ref{section:related}, we link our work with related works.
-Finally, we conclude this paper in section \ref{section:conclusion}.
+Finally, we conclude this paper.

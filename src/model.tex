@@ -3,27 +3,27 @@
 \subsection{Fluxions}
 
 The fluxional execution model role is to manage and invoke autonomous execution units.
-An execution unit accepts only streams as input and output, that is a continuous and infinite sequence of data contained in messages.
+An execution unit accepts only streams as input and output, that is a continuous and infinite sequence of data encapsulated in messages.
 We named this execution unit a fluxion.
 That is a function, as in functional programming, only dependent from data streams.
 It is composed of a unique name, a processing function, and a persisted memory context.
 
 Messages are carried by a distributed messaging system.
 They are composed of the name of the recipient fluxion and a body.
-While processing a message, the fluxion modifies its context, and sends back messages on its output streams.
-The fluxion's execution context is defined as the set of state variables on which the fluxion depends, between two rounds of execution.
+At a message reception, the fluxion modifies its context, and sends back messages to downstream fluxions.
+The fluxion's execution context is defined as the set of state variables on which the fluxion depends between two executions - that is two messages receptions.
 
 The fluxions form a chain of processing binded by data streams.
-All these chains constitute a directed graph, managed by the messaging system.
+All these chains constitute a directed graph, operated by the messaging system.
 
 \subsection{Messaging system}
 
 The messaging system is the core of our fluxional execution model.
-It carries messages along stream, and invokes fluxion at a message reception.
+It carries messages along streams, and invokes fluxions at a message reception.
 
-It is built around a message queue.
+A message queue is at the core of this messaging system.
 Each message is processed one after the other by invocation of the recipient fluxion.
-Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
+% Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
 The life cycle of a fluxional application is pictured on figure \ref{fig:MesSys}.
 
 \begin{figure}[h!]
@@ -32,21 +32,34 @@ The life cycle of a fluxional application is pictured on figure \ref{fig:MesSys}
   \label{fig:MesSys}
 \end{figure}
 
-The messaging system needs every fluxion to be registered.
-This registration matches a processing function with a unique name and an initial execution context.
 The messaging system carries message streams based on the names of the recipient fluxions.
+So it needs every fluxion to be registered.
 If two fluxions share a name, the messaging system would be in a conflicting situation.
-% That's why two fluxions with the same name would lead the system in a conflicting situation.
+This registration matches a processing function with a unique name and an initial execution context.
 The registration is done using the function \texttt{register(<nom>, <fn>, <context>)}, step \circled{1} on figure \ref{fig:MesSys}.
 % A fluxion can dynamically register other fluxions
 
-To trigger a fluxions chain, a message is sent using \texttt{start(<msg>)}, step \circled{2}.
+To trigger a fluxions chain, a message is sent using the function \texttt{start(<msg>)}, step \circled{2}.
 This function pushes a first message in the queue.
 Immediately, the system dequeues this message to invoke the recipient processing function, step \circled{3} and \circled{4}.
-The recipient function sends back messages using \texttt{post(<msg>)}, step \circled{5}, to be enqueued in the system, \circled{6}.
+The recipient function sends back messages using the function \texttt{post(<msg>)}, step \circled{5}, to be enqueued in the system, step \circled{6}.
 The system loops through steps \circled{3} and \circled{4} until the queue is empty.
+This cycle start again for each new start.
 
 The algorithms \ref{alg:traitement} and \ref{alg:parcours} precisely describe the behavior of the messaging system after the function \texttt{start} invocation.
+
+\begin{algorithm}
+\caption{Message queue walking algorithm}
+\label{alg:parcours}
+\begin{algorithmic}
+\Function{loopMessage}{\null}
+\While{$msg$ \textbf{presents in} $msgQueue$}
+\State $msg \gets$ \Call{dequeue}{\null} \Comment{\circled{3}}
+\State \Call{ProcessMsg}{$msg$}
+\EndWhile
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 
 \begin{algorithm}
 \caption{Message processing algorithm}
@@ -58,19 +71,6 @@ The algorithms \ref{alg:traitement} and \ref{alg:parcours} precisely describe th
 \State $message \gets$ \Call{exec}{$fluxion, msg.body$} \Comment{\circled{4} \& \circled{5}}
 \State \Call{enqueue}{$message$} \Comment{\circled{6}}
 \EndFor
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-\caption{Message queue walking algorithm}
-\label{alg:parcours}
-\begin{algorithmic}
-\Function{loopMessage}{\null}
-\While{$msg$ \textbf{presents in} $msgQueue$}
-\State $msg \gets$ \Call{dequeue}{\null} \Comment{\circled{3}}
-\State \Call{ProcessMsg}{$msg$}
-\EndWhile
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
@@ -108,10 +108,9 @@ Figure \ref{fig:schemaweb} pictures the specific elements of the web interface i
 
 In order to picture the fluxional execution model, we present an example of a simple visit counting service.
 This service counts the number of HTTP connections for each user, and sends him back this number in the HTTP reply.
+This example is not a compilation result, but only an illustration for the fluxionnal execution model.
 
-The initial version of this service could look like listing \ref{lst:classique}.
-
-\begin{code}[Javascript, caption={Initial service},label={lst:classique}]
+\begin{code}[Javascript, caption={Original code of a simple service example},label={lst:classique}]
 var app = require('express')();
 
 @\label{lst:classique_count}@var count = {};
@@ -129,18 +128,19 @@ app.listen(port);
 console.log("Listening port: "+port);
 \end{code}
 
-In listing \ref{lst:classique}, three elements are worth noticing.
+The initial version of this service could look like code listing \ref{lst:classique}.
+In this code listing, three elements are worth noticing.
 
 \begin{itemize}
   \item The \texttt{count} object at line \ref{lst:classique_count} is a persistent memory that stores each user visit count.
   This object is mapped to a fluxion \textit{execution context} in the fluxional system.
   \item The \texttt{reply} function, line \ref{lst:classique_replyb} to \ref{lst:classique_replye}, contains the logic we want to express in the fluxional processing chain.
-  \item The two methods \texttt{get} and \texttt{send}, respectively line \ref{lst:classique_get} and \ref{lst:classique_send}, interface the logic with the external interface.
-  The hidden processing chain is : $\texttt{get} \to \texttt{reply} \to \texttt{send}$
+  \item The two functions \texttt{get} and \texttt{send}, respectively line \ref{lst:classique_get} and \ref{lst:classique_send}, interface the logic with the external interface.
+  The hidden processing chain of functions is : $\texttt{get} \to \texttt{reply} \to \texttt{send}$
 \end{itemize}
 
-This minimal service is transformed manually into the Figure \ref{fig:fluxions} fluxions chain.
-We expect a similar result with the compiler described in next section. 
+This minimal service is transformed manually into the fluxions chain depicted in Figure \ref{fig:fluxions}.
+We expect a similar result with the compiler described in next section.
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/flux.pdf}
@@ -159,10 +159,10 @@ Horizontal dashed lines show message virtual transmission between fluxions altho
 
 Listing \ref{lst:fluxional} describes this counting service in our fluxional language.
 This new language brings a stricter segmentation than the initial code by allowing the developer to only define and register fluxions.
-And so, it allows an additional system to optimize the organization of the system on different physical machines according to the cost of fluxions' streams and processing.
+% And so, it allows an additional system to optimize the organization of the system on different physical machines according to the cost of fluxions' streams and processing.
 A fluxion is defined by a name, and a list of destinations preceded by the operator \texttt{-}\texttt{>}.
 Fluxions can access and manipulate only two objects : \texttt{msg} and \texttt{this}.
-The first is the received message, the second is the persisted object linked to the fluxion.
+The first is the received message, the second is the persisted context of the fluxion.
 Fluxions use the Javascript language syntax inside their definition.
 
 % This high level language is not dynamic, and not typed.
@@ -189,17 +189,17 @@ register view
 web.listen
 \end{code}
 
-Except from the two interface components, the service is split as follow :
+Except from the two interface components, the service is organized as follow :
 \begin{itemize}
   \item The \texttt{logic} fluxion is the first to receive the client's message.
   It contains the whole logic of this simple service.
   A real service would need a more complex chain with logic distributed across multiple fluxions, instead of a single fluxion.
-  It increments the count for the received user identifier, pushes this count inside the message, and relays it the next fluxion.
-  \item The \texttt{view} fluxion receives this message, formats it as the user will view it, and relays it to the output fluxion.
+  It increments the count for the received user identifier, pushes this count inside the message, and relays it to the next fluxion.
+  \item The \texttt{view} fluxion receives this message, formats it for the user, and relays it to the output fluxion.
 \end{itemize}
 
 We use this interface to develop web services using the fluxional execution model.
-But our goal, as described in the introduction, is to automate this architecture shift, not to impose a new programming paradigm on the developer.
+But our goal, as described in the introduction, is to automate this architecture shift, not to impose a new programming paradigm onto the developer.
 % We now evaluate this model against the basic one.
 
 
