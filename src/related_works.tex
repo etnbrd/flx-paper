@@ -1,6 +1,6 @@
 \section{Related Works} \label{section:related}
 
-The execution model, is partly inspired by some works on scalability for very large system, like the Staged Event-Driven Architecture (SEDA) by Matt Welsh\cite{Welsh2000} and later the MapReduce architecture\cite{Dean2008}.
+The execution model, is inspired by some works on scalability for very large system, like the Staged Event-Driven Architecture (SEDA) of Matt Welsh\cite{Welsh2000}, System S developped in the IBM T. J. Watson research center\cite{Jain2006,Wu2007}, and later the MapReduce architecture\cite{Dean2008}.
 It also drew its inspiration from more recent work following SEDA.
 Among the best-known following works, we cited in the introduction Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Marz2011}.
 % The compiler makes use of the work on the BASE\cite{Fox1997} data semantics to justify trading off consitency for availability.
@@ -11,7 +11,7 @@ Both FBP and FRP, recently got some attention in the Javascript community with, 
 The first part of our work stands upon these thorough studies, however, we are taking a new approach on the second part of our work, to transform the sequential programming paradigm into a network of communicating parts known to have scalability advantages.
 % TODO
 % There is some work on the transformation of a program into distributed parts\cite{Amini2012, Petit2009}.
-Promises\cite{Liskov1988} and Futures are related to our work as they are abstractions from a concurrent programming style, to an asynchronous and parallel execution model.
+Promises\cite{Liskov1988} are related to our work as they are abstractions from a concurrent programming style, to an asynchronous and parallel execution model.
 However, our approach using Node.js callback asynchronism to automate this abstraction seems unexplored yet.
 
 The compiler uses AST modification, as described in\cite{Jones2003}, and an approach similar to the Program Dependency Graph (PDG)\cite{Ferrante1987}.

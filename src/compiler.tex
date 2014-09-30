@@ -52,7 +52,7 @@ The second execution flow path is the callback.
 A rupture point is an interface between two application parts.
 Listing \ref{lst:hello} is an example of a rupture point in a simple application.
 
-\begin{code}[Javascript, caption={Example of a rupture point : an asynchronous function call, \texttt{fs.readFile()}, with a callback parameter, \texttt{function display}},label={lst:hello}]
+\begin{code}[js, caption={Example of a rupture point : an asynchronous function call, \texttt{fs.readFile()}, with a callback parameter, \texttt{function display}},label={lst:hello}]
 var fs = require('fs');
 fs.readFile(__filename, function display(err, data) {
   console.log('>> second concurrent execution path');
@@ -103,7 +103,7 @@ For a write operation, the data transfer is inversed so the frontier is placed b
 
 In the following, \textit{root} rupture points are called \textit{start}, and \textit{following} rupture points are called \textit{post}.
 
-\begin{code}[Javascript, caption={Example of an application presenting the two types of rupture points : a \texttt{start} with the call to \texttt{app.get()}, and a \texttt{post} with the call to \texttt{fs.readFile()}},label={lst:rupturepoints}]
+\begin{code}[js, caption={Example of an application presenting the two types of rupture points : a \texttt{start} with the call to \texttt{app.get()}, and a \texttt{post} with the call to \texttt{fs.readFile()}},label={lst:rupturepoints}]
 var app = require('express')();
 var fs = require('fs');
 
@@ -207,8 +207,53 @@ Using this model, we want to make the application's reorganize itself in a clust
 
 % For copyright reason, the compiler source code is kept private along with the tests we used.
 To illustrate the compiler features, we compiled a very simple, yet representative, application.
-It sends back its own source, presenting both a special and a basic rupture point.
-It sends a download counter as well to illustrate the use of fluxion's own memory.
-Source and results are available on github\cite{flx-example}.
-The file \texttt{result.flx} is the result of the compilation in our high-level fluxional language.
-The file \texttt{result.js} is the result of the compilation targeting the fluxional execution model.
+The source and compiled results of this application are available on github\cite{flx-example}\footnote{\raggedright https://github.com/etnbrd/flx-example/releases}.
+The compiler source code is the property of Worldline, and is not publicly available, but we are planning of releasing it in a near future.
+To test the source or the result of the compilation, one would launch respectively \texttt{source.js} or \texttt{result.js} with \texttt{node} and check the service available at \texttt{localhost:8080}, after installing the dependencies with \texttt{npm}, containing the fluxional execution model \texttt{flx}.
+\begin{verbatim}
+git clone https://github.com/etnbrd/flx-example
+cd flx-example
+npm install
+node result.js
+open http://localhost:8080
+\end{verbatim}
+
+The file \texttt{source.js}, in listing \ref{lst:ex-source}, is the source of this compilation example.
+This application sends back its own source along with a download counter.
+The source contains two asynchronous function call with \textit{in situ} callback, one to receive user requests and one to read its own source, respectively \texttt{app.get} line 5 and \texttt{fs.read} line 7.
+It also uses a global variable for the download counter defined line 3 and used only in the \texttt{reply} function, line 8 and 9.
+
+\includecode{js,
+  caption={Source of the compilation example},
+  label={lst:ex-source}
+}
+{../../example/source.js}
+
+The result of the compilation into our hgh-level language is in the file \texttt{result.flx}, presented in listing \ref{lst:ex-flxres}.
+The analyzer detects both asynchronous call as rupture points.
+The first one is a \textit{start} rupture point, it receives the stream of user requests. 
+The second one is a \textit{post} rupture point, it reads the source file.
+These two rupture points result in three different application parts.
+The first application part is the root fluxion, named after the filename, \texttt{source.js}.
+It initialize the system to route the user requests to the next fluxion, named after the callback, \texttt{handler-1000}.
+This second fluxion reads the file, and send the result to the next fluxion \texttt{reply-1001}.
+
+The linker detects that the fluxion \texttt{reply-1001} needs two variable to send the result back to the user : \texttt{res} and \texttt{count}, as seen line 10 in listing \ref{lst:ex-flxres}.
+The variable \texttt{res} depends on the user connection and change for each new request.
+It needs to be part of the \textit{signature} of the message transfered until the last fluxion.
+The variable \texttt{count} is global, and needs to increment at each new request.
+So the compiler store it in the context of this fluxion.
+
+\includecode{flx,
+  caption={High level fluxional language result of the compilation example},
+  label={lst:ex-flxres}
+}
+{../../example/result.flx}
+
+The compiler also produce an executable targeting the fluxional execution model in the file \texttt{result.js}, presented in listing \ref{lst:ex-jsres}.
+
+\includecode{flx,
+  caption={Fluxional execution model result of the compilation example},
+  label={lst:ex-jsres}
+}
+{../../example/result.js}

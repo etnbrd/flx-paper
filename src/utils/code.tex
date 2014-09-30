@@ -18,8 +18,23 @@
 \definecolor{lightgray}{rgb}{.9,.9,.9}
 \definecolor{darkgray}{rgb}{.4,.4,.4}
 \definecolor{purple}{rgb}{0.65, 0.12, 0.82}
-\lstdefinelanguage{JavaScript}{
+\lstdefinelanguage{js}{
   keywords={break, case, catch, continue, debugger, default, delete, do, else, false, finally, for, function, if, in, instanceof, new, null, return, switch, this, throw, true, try, typeof, var, void, while, with},
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]",
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  sensitive=true
+}
+
+\lstdefinelanguage{flx}{
+  keywords={flx, fluxion},
   morecomment=[l]{//},
   morecomment=[s]{/*}{*/},
   morestring=[b]',
@@ -62,7 +77,17 @@
 
 \newcommand{\ic}[1]{\lstinline|#1|}
 
-\lstnewenvironment{code}[1][JavaScript]{%
+\lstnewenvironment{code}[1][js]{%
   \userlstset{#1}%
 }{%
+}
+
+% \newcommand{\snippet}[2]{
+%   \userlstset{#1}%
+%   \lstinputlisting{#2}
+% }
+
+\newcommand{\includecode}[2]{%
+  \userlstset{#1}%
+  \lstinputlisting{#2}%
 }
