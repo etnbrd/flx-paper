@@ -3,13 +3,13 @@
 The tool we present in this paper transforms a monolithic application into a network of autonomous parts.
 There exist many execution models designed for such distributed system renowned precisely for their performances.
 However, we focus on the shift in programming model rather than the performance of a runtime.
-Therefore, we present in this section an extremely simplified execution model inspired by the literature\cite{Welsh2000}\cite{Jain2006,Wu2007}\cite{Zaharia2010}\cite{Akidau2013}\cite{Marz2011}, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
+Therefore, we present in this section an extremely simplified execution model inspired by the literature\cite{Welsh2000, Jain2006, Wu2007, Zaharia2010, Akidau2013, Marz2011}, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
 
 \subsection{Fluxions}
 
 The fluxional execution model role is to manage and invoke autonomous execution units.
 An execution unit accepts only streams as input and output, that is a continuous and infinite sequence of data encapsulated in messages.
-We named this execution unit a fluxion.
+We named this execution unit a fluxion, by contraction between a flux and a function.
 That is a function, as in functional programming, only dependent from data streams.
 It is composed of a unique name, a processing function, and a persisted memory context.
 

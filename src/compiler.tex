@@ -179,22 +179,22 @@ The compiler merges the parts sharing variables with modification access.
 
 \subsection{Guidelines and Future work}
 
-This compiler aims at transforming efficiently a subset of Javascript web applications presenting a specific syntax and design.
-In this section, we describe briefly the main situations to avoid for an efficient compilation.
+This compiler aims at transforming a subset of Javascript web applications presenting a specific syntax and design.
+In this section, we describe briefly the current limitations of our compiler and how we plan to overcome them in future works.
 
 \begin{itemize}
-  \item The compilation silently fails if a variable holding a callback or a module is assigned a second time.
-        The variable tracker is unable to track accurately all the modification of a variable to detect this situation and screen out the corresponding rupture point.
-  \item The compiler is still unable to track the value of dynamically resolved variables.
-        If this variable is then used as a callback, the compiler won't be able to detect it as a rupture point.
-  \item Variables poorly encapsulated or used too globally tighten dependencies accross the code.
-        In these conditions, the compiler is unable to efficiently break the application in parts, resulting in poor distribution and scalability.
-  \item The \textit{express} module uses an uncommon pattern to initialize the object holding the asynchronous functions.
-        The compiler is still unable to understand this pattern, and fails if the initialization differs from code listing \ref{lst:rupturepoints}.
+  \item Variables poorly encapsulated or used too broadly tighten dependencies accross the code, and might result in a monolithic, unchanged application.
+  \item The compilation silently fails if a variable holding a callback or a module is overwritten.
+        The variable tracker is unable to track accurately all the modification of a variable to detect this situation which may lead the compiler either to miss rupture points, or to detect non existing one.
+  \item The compiler is unable to track dynamically resolved value, even if the value is deducible statically.
+        If this variable is then used in a potential rupture point, the compiler won't be able to detect it.
+  \item The \textit{express} module, and other modules, use widely different patterns.
+        The Javascript language offers rich composition possibilities leading to many possible corner cases.
+        The compiler is not robust enough to tackle all the possible corner cases, so there might be some other limitations we aren't aware of.
 \end{itemize}
 
-Most of the limitations described above are caused by the variable tracker described in section \ref{section:analyzer}, being in an early stage of development.
-We are currently in the process of extending further the reach of this component to extend the subset of compilable applications.
+The three last limitations described above are caused by the variable tracker - described in section \ref{section:analyzer} - being in an early stage of development.
+We are currently in the process of extending further the reach of this component to increase the subset of compilable applications.
 
 We believe that our work will keep scalability concerns out of the way from the development team, who could then focus on the core logic of their application.
 In future developments of this project, we aim at making application dynamically reactive to the load of user requests.
