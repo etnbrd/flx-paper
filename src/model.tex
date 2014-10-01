@@ -1,22 +1,23 @@
 \section{Fluxional execution model} \label{section:model}
 
-The tool we present in this paper transforms a monolithic application into a network of autonomous parts.
-There exist many execution models designed for such distributed system renowned precisely for their performances.
-However, we focus on the shift in programming model rather than the performance of a runtime.
-Therefore, we present in this section an extremely simplified execution model inspired by the literature\cite{Welsh2000, Jain2006, Wu2007, Zaharia2010, Akidau2013, Marz2011}, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
+The tool we present in this paper transforms a monolithic application into a network of autonomous parts communicating with message streams.
+There exist many execution models designed for such distributed system renowned precisely for their performances\cite{Welsh2000, Jain2006, Wu2007, Zaharia2010, Akidau2013, Marz2011}.
+However, we focus on the shift in programming model rather than the performance of the runtime.
+Therefore, we present in this section an extremely simplified execution model inspired by the literature, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
 
 \subsection{Fluxions}
 
 The fluxional execution model role is to manage and invoke autonomous execution units.
-An execution unit accepts only streams as input and output, that is a continuous and infinite sequence of data encapsulated in messages.
+An execution unit listens for, and sends back streams.
+A stream is a continuous and infinite sequence of data encapsulated in messages.
 We named this execution unit a fluxion, by contraction between a flux and a function.
-That is a function, as in functional programming, only dependent from data streams.
-It is composed of a unique name, a processing function, and a persisted memory context.
+A fluxion is a function, as in functional programming, only dependent on input and output streams.
+It is composed of a unique name, a processing function, and a persisted memory \textit{context}.
 
-Messages are carried by a distributed messaging system.
+Messages are carried between fluxions by a messaging system.
 They are composed of the name of the recipient fluxion and a body.
-At a message reception, the fluxion modifies its context, and sends back messages to downstream fluxions.
-The fluxion's execution context is defined as the set of state variables on which the fluxion depends between two executions - that is two messages receptions.
+At a message reception, the fluxion modifies its memory \textit{context}, and sends back messages to downstream fluxions.
+The fluxion's memory \textit{context} contains all of the state variables on which the fluxion depends between two executions - that is two messages receptions.
 
 The fluxions form a chain of processing binded by data streams.
 All these chains constitute a directed graph, operated by the messaging system.
@@ -26,8 +27,8 @@ All these chains constitute a directed graph, operated by the messaging system.
 The messaging system is the core of our fluxional execution model.
 It carries messages along streams, and invokes fluxions at a message reception.
 
-A message queue is at the core of this messaging system.
-Each message is processed one after the other by invocation of the recipient fluxion.
+The messaging system is built around a message queue.
+Each message is processed one after the other by invocation of the destination fluxion.
 % Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
 The life cycle of a fluxional application is pictured on figure \ref{fig:MesSys}.
 
@@ -40,18 +41,18 @@ The life cycle of a fluxional application is pictured on figure \ref{fig:MesSys}
 The messaging system carries message streams based on the names of the recipient fluxions.
 So it needs every fluxion to be registered.
 If two fluxions share a name, the messaging system would be in a conflicting situation.
-This registration matches a processing function with a unique name and an initial execution context.
+This registration associates a processing function with a unique name and an initial memory \textit{context}.
 The registration is done using the function \texttt{register(<nom>, <fn>, <context>)}, step \circled{1} on figure \ref{fig:MesSys}.
 % A fluxion can dynamically register other fluxions
 
-To trigger a fluxions chain, a message is sent using the function \texttt{start(<msg>)}, step \circled{2}.
+To trigger a chain of fluxions, a message is sent using the function \texttt{start(<msg>)}, step \circled{2}.
 This function pushes a first message in the queue.
 Immediately, the system dequeues this message to invoke the recipient processing function, step \circled{3} and \circled{4}.
 The recipient function sends back messages using the function \texttt{post(<msg>)}, step \circled{5}, to be enqueued in the system, step \circled{6}.
 The system loops through steps \circled{3} and \circled{4} until the queue is empty.
 This cycle start again for each new start.
 
-The algorithms \ref{alg:traitement} and \ref{alg:parcours} precisely describe the behavior of the messaging system after the function \texttt{start} invocation.
+The algorithms \ref{alg:parcours} and \ref{alg:traitement} precisely describe the behavior of the messaging system after the function \texttt{start} invocation.
 
 \begin{algorithm}
 \caption{Message queue walking algorithm}
@@ -80,72 +81,86 @@ The algorithms \ref{alg:traitement} and \ref{alg:parcours} precisely describe th
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{External interfaces}
+% \subsection{External interfaces}
 
-In order to interact with other systems, we define external border interfaces.
-As a first approach, our goal is to interface Web architectures, so we need to communicate with a REST\cite{Fielding2002} client.
-We define two components in this interface :
+% In order to interact with other systems, we define external border interfaces.
+% As a first approach, our goal is to interface Web architectures, so we need to communicate with a REST\cite{Fielding2002} client.
+% We define two components in this interface :
 
-\begin{itemize}
-	\item[\textbf{In}]
-    receives client connections.
-    % This is so the first link in the chain.
-    For every incoming connection, it relays a connection identifier to the \textbf{Out} component for the reply.
-    It then relays the connection identifier and the request to the first fluxion by calling the \texttt{start} function.
-	\item[\textbf{Out}]
-    sends the result of the processing chain back to the client.
-    To receive messages from the processing chain, the component \textbf{Out} is registered in the messaging system under the name \texttt{out}.
-    % This is so the last link in the chain.
-\end{itemize}
+% \begin{itemize}
+% 	\item[\textbf{In}]
+%     receives client connections.
+%     % This is so the first link in the chain.
+%     For every incoming connection, it relays a connection identifier to the \textbf{Out} component for the reply.
+%     It then relays the connection identifier and the request to the first fluxion by calling the \texttt{start} function.
+% 	\item[\textbf{Out}]
+%     sends the result of the processing chain back to the client.
+%     To receive messages from the processing chain, the component \textbf{Out} is registered in the messaging system under the name \texttt{out}.
+%     % This is so the last link in the chain.
+% \end{itemize}
 
-Figure \ref{fig:schemaweb} pictures the specific elements of the web interface inside the fluxional system.
-% La figure \ref{fig:schemaweb} illustre les éléments spécifiques de cette interface Web au sein du système fluxional illustré par la figure \ref{fig:MesSys}.
+% Figure \ref{fig:schemaweb} pictures the specific elements of the web interface inside the fluxional system.
+% % La figure \ref{fig:schemaweb} illustre les éléments spécifiques de cette interface Web au sein du système fluxional illustré par la figure \ref{fig:MesSys}.
 
-\begin{figure}[h!]
-	\includegraphics[width=\linewidth]{ressources/schema-web.pdf}
-	\caption{Fluxional application with web interface}
-	\label{fig:schemaweb}
-\end{figure}
+% \begin{figure}[h!]
+% 	\includegraphics[width=\linewidth]{ressources/schema-web.pdf}
+% 	\caption{Fluxional application with web interface}
+% 	\label{fig:schemaweb}
+% \end{figure}
 
 % TODO paragraphe de transition
 
 \subsection{Service example}
 
-In order to picture the fluxional execution model, we present an example of a simple visit counting service.
-This service counts the number of HTTP connections for each user, and sends him back this number in the HTTP reply.
-This example is not a compilation result, but only an illustration for the fluxionnal execution model.
+In order to picture the fluxional execution model, we present an example of a simple web application.
+This application sends back its own source along with a download counter.
 
-\begin{code}[js, caption={Original code of a simple service example},label={lst:classique}]
-var app = require('express')();
+\includecode{js,
+  caption={Source of the compilation example},
+  label={lst:ex-source}
+}
+{../../example/source.js}
 
-@\label{lst:classique_count}@var count = {};
+% \begin{code}[js, caption={Original code of a simple service example},label={lst:classique}]
+% var app = require('express')();
 
-@\label{lst:classique_get}\label{lst:classique_replyb}@app.get('/:id', function reply(req, res){
-  count[req.params.id] = count[req.params.id]  || 1; @\label{lst:classique_dynres}@
-  ++count[req.params.id] 
-  var visits = count[req.params.id];
-  var reply = req.params.id + ' connected ' + visits + ' times.';
-@\label{lst:classique_send}@  res.send(reply);
-@\label{lst:classique_replye}@});
+% @\label{lst:classique_count}@var count = {};
 
-port = 8080;
-app.listen(port);
-console.log("Listening port: "+port);
-\end{code}
+% @\label{lst:classique_get}\label{lst:classique_replyb}@app.get('/:id', function reply(req, res){
+%   count[req.params.id] = count[req.params.id]  || 1; @\label{lst:classique_dynres}@
+%   ++count[req.params.id] 
+%   var visits = count[req.params.id];
+%   var reply = req.params.id + ' connected ' + visits + ' times.';
+% @\label{lst:classique_send}@  res.send(reply);
+% @\label{lst:classique_replye}@});
 
-The initial version of this service could look like code listing \ref{lst:classique}.
-In this code listing, three elements are worth noticing.
+% port = 8080;
+% app.listen(port);
+% console.log("Listening port: "+port);
+% \end{code}
+
+% The initial version of this service could look like code listing \ref{lst:classique}.
+The original source code of this application is available on github\cite{flx-example}\footnote{\raggedright https://github.com/etnbrd/flx-example/releases}, and in listing \ref{lst:ex-source}.
+In this source code, some points are worth noticing.
 
 \begin{itemize}
-  \item The \texttt{count} object at line \ref{lst:classique_count} is a persistent memory that stores each user visit count.
-  This object is mapped to a fluxion \textit{execution context} in the fluxional system.
-  \item The \texttt{reply} function, line \ref{lst:classique_replyb} to \ref{lst:classique_replye}, contains the logic we want to express in the fluxional processing chain.
-  \item The two functions \texttt{get} and \texttt{send}, respectively line \ref{lst:classique_get} and \ref{lst:classique_send}, interface the logic with the external interface.
-  The hidden processing chain of functions is : $\texttt{get} \to \texttt{reply} \to \texttt{send}$
+  \item The \texttt{reply} function, line 5 to 11, contains the logic we want to split into the fluxional processing chain.
+  It receives the user request in the variable \texttt{res} which is used in the whole chain.
+  \item The \texttt{count} object at line 3 is a persistent memory that increment the download counter.
+  This object needs to be mapped to a fluxion \textit{execution context} in the fluxional system.
+  \item The two functions \texttt{get} and \texttt{send}, respectively line 5 and 9, interface the application with the clients.
+  The processing chain of functions is in between these two functions : $\texttt{get} \to \texttt{handler} \to \texttt{readFile} \to \texttt{reply} \to \texttt{send}$.
 \end{itemize}
 
-This minimal service is transformed manually into the fluxions chain depicted in Figure \ref{fig:fluxions}.
+This minimal application is transformed manually into the fluxions chain depicted in Figure \ref{fig:fluxions}.
 We expect a similar result with the compiler described in next section.
+The circles represent registered fluxions.
+Envelope symbols represent messages streams between fluxions with the data transmitted from one fluxion to the other.
+The square in the messaging system hold the memory \textit{context} of the \texttt{reply} fluxion.
+When a new \texttt{GET} REST request is received by the starting fluxion named \texttt{get}, a \texttt{start} message triggers the flow.
+The \texttt{handler} fluxion receives this \texttt{start} message, read the source file and forward it to the \texttt{reply} fluxion which increments the counter, and sends the result back.
+Each fluxion propagates the necessary values from one fluxion to the other exclusively by messages.
+Horizontal dashed lines show message virtual transmission between fluxions although they all go through the messaging system.
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/flux.pdf}
@@ -153,54 +168,72 @@ We expect a similar result with the compiler described in next section.
   \label{fig:fluxions}
 \end{figure}
 
-The circles in figure \ref{fig:fluxions} represent registered fluxions.
-Envelope symbols represent exchanged messages between fluxions with the data transmitted from one fluxion to the other. Finally, squares stored in the messaging system hold the \textit{execution context} for the logic and \textbf{Out} fluxions.
-When a new \texttt{get} REST message is received at the \textbf{In} end point, a \texttt{start} message triggers the flow.
-Concurrently the \textbf{In} fluxion set a \texttt{cid} parameter to the \textbf{Out} fluxion execution context.
-This \texttt{cid} is associated to the client connexion to which the last fluxion redirects the answer.
-The \texttt{cid} tags the request and is transmitted through the flow until the \textbf{Out} fluxion.
-Each fluxion propagates the necessary values from one fluxion to the other exclusively by messages.
-Horizontal dashed lines show message virtual transmission between fluxions although they all go through the messaging system.
-
-Listing \ref{lst:fluxional} describes this counting service in our fluxional language.
-This new language brings a stricter segmentation than the initial code by allowing the developer to only define and register fluxions.
+Listing \ref{lst:fluxional} describes this counting application in our high-level fluxional language.
+This language brings a stricter segmentation than the initial code by allowing to only define and register fluxions.
 % And so, it allows an additional system to optimize the organization of the system on different physical machines according to the cost of fluxions' streams and processing.
-A fluxion is defined by a name, and a list of destinations preceded by the operator \texttt{-}\texttt{>}.
-Fluxions can access and manipulate only two objects : \texttt{msg} and \texttt{this}.
+In this language, a fluxion is defined by a name, a description of the memory \textit{context}, the operator \texttt{>}\texttt{>} for starting fluxions or \texttt{-}\texttt{>} for following fluxions and finally a list of downstream fluxions with the content of the message for each stream.
+Following the fluxion definition is the body containing the processing function, using the Javascript language syntax.
+The processing function can access and manipulate only two objects : \texttt{msg} and \texttt{this}.
 The first is the received message, the second is the persisted context of the fluxion.
-Fluxions use the Javascript language syntax inside their definition.
+There is an exception for the starting fluxion whose body doesn't contains a function, because it never receives any stream, but only initializes the application.
 
 % This high level language is not dynamic, and not typed.
 % You can register fluxion at any time, and the messages can contain any type or composition of types.
 % \TODO{write a paragraph about the languages characteristics, a reserved subsection might be necessary, but maybe better placed in the next section, about transformation}
 
-\begin{code}[js, caption={Fluxional sample},label={lst:fluxional}]
-use web
+% \begin{code}[js, caption={Fluxional sample},label={lst:fluxional}]
+% use web
 
-fluxion logic -> view
-  this.uid[msg.uid] = this.uid[msg.uid] + 1 || 1
-  msg.count = this.uid[msg.uid]
-  post msg
+% fluxion logic -> view
+%   this.uid[msg.uid] = this.uid[msg.uid] + 1 || 1
+%   msg.count = this.uid[msg.uid]
+%   post msg
 
-fluxion view -> output
-  msg.view = msg.uid + " connected " + msg.count + " times."
-  msg.uid = undefined
-  msg.count = undefined
-  post msg
+% fluxion view -> output
+%   msg.view = msg.uid + " connected " + msg.count + " times."
+%   msg.uid = undefined
+%   msg.count = undefined
+%   post msg
 
-register logic, {uid: {}}
-register view
+% register logic, {uid: {}}
+% register view
 
-web.listen
+% web.listen
+% \end{code}
+
+\begin{code}[flx, caption={Fluxional sample},label={lst:fluxional}]
+flx get
+>> handler [res]
+  var app = require('express')(),
+      fs = require('fs'),
+      count = 0;
+
+  app.get('/', >> handler);
+  app.listen(8080);
+  console.log('>> listening 8080');
+
+flx handler
+-> reply [res]
+  function handler(req, res) {
+    fs.readFile(__filename, -> reply);
+  }
+
+flx reply {count}
+-> null
+  function reply(error, data) {
+    count += 1;
+    var code = ('' + data).replace(/\n/g, '<br>').replace(/ /g, '&nbsp');
+    res.send('downloaded ' + count + ' times<br><br><code>' + code + '</code>');
+  }
 \end{code}
 
-Except from the two interface components, the service is organized as follow :
+The application is organized as follow :
 \begin{itemize}
-  \item The \texttt{logic} fluxion is the first to receive the client's message.
-  It contains the whole logic of this simple service.
-  A real service would need a more complex chain with logic distributed across multiple fluxions, instead of a single fluxion.
-  It increments the count for the received user identifier, pushes this count inside the message, and relays it to the next fluxion.
-  \item The \texttt{view} fluxion receives this message, formats it for the user, and relays it to the output fluxion.
+  \item The \texttt{get} fluxion is the starting fluxion.
+  It initialize the application to listen for user request calling \texttt{app.get}.
+  Every request is sent to the \texttt{handler} request.
+  \item The \texttt{handler} fluxion read the source file to send it to the user, and forward the result to the \texttt{reply} fluxion.
+  \item The \testtt{reply} fluxion increments the counter, formats the reply, and sends it back to the user using the function \texttt{res.send}.
 \end{itemize}
 
 We use this interface to develop web services using the fluxional execution model.

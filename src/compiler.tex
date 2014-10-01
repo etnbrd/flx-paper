@@ -177,39 +177,14 @@ The synchronization of a distributed memory is a well-known subject, with Brewer
 We choose to stay out of this topic, the objective for this compiler is to be able to transform only a subset of web application with a satisfying result.
 The compiler merges the parts sharing variables with modification access.
 
-\subsection{Guidelines and Future work}
-
-This compiler aims at transforming a subset of Javascript web applications presenting a specific syntax and design.
-In this section, we describe briefly the current limitations of our compiler and how we plan to overcome them in future works.
-
-\begin{itemize}
-  \item Variables poorly encapsulated or used too broadly tighten dependencies accross the code, and might result in a monolithic, unchanged application.
-  \item The compilation silently fails if a variable holding a callback or a module is overwritten.
-        The variable tracker is unable to track accurately all the modification of a variable to detect this situation which may lead the compiler either to miss rupture points, or to detect non existing one.
-  \item The compiler is unable to track dynamically resolved value, even if the value is deducible statically.
-        If this variable is then used in a potential rupture point, the compiler won't be able to detect it.
-  \item The \textit{express} module, and other modules, use widely different patterns.
-        The Javascript language offers rich composition possibilities leading to many possible corner cases.
-        The compiler is not robust enough to tackle all the possible corner cases, so there might be some other limitations we aren't aware of.
-\end{itemize}
-
-The three last limitations described above are caused by the variable tracker - described in section \ref{section:analyzer} - being in an early stage of development.
-We are currently in the process of extending further the reach of this component to increase the subset of compilable applications.
-
-We believe that our work will keep scalability concerns out of the way from the development team, who could then focus on the core logic of their application.
-In future developments of this project, we aim at making application dynamically reactive to the load of user requests.
-By monitoring only the input stream, the \texttt{start} rupture points, we believe it is possible to infer the load propagation through the application.
-Using analogy with fluid dynamics, each fluxion is like a pipe, traversed by a fluid of user requests.
-The input and output throughput of this pipe could be calibrated before production use, generating an approximative model of the application reaction to input load.
-Using this model, we want to make the application's reorganize itself in a cluster to handle pikes in the user request throughput.
-
 \subsection{Compilation example}
 
 % For copyright reason, the compiler source code is kept private along with the tests we used.
 To illustrate the compiler features, we compiled a very simple, yet representative, application.
 The source and compiled results of this application are available on github\cite{flx-example}\footnote{\raggedright https://github.com/etnbrd/flx-example/releases}.
-The compiler source code is the property of Worldline, and is not publicly available, but we are planning of releasing it in a near future.
-To test the source or the result of the compilation, one would launch respectively \texttt{source.js} or \texttt{result.js} with \texttt{node} and check the service available at \texttt{localhost:8080}, after installing the dependencies with \texttt{npm}, containing the fluxional execution model \texttt{flx}.
+The compiler source code is the property of Worldline, and is not publicly available, but we are planning of releasing it as an open source project in a near future.
+To test the source or the result of the compilation, one would launch respectively \texttt{source.js} or \texttt{result.js} with \texttt{node} and check the service available at \texttt{localhost:8080}.
+Both executable needs their dependencies to be resolved with \texttt{npm} before execution.
 \begin{verbatim}
 git clone https://github.com/etnbrd/flx-example
 cd flx-example
@@ -220,8 +195,10 @@ open http://localhost:8080
 
 The file \texttt{source.js}, in listing \ref{lst:ex-source}, is the source of this compilation example.
 This application sends back its own source along with a download counter.
-The source contains two asynchronous function call with \textit{in situ} callback, one to receive user requests and one to read its own source, respectively \texttt{app.get} line 5 and \texttt{fs.read} line 7.
-It also uses a global variable for the download counter defined line 3 and used only in the \texttt{reply} function, line 8 and 9.
+The processing chain of function is : $\texttt{get} \to \texttt{handler} \to \texttt{readFile} \to \texttt{reply} \to \texttt{send}$.
+It uses two asynchronous function call with \textit{in situ} callback, one to listen for user requests and one to read its own source, respectively \texttt{app.get} line 5 and \texttt{fs.read} line 6.
+It uses a global variable to increment the download counter defined line 3.
+This global variable is used only in the \texttt{reply} function, line 7 and 9.
 
 \includecode{js,
   caption={Source of the compilation example},
@@ -229,20 +206,20 @@ It also uses a global variable for the download counter defined line 3 and used 
 }
 {../../example/source.js}
 
-The result of the compilation into our hgh-level language is in the file \texttt{result.flx}, presented in listing \ref{lst:ex-flxres}.
-The analyzer detects both asynchronous call as rupture points.
-The first one is a \textit{start} rupture point, it receives the stream of user requests. 
-The second one is a \textit{post} rupture point, it reads the source file.
+The result of the compilation into our high-level language is in the file \texttt{result.flx}, presented in listing \ref{lst:ex-flxres}.
+The analyzer detects both asynchronous calls as rupture points.
+The first one is a \textit{start} rupture point and is associated with the \texttt{app.get} asynchronous function call which makes the callback \texttt{handler} listen for the stream of user requests. 
+The second one is a \textit{post} rupture point and is associated with the \texttt{fs.readFile} asynchronous function call which reads the source file and hand it to the callback \texttt{reply}.
 These two rupture points result in three different application parts.
-The first application part is the root fluxion, named after the filename, \texttt{source.js}.
-It initialize the system to route the user requests to the next fluxion, named after the callback, \texttt{handler-1000}.
-This second fluxion reads the file, and send the result to the next fluxion \texttt{reply-1001}.
-
+The first application part is encapsulated in the root fluxion, named after the filename, \texttt{source.js}, line 18.
+It initializes the system to route the user requests to the next fluxion, named after the callback, \texttt{handler-1000}, line 9.
+This second fluxion reads the file, and sends the result to the next and last fluxion \texttt{reply-1001}, line 1.
+We can identify the processing chain of functions in this chain of fluxion : $\texttt{source.js (get)} \to \texttt{handler-1000 (handler, readFile)} \to \texttt{reply-1001 (reply, send)}$.
 The linker detects that the fluxion \texttt{reply-1001} needs two variable to send the result back to the user : \texttt{res} and \texttt{count}, as seen line 10 in listing \ref{lst:ex-flxres}.
-The variable \texttt{res} depends on the user connection and change for each new request.
-It needs to be part of the \textit{signature} of the message transfered until the last fluxion.
-The variable \texttt{count} is global, and needs to increment at each new request.
-So the compiler store it in the context of this fluxion.
+The variable \texttt{res} depends on the user connection and is initialized for each new request.
+It needs to be part of the \textit{signature} of the message transfered to the last fluxion.
+The variable \texttt{count} is global, and needs to increment at each new request only by the function \texttt{reply} in the fluxion \texttt{reply-1001}.
+This global variable is in the scope of this application part, so the compiler stores it in the context of this fluxion.
 
 \includecode{flx,
   caption={High level fluxional language result of the compilation example},
@@ -257,3 +234,30 @@ The compiler also produce an executable targeting the fluxional execution model 
   label={lst:ex-jsres}
 }
 {../../example/result.js}
+
+\subsection{Limitations}
+
+This compiler aims at transforming a subset of Javascript web applications presenting a specific syntax and design.
+In this section, we describe briefly the current limitations of our compiler and how we plan to overcome them in future works.
+
+\begin{itemize}
+  \item Variables poorly encapsulated or used too broadly tighten dependencies accross the code, and might result in a monolithic, unchanged application.
+  \item The compilation silently fails if a variable holding a callback or a module is overwritten.
+        The variable tracker is unable to track accurately all the modification of a variable to detect this situation which may lead the compiler either to miss rupture points, or to detect non existing one.
+  \item The compiler is unable to track a dynamically resolved value, even if the value is deducible statically.
+        If this variable is used in a potential rupture point, the compiler screens it out.
+  \item The Javascript language offers rich composition possibilities leading to many possible corner cases.
+        The compiler is not robust enough to tackle all the possible corner cases.
+        For example, the \textit{express} module is only detected if initialized like in listing \ref{lst:rupturepoint}.
+        There may be other limitations we aren't aware of.
+\end{itemize}
+
+The three last limitations described above are caused by the variable tracker - described in section \ref{section:analyzer} - being in an early stage of development.
+We are currently in the process of extending further the reach of this component to increase the subset of compilable applications.
+
+% We believe that our work will keep scalability concerns out of the way for the development team, who could then focus on the core logic of their application.
+% In future developments of this project, we aim at making application dynamically reactive to the load of user requests.
+% By monitoring only the input stream, the \texttt{start} rupture points, we believe it is possible to infer the load propagation through the application.
+% Using analogy with fluid dynamics, each fluxion is like a pipe, traversed by a fluid of user requests.
+% The input and output throughput of this pipe could be calibrated before production use, generating an approximative model of the application reaction to input load.
+% Using this model, we want to make the application's reorganize itself in a cluster to handle pikes in the user request throughput.
