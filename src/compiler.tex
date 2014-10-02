@@ -66,14 +66,13 @@ var fs = require('fs');
 @\label{lst:first_ep}@console.log('>> first concurrent execution path');
 \end{code}
 
-% \begin{code}[Javascript, caption={Example of a rupture point : an asynchronous function call, \texttt{app.get()}, with a callback parameter, \texttt{function reply}},label={lst:hello}]
-% var app = require('express')();
-% app.get('/', function reply(req, res) {
-%   res.send('Hello World :)');
-% });
-% app.listen(8080);
-% console.log('server listening to 8080');
-% \end{code}
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[width=\linewidth]{ressources/flux-1.pdf}
+  \caption{Division of the listing \ref{lst:hello} into two application parts}
+  \label{fig:flux-1}
+\end{center}
+\end{figure}
 
 There are two types of rupture points : \textit{start} and \textit{post}.
 Figure \ref{fig:basicrp} and \ref{fig:specialrp} illustrate the different types of interface in the rupture points.
@@ -120,6 +119,14 @@ app.get('/', function handleRequest(req, res) {
 app.listen(8080);
 console.log('server listening to 8080');
 \end{code}
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[width=\linewidth]{ressources/flux-2.pdf}
+  \caption{Division of the listing \ref{lst:rupturepoints} into three application parts}
+  \label{fig:flux-1}
+\end{center}
+\end{figure}
 
 \subsubsection{Detection}
 
