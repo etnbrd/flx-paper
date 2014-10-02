@@ -6,22 +6,22 @@ In a matter of hours, it is possible to upload a first product and start gatheri
 
 If the service complies successfully with users requirements, its community might grow with its popularity.
 To cope with this growth, the resources quantity available to the service shall grow proportionally.
-Eventually this growth requires to discard the monolithic initial approach that supported the rapid growth in features satisfying the community, and adopt a more efficient processing model.
-Many of the most efficient models split the system into parts to reduce local coupling and are based on a cluster of commodity machines\cite{Fox1997} to support incremental scalability.
+Eventually this growth requires to discard the initial monolithic approach that supported the rapid enhancements in features satisfying the community, and requires instead to adopt a more efficient processing model.
+Many of the most efficient models split the system into parts to reduce local coupling and can distribute the execution on a cluster of commodity machines\cite{Fox1997} to support incremental scalability.
 System S\cite{Jain2006,Wu2007}, the Staged Event-driven Architecture (SEDA)\cite{Welsh2000} and MapReduce \cite{Dean2008} are examples of that trend.
 Once split, the service parts are connected by a messaging system, often asynchronous, using communication paradigms like events, messages or streams.
 Many tools have been developed to express and manage these service parts and their communications.
 We can cite Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Marz2011}.
-However, these tools propose specific interfaces and languages, generally different from the tools used in the early step of a project.
-It requires the development team either to be trained or to hire experts and to start over the initial code base.
-Therefore, these modifications cause the development team to spend development resources in background without adding visible value for the user.
+However, these tools propose specific interfaces and languages, different from the initial monolithic approach generally used in the early steps of a project.
+It requires the development team either to be trained or to hire experts, and to start over the initial code base.
+Therefore, these modifications cause the development team to spend development resources in background without adding visible value for the users.
 
-To lift the risks described above, we propose a tool to compile the initial code base into a more efficient processing model.
-We focus on web applications driven by users requests streams, developed in a dynamic language like Javascript using \textit{Node.js} execution environment.
+To lift the risks described above, we propose a tool to compile the initial code base into a high-level language compatible with a more efficient processing model.
+We focus on web applications driven by users requests streams, developed in a dynamic language like Javascript using the \textit{Node.js} execution environment.
 We think that it is possible to analyze this type of application to compile it into a network of autonomous, movable functions communicating by data streams.
-This tool and its runtime aim not to modify the existing code, but rely on a common layer of meta information over the initial code base.
+This tool and its runtime aim not to modify the existing code, but rely on a layer of meta information over the initial code base.
 
-This paper present an early versions of this tool as a proof of concept for a change in programming model.
+This paper presents an early version of this tool as a proof of concept of this compilation approach.
 The execution environment is described in section \ref{section:model}.
 The compiler is described in section \ref{section:compiler}.
 In section \ref{section:related}, we compare our work with related works.
