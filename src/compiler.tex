@@ -6,13 +6,14 @@
 % In the first section, a distributed system is defined by the parallel execution of its parts, and the distribution of its memory.
 Current Web applications are mostly written in Java. The langage proposes both data encapsulation and a threading model that ease the development of distributed applications.
 Yet, Java framework for developing efficient applications are complex systems that impose new APIs\cite{Coward2003} to the developers.
+They are error-prone, and leads to deadlocks and other synchronization problems.
 Since 2009, \textit{Node.js}\cite{Dahl} provides a simple Javascript execution environnment for network applications.
 We focus on this promising environment for its initial simplicity and efficiency.
-We develop a compiler that transforms a simple Node.js application into a fluxional system compliant to the architecture described in section \ref{section:model}.
+We develop a compiler that transforms a simple \textit{Node.js} application into a fluxional system compliant to the architecture described in section \ref{section:model}.
 As javascript forbids user-space thread API, a javascript application is developed as a mono-threaded application.
 Moreover, in Javascript  the memory is hierarchical and the root scope may be accessed by any function, which leads to bad component isolation.
-Our compiler finds fluxions into most of Web-based Javascript application.
-It finds component isolation through and assure memory consistency.
+Our compiler uses a new approach to find rupture points into most of \textit{Node.js} application, marking out the independent application pars.
+It assures isolation and memory consistency for the application parts.
 
 We do not target all Javascript Web-based application as this work is only a proof of concept of the compilation process.
 But if we are able to transform a consequent subset of currently running applications without external developer help, we expect a real execution gain in a cloud environment.
@@ -32,12 +33,12 @@ Section \ref{section:linker} explains how the \textit{linker} resolves the missi
 
 % The parallelization of programs is a trending problem to leverage the multiple cores available on highly parallel architectures.
 The Sun programming guide\footnote{\raggedright http://docs.oracle.com/cd/E19455-01/806-5257/6je9h032b/index.html} defines \textbf{parallelism} as \textit{a condition that arises when at least two threads are executing simultaneously}, and \textbf{concurrency} as \textit{a condition that exists when at least two threads are making progress. A more generalized form of parallelism that can include time-slicing as a form of virtual parallelism}.
-\textbf{Asynchronism} is a condition that arises when a communication point continues processing an independent thread of execution while waiting for the answer to his request.
+\textbf{Asynchronism} is a condition that arises when a client continues its execution while waiting for the result to its request.
 
-Promises\cite{Liskov1988}, as well as \textit{Node.js} callbacks, are abstractions that transform blocking synchronous operations into non-blocking asynchronous operations.
-These asynchronous operations run concurrently with the main thread, until the requested value is available for the main thread to continue the computation needing this value.
-The callback asynchronism splits the execution in two concurrent execution paths, one that needs the requested value and one that doesn't.
-A rupture points is where the execution flow forks in two concurrent paths due to this concurrent asynchronism.
+Promises\cite{Liskov1988}, as well as callbacks, are abstractions that transform blocking synchronous operations into non-blocking asynchronous operations.
+These asynchronous operations run in parallel with the main thread, until the requested result is available for the main thread to continue the computation needing this value.
+The callback asynchronism splits the execution in two concurrent execution paths, one that needs the requested result and one that doesn't.
+A rupture points is where the execution flow forks in two concurrent paths due to this asynchronism.
 These points mark out the limits between the independent parts of an application.
  
 The analyzer detects rupture points to break the application into independent parts.
@@ -49,16 +50,20 @@ Rupture points represent a fork in the execution flow due to an asynchronous ope
 They are composed of an asynchronous function, and a callback to process the result of the operation.
 The first execution flow path is the suite of instructions following after the asynchronous function.
 The second execution flow path is the callback.
-A rupture point is an interface between two application parts.
+A rupture point is an interface between these two execution flows and split them in two application parts.
 Listing \ref{lst:hello} is an example of a rupture point in a simple application.
+The asynchronous function call \texttt{fs.readFile} and the callback \texttt{function display} represent the rupture point between the first execution path, line \ref{lst:first_ep} and the second, line \ref{lst:second_ep}.
+The first application part is the whole program, the second application part contains the \texttt{function display}, lines \ref{lst:callback_begin} to \ref{lst:callback_end}.
 
 \begin{code}[js, caption={Example of a rupture point : an asynchronous function call, \texttt{fs.readFile()}, with a callback parameter, \texttt{function display}},label={lst:hello}]
 var fs = require('fs');
-fs.readFile(__filename, function display(err, data) {
-  console.log('>> second concurrent execution path');
+
+@\label{lst:callback_begin}@fs.readFile(__filename, function display(err, data) {
+@\label{lst:second_ep}@  console.log('>> second concurrent execution path');
   console.log(err || data.toString());
-})
-console.log('>> first concurrent execution path');
+@\label{lst:callback_end}@})
+
+@\label{lst:first_ep}@console.log('>> first concurrent execution path');
 \end{code}
 
 % \begin{code}[Javascript, caption={Example of a rupture point : an asynchronous function call, \texttt{app.get()}, with a callback parameter, \texttt{function reply}},label={lst:hello}]
@@ -70,25 +75,26 @@ console.log('>> first concurrent execution path');
 % console.log('server listening to 8080');
 % \end{code}
 
-There are two types of rupture points : root and following.
-Figure \ref{fig:basicrp} and \ref{fig:specialrp} are used to illustrate the different types of interface in the two rupture points.
-In these figures, the two concurrent execution paths distributed in two application parts are indicated by \circled{1} and \circled{2}.
+There are two types of rupture points : \textit{start} and \textit{post}.
+Figure \ref{fig:basicrp} and \ref{fig:specialrp} illustrate the different types of interface in the rupture points.
+In these figures, the two concurrent execution paths are indicated by \circled{1} and \circled{2}, the applications parts are encapsulated in upstream and downstream fluxions.
 
-\textbf{Root rupture points} are on the interface between the whole application and the outside, continuously receiving incoming user requests, like \texttt{app.get()} in listing \ref{lst:rupturepoints}.
-The callbacks of these functions indicate the input of a data stream in the program, and the beginning of a chain of application parts following this stream.
+\textbf{Start rupture points} are on the interface between the whole application and the outside, continuously receiving incoming user requests, like \texttt{app.get()} in listing \ref{lst:rupturepoints}.
+These functions indicate the input of a data stream in the program, and the beginning of a chain of application parts following this stream.
 % The \textit{start} rupture points will later be used to monitor the load from incoming external requests.
-Because the asynchronous function is called only once, while the callback is triggered multiple times, this interface is placed between the two, as illustrated in figure \ref{fig:basicrp}.
+The asynchronous function is called only once, while the callback is triggered for each new request.
+The interface of this rupture point is placed between the two, as illustrated in figure \ref{fig:basicrp}, because it is a convenient separation between two functions.
 
-\textbf{Following rupture points} represent a continuity in the execution flow after a finite asynchronous operation, such as reading a file in listing \ref{lst:hello}.
+\textbf{Post rupture points} represent a continuity in the execution flow after a finite asynchronous operation, such as reading a file in listing \ref{lst:hello}.
 As the result of this read operation probably being a voluminous object, this frontier is specially placed before the call to the asynchronous function, but after the resolution of the arguments.
 This placement allow the asynchronous function call to occur in the same application parts as the callback, avoiding the transfer of this voluminous result, as illustrated in figure \ref{fig:specialrp}.
 % The function calls from following rupture points mark the interface between the current application part and the next one.
-For a write operation, the data transfer is inversed so the frontier is placed between the asynchronous operation and the callback, like for a \textit{root rupture point}, as illustrated in figure \ref{fig:basicrp}.
+For a write operation, the data transfer is inversed so the frontier is placed between the asynchronous operation and the callback, like for a \textit{start rupture point}, as illustrated in figure \ref{fig:basicrp}.
 
 \begin{figure}[h!]
 \begin{center}
   \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
-  \caption{Basic rupture point interface. \textnormal{The interface is placed after the asynchronous operation, for the downstream application part to be triggered at each event.}}
+  \caption{Basic rupture point interface. \textnormal{The rupture point interface is placed after the asynchronous operation, for the downstream application part to be triggered at each event.}}
   \label{fig:basicrp}
 \end{center}
 \end{figure}
@@ -96,20 +102,18 @@ For a write operation, the data transfer is inversed so the frontier is placed b
 \begin{figure}[h!]
 \begin{center}
   \includegraphics[width=\linewidth]{ressources/specialrp.pdf}
-  \caption{Special rupture point interface. \textnormal{The interface is placed before the asynchronous operation, to avoid moving the result from one application part to another.}}
+  \caption{Special rupture point interface. \textnormal{The rupture point interface is placed before the asynchronous operation, to avoid moving the result accross the interface from one application part to the other.}}
   \label{fig:specialrp}
 \end{center}
 \end{figure}
 
-In the following, \textit{root} rupture points are called \textit{start}, and \textit{following} rupture points are called \textit{post}.
-
 \begin{code}[js, caption={Example of an application presenting the two types of rupture points : a \texttt{start} with the call to \texttt{app.get()}, and a \texttt{post} with the call to \texttt{fs.readFile()}},label={lst:rupturepoints}]
-var app = require('express')();
-var fs = require('fs');
+var app = require('express')(),
+    fs = require('fs');
 
-app.get('/:filename', function handleRequest(req, res) {
-  fs.readFile(__dirname + '/' + req.params.filename, function reply(err, data) {
-    res.send(err || data);
+app.get('/', function handleRequest(req, res) {
+  fs.readFile(__filename, function reply(err, data) {
+    res.send(err || data.toString());
   })
 });
 
@@ -122,19 +126,19 @@ console.log('server listening to 8080');
 Detecting a rupture point requires detecting its two components : the asynchronous function and the callback function.
 
 \textbf{Asynchronous functions}\\
-The compiler is prebuilt knowing module names exposing asynchronous function, like the \textit{express}, and the \textit{fs} module in listing \ref{lst:rupturepoints}.
-To detect asynchronous calls, the compiler register variables holding such modules, to later detects their asynchronous function calls.
-In listing \ref{lst:rupturepoints}, the compiler register both variables \texttt{app} and \texttt{fs}.
-When the compiler encounter a call expression, it compare its callee name to the registered ones to spot asynchronous functions.
+The compiler is prebuilt knowing some module names exposing asynchronous function, like the \textit{express}, and the \textit{fs} module in listing \ref{lst:rupturepoints}.
+To detect asynchronous calls, the compiler keep a list of variables holding such modules, to later detects their asynchronous function calls.
+In listing \ref{lst:rupturepoints}, the compiler adds both variables \texttt{app} and \texttt{fs} in this list.
+When the compiler encounter a call expression, it compare its callee name with this list to spot asynchronous functions.
 
 \textbf{Callback function}\\
-For each asynchronous call expression detected, the compiler test if an argument is a function.
+For each asynchronous call expression detected, the compiler test if one of the arguments is of type \texttt{function} to spot the callback.
 Some callback functions are declared \textit{in situ}, and are trivially detected.
-For every other variable identifier, we track the declaration up to the initialization value to detect functions.
+For every other variable identifier, we track the declaration up to the initialization value to detect its type.
 
 \textbf{Variable tracking}\\
-To detect both the asynchronous function and the callback function, the compiler needs to statically track the states of the variables.
-Missing rupture points by false negatives in the detection is sub-optimal, but false positives eventually produce an unstable compilation result.
+To detect both the asynchronous function and the callback function, the compiler needs to statically track the types of variables.
+Missing rupture points by false negatives in the detection is sub-optimal, but false positives are more critical, as it eventually produces a runtime execution.
 Therefore, the detection needs to be as accurate as possible to screen out false positives.
 We use a technique similar to a Program Dependency Graph (PDG)\cite{Ferrante1987} to track changes in the value of variables.
 
@@ -145,44 +149,45 @@ We use a technique similar to a Program Dependency Graph (PDG)\cite{Ferrante1987
 Parallelism is not enough for an application to be distributed.
 The compiler also needs to distribute the memory into the application parts for the application to be compliant with the fluxional execution model.
 In Javascript, scopes are nested one in the other up to the all-enclosing global scope.
-Each function creates a new scope containing variables local to itself, and is chained to the scope of the parent function.
+Each function creates a new scope containing variables local to itself, and chained to the scope of the parent function.
 % The child function can access variables in the scope of the parent functions, up to the global scope.
-Rupture points take place in between scopes, linking application parts in message streams.
-A rupture point placed between a child scope and its parent break a chain of scope, and makes the child unable to access its parent as expected, eventually leading the application to crash during execution.
-The linker analyzes how scopes are distributed among the application parts to detect and resolve unmet dependencies between these scopes.
-Depending on how a shared variable is used in the functions scopes, there are different situations to resolve.
+Rupture points always take place in between scopes, linking application parts in message streams.
+A rupture point placed between a child scope and its parent breaks a chain of scope, and makes the child unable to access its parent as expected, eventually leading the application to runtime error.
+The linker analyzes how scopes are distributed among the application parts to detect and resolve unmet dependencies between them.
+Depending on how a shared variable is used in the scopes, there are different situations to resolve.
 In the following, we explain the different cases of inconsistency emerging from the partitioning of a central memory.
 
 \subsubsection{Signature}
 
-The signature is the part of a message containing all the variables to send downstream.
+The signature is the part of a message containing all the variables to send downstream, like the variable \texttt{res} in figure \ref{}\TODO.
 If a variable is needed for read-only access by at least one downstream application part, it is added to the signature of the rupture point.
 As fluxions are chained one after another, a fluxion must provide every dependency for the next one, even if some of this dependencies are not needed by the current application part.
 These dependencies must be passed fluxion after fluxion from the producing fluxion to the consuming fluxion.
-The compiler modifies the code inside the application part for the signature's references to point to the message signature instead of the function scope.
+The compiler modifies those variable identifiers inside the application part to make them point to the message signature instead of the function scope.
 
 \subsubsection{Scope}
 
 % The scope is the name given to the persisted memory of a fluxion.
-The scope of an application port holds the variables declared outside, but needed for modification in only this application part.
-If one of these variables needs to be read by another application part downstream, this variable becomes part of the signature sent downstream.
-An example of such a variable is a request counter. Initialized to 0 in the global scope, the counter is incremented for each request.
-This counter would be in the scope of the application part handling requests reception, and sent downstream for visit metrics processing.
+The scope of an application part consist of all the variables declared outside, but needed for modification in only this application part.
+If one of these variables needs to be read by another application part downstream, this variable also becomes part of the signature sent downstream.
+An example of such a variable is the \texttt{counter} in listing \ref{lst:ex-source}. Initialized to 0 in the global scope, the counter is incremented for each request by the \texttt{function reply}.
+This counter is in the scope of the application part containing \texttt{function reply}.
 The scope of an application part is stored in the context of the encapsulating fluxion.
 
 \subsubsection{Sync}
 
-If a variable is needed for modification by more than one distributed application parts, this variable needs to be synchronized between the fluxions' scopes.
+If a variable is needed for modification by more than one distributed application parts, this variable needs to be synchronized between the fluxions.
 The synchronization of a distributed memory is a well-known subject, with Brewer's theorem\cite{Gilbert2002}\cite{codahale2010}, and the ACID (Atomicity, Consistency, Isolation, Durability) versus BASE (Basically Available, Soft state, Eventual consistency) opposition\cite{Fox1997}.
 We choose to stay out of this topic, the objective for this compiler is to be able to transform only a subset of web application with a satisfying result.
-The compiler merges the parts sharing variables with modification access.
+The compiler merges the parts too tightly coupled by modification accesses on a shared variable.
 
 \subsection{Compilation example}
 
 % For copyright reason, the compiler source code is kept private along with the tests we used.
-To illustrate the compiler features, we compiled a very simple, yet representative, application.
+To illustrate the compiler features, we compiled the illustration application used in section \ref{model}.
 The source and compiled results of this application are available on github\cite{flx-example}\footnote{\raggedright https://github.com/etnbrd/flx-example/releases}.
 The compiler source code is the property of Worldline, and is not publicly available, but we are planning of releasing it as an open source project in a near future.
+
 To test the source or the result of the compilation, one would launch respectively \texttt{source.js} or \texttt{result.js} with \texttt{node} and check the service available at \texttt{localhost:8080}.
 Both executable needs their dependencies to be resolved with \texttt{npm} before execution.
 \begin{verbatim}
@@ -208,18 +213,27 @@ This global variable is used only in the \texttt{reply} function, line 7 and 9.
 
 The result of the compilation into our high-level language is in the file \texttt{result.flx}, presented in listing \ref{lst:ex-flxres}.
 The analyzer detects both asynchronous calls as rupture points.
-The first one is a \textit{start} rupture point and is associated with the \texttt{app.get} asynchronous function call which makes the callback \texttt{handler} listen for the stream of user requests. 
-The second one is a \textit{post} rupture point and is associated with the \texttt{fs.readFile} asynchronous function call which reads the source file and hand it to the callback \texttt{reply}.
-These two rupture points result in three different application parts.
+The first one is a \textit{start} rupture point, associated with the \texttt{app.get} asynchronous function call which makes the callback \texttt{handler} listen for the stream of user requests. 
+The second one is a \textit{post} rupture point, associated with the \texttt{fs.readFile} asynchronous function call which reads the source file and hands it to the callback \texttt{reply}.
+These two rupture points result in three application parts.
 The first application part is encapsulated in the root fluxion, named after the filename, \texttt{source.js}, line 18.
-It initializes the system to route the user requests to the next fluxion, named after the callback, \texttt{handler-1000}, line 9.
+It initializes the system to route the user requests to the fluxion \texttt{handler-1000}, line 9.
 This second fluxion reads the file, and sends the result to the next and last fluxion \texttt{reply-1001}, line 1.
-We can identify the processing chain of functions in this chain of fluxion : $\texttt{source.js (get)} \to \texttt{handler-1000 (handler, readFile)} \to \texttt{reply-1001 (reply, send)}$.
-The linker detects that the fluxion \texttt{reply-1001} needs two variable to send the result back to the user : \texttt{res} and \texttt{count}, as seen line 10 in listing \ref{lst:ex-flxres}.
+We can identify the processing chain of functions in this chain of fluxion.
+
+\begin{center}
+\texttt{source.js} (\texttt{get})\\
+$\downarrow$\\
+\texttt{handler-1000} (\texttt{handler}, \texttt{readFile})\\
+$\downarrow$\\
+\texttt{reply-1001} (\texttt{reply}, \texttt{send})
+\end{center}
+
+The linker detects that the fluxion \texttt{reply-1001} needs two variable to send the result back to the user, \texttt{res} and \texttt{count}, as seen line 10 in listing \ref{lst:ex-flxres}.
 The variable \texttt{res} depends on the user connection and is initialized for each new request.
 It needs to be part of the \textit{signature} of the message transfered to the last fluxion.
-The variable \texttt{count} is global, and needs to increment at each new request only by the function \texttt{reply} in the fluxion \texttt{reply-1001}.
-This global variable is in the scope of this application part, so the compiler stores it in the context of this fluxion.
+The variable \texttt{count} is global, and the function \texttt{reply} in the fluxion \texttt{reply-1001} needs to increment it at each new request.
+This global variable is in the scope of only this application part, so the compiler stores it in the context of this fluxion.
 
 \includecode{flx,
   caption={High level fluxional language result of the compilation example},
@@ -227,7 +241,18 @@ This global variable is in the scope of this application part, so the compiler s
 }
 {../../example/result.flx}
 
-The compiler also produce an executable targeting the fluxional execution model in the file \texttt{result.js}, presented in listing \ref{lst:ex-jsres}.
+The compiler also produces an executable targeting an simple implementation of the fluxional execution model.
+This result is in the file \texttt{result.js}, presented in listing \ref{lst:ex-jsres}.
+The root fluxion is not registered because it doesn't need to receive any messages by another fluxion, it only initializes the application.
+The two following fluxions are registered in the messaging system.
+This registration encapsulates the processing function in a \texttt{function capsule}.
+The special rupture points implies the asynchronous call to be in the downstream fluxion.
+The \texttt{function capsule} encapsulates the asynchronous call from special rupture points or callbacks from basic rupture points in a unified processing function.
+Line 3, the original callback is replaced with a \texttt{function placeholder}, sending the \textit{start} message to the fluxion \texttt{handler-1000}.
+Line 17, the fluxion \texttt{handler-1000} pushes the user request \texttt{res} in the message and \texttt{post} it directly to the next fluxion, \texttt{reply-1001}.
+Because there is a special rupture point between the fluxion \texttt{handler-1000} and \texttt{reply-1001}, the asynchronous call is moved to the next fluxion and the \texttt{function post} doesn't replace the callback.
+Finally, the fluxion \texttt{reply-1001} receives the message containing the user request and read the file.
+The callback of this asynchronous operation, line 27, increments the variable \texttt{counter}, line 28, and sends the reply, line 30.
 
 \includecode{flx,
   caption={Fluxional execution model result of the compilation example},
@@ -241,19 +266,19 @@ This compiler aims at transforming a subset of Javascript web applications prese
 In this section, we describe briefly the current limitations of our compiler and how we plan to overcome them in future works.
 
 \begin{itemize}
-  \item Variables poorly encapsulated or used too broadly tighten dependencies accross the code, and might result in a monolithic, unchanged application.
-  \item The compilation silently fails if a variable holding a callback or a module is overwritten.
+  \item Variables poorly encapsulated or used too broadly tighten dependencies accross the code, and might result in a coarser division of the application.
+  \item The compilation silently fails if a variable holding a callback or a module is overwritten, or not defined in the declaration.
         The variable tracker is unable to track accurately all the modification of a variable to detect this situation which may lead the compiler either to miss rupture points, or to detect non existing one.
   \item The compiler is unable to track a dynamically resolved value, even if the value is deducible statically.
         If this variable is used in a potential rupture point, the compiler screens it out.
-  \item The Javascript language offers rich composition possibilities leading to many possible corner cases.
-        The compiler is not robust enough to tackle all the possible corner cases.
+  \item The Javascript language offers rich composition possibilities leading to many corner cases.
+        The compiler is not robust enough to understand all corner cases.
         For example, the \textit{express} module is only detected if initialized like in listing \ref{lst:rupturepoint}.
-        There may be other limitations we aren't aware of.
 \end{itemize}
+There may be other limitations we aren't aware of.
 
 The three last limitations described above are caused by the variable tracker - described in section \ref{section:analyzer} - being in an early stage of development.
-We are currently in the process of extending further the reach of this component to increase the subset of compilable applications.
+We are currently in the process of improving the robustness of the compiler to extend the subset of compilable applications.
 
 % We believe that our work will keep scalability concerns out of the way for the development team, who could then focus on the core logic of their application.
 % In future developments of this project, we aim at making application dynamically reactive to the load of user requests.

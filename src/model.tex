@@ -233,7 +233,7 @@ The application is organized as follow :
   It initialize the application to listen for user request calling \texttt{app.get}.
   Every request is sent to the \texttt{handler} request.
   \item The \texttt{handler} fluxion read the source file to send it to the user, and forward the result to the \texttt{reply} fluxion.
-  \item The \testtt{reply} fluxion increments the counter, formats the reply, and sends it back to the user using the function \texttt{res.send}.
+  \item The \texttt{reply} fluxion increments the counter, formats the reply, and sends it back to the user using the function \texttt{res.send}.
 \end{itemize}
 
 We use this interface to develop web services using the fluxional execution model.
