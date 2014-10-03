@@ -1,25 +1,25 @@
 \section{Fluxional execution model} \label{section:model}
 
-The tool we present in this paper transforms a monolithic application into a network of autonomous parts communicating by message streams.
-There exist many execution models designed for such distributed system renowned precisely for their performances\cite{Welsh2000, Jain2006, Wu2007, Zaharia2010, Akidau2013, Marz2011}.
+We transform a monolithic application into a network of autonomous parts communicating by message streams.
+Many execution models designed for such distributed system are renowned for their performances\cite{Welsh2000, Jain2006, Wu2007, Zaharia2010, Akidau2013, Marz2011}.
 However, we focus on a compilation approach to replace the shift in programming model rather than the performance of the runtime.
-Therefore, we present in this section an extremely simplified execution model inspired by the literature, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
+Therefore, we present in this section an extremely simplified but generic execution model inspired by the literature, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
 
 \subsection{Fluxions}
 
-The fluxional execution model role is to manage and invoke autonomous execution units.
-An execution unit listens for, and sends back streams.
+The fluxional execution model manages and invokes autonomous execution units.
+An execution unit listens for, and sends back data in streams.
 A stream is a continuous and infinite sequence of data encapsulated in messages.
-We named this execution unit a fluxion, by contraction between a flux and a function.
+% We named this execution unit a fluxion, by contraction between a flux and a function.
 A fluxion is a function, as in functional programming, consuming an input stream and generating one or more outputs streams.
-It is composed of a unique name, a processing function, and a persisted memory \textit{context}.
+It is composed of a unique name, a processing function, and a persisted memory called a \textit{context}.
 
-Messages are carried between fluxions by a messaging system.
-They are composed of the name of the recipient fluxion and a body.
-At a message reception, the fluxion modifies its memory \textit{context}, and sends back messages to downstream fluxions.
-The memory \textit{context} of a fluxion contains all of the state variables on which the fluxion depends between two executions - that is two message receptions.
+Communications are carried between fluxions by a messaging system.
+A message is composed of the recipient fluxions' names and a body.
+At a message reception, the fluxion modifies its \textit{context}, and sends back messages to downstream fluxions.
+The \textit{context} of a fluxion contains all of the state variables that a fluxion depends on between two executions - that is two message receptions.
 
-The fluxions form a processing chain linked by message streams.
+Fluxions form a processing chain linked by message streams.
 All these chains constitute a directed graph, operated by the messaging system.
 
 \subsection{Messaging system}
@@ -27,10 +27,9 @@ All these chains constitute a directed graph, operated by the messaging system.
 The messaging system is the core of our fluxional execution model.
 It carries messages along streams, and invokes fluxions at a message reception.
 
-The messaging system is built around a message queue.
-Each message is processed one after the other by invocation of the destination fluxion.
+The messaging system loops over a message queue to process messages one after the other by invocation of the destination fluxion.
 % Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
-The life cycle of a fluxional application is pictured on figure \ref{fig:MesSys}.
+The life cycle of a fluxional application is illustrated in figure \ref{fig:MesSys}.
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
@@ -40,19 +39,19 @@ The life cycle of a fluxional application is pictured on figure \ref{fig:MesSys}
 
 The messaging system carries message streams based on the names of the recipient fluxions.
 So it needs every fluxion to be registered.
-If two fluxions share a name, the messaging system would be in a conflicting situation.
-This registration associates a processing function with a unique name and an initial memory \textit{context}.
-The registration is done using the function \texttt{register(<nom>, <fn>, <context>)}, step \circled{1}.
+If two fluxions share the same name, the messaging system would be in a conflicting situation.
+This registration associates a processing function with a unique name and an initial \textit{context}.
+The registration is done using the \texttt{register(<nom>, <fn>, <context>)} function, \circled{1}.
 % A fluxion can dynamically register other fluxions
 
-To trigger a chain of fluxions, a message is sent using the function \texttt{start(<msg>)}, step \circled{2}.
+To trigger a chain of fluxions, a message is sent using the function \texttt{start(<msg>)}, \circled{2}.
 This function pushes a first message in the queue.
-Immediately, the system dequeues this message to invoke the recipient processing function, step \circled{3} and \circled{4}.
-The recipient function sends back messages using the function \texttt{post(<msg>)}, step \circled{5}, to be enqueued in the system, step \circled{6}.
+Immediately, the system dequeues this message and invokes the recipient processing function, \circled{3} and \circled{4}.
+The recipient function sends back messages using the function \texttt{post(<msg>)}, \circled{5}, to be enqueued in the system, \circled{6}.
 The system loops through steps \circled{3} and \circled{4} until the queue is empty.
-This cycle starts again for each new \textit{start} message.
+This cycle starts again for each new incoming request causing a \textit{start} message.
 
-The algorithms \ref{alg:parcours} and \ref{alg:traitement} describe the behavior of the messaging system after the function \texttt{start} invocation.
+Algorithms \ref{alg:parcours} and \ref{alg:traitement} describe the behavior of the messaging system after the \texttt{start} function invocation.
 
 \begin{algorithm}
 \caption{Message queue walking algorithm}
@@ -84,33 +83,33 @@ The algorithms \ref{alg:parcours} and \ref{alg:traitement} describe the behavior
 \subsection{Service example}
 
 To illustrate the fluxional execution model, we present an example of a simple web application.
-This application sends back its own source along with a request counter.
+This application reads the file containing its own source code, and sends it back along with a request counter.
 
-\includecode{js,
-  caption={Simple web application. \textnormal{this application replies to every user request with its own source code and the value of a request counter}},
-  label={lst:ex-source}
-}
-{../../example/source.js}
-
-The original source code of this application is available on github\cite{flx-example}\footnote{\raggedright https://github.com/etnbrd/flx-example/releases}, and in listing \ref{lst:ex-source}.
+The original source code of this application is available on github\cite{flx-example}, and in listing \ref{lst:source}.
 In this source code, some points are worth noticing.
 
 \begin{itemize}
   \item The \texttt{reply} function, line 5 to 11, contains the logic we want to split into the fluxional processing chain.
-  It receives the user request in the variable \texttt{res} which is used by the last element of the chain.
-  \item The \texttt{count} object at line 3 is a persistent memory that increment the request counter.
+  It receives the user request in the variable \texttt{res} which is used by the last function of the chain, \texttt{reply}.
+  \item The \texttt{count} object at line 3 is a persistent memory that increments the request counter.
   This object needs to be mapped to a fluxion \textit{execution context} in the fluxional execution model.
-  \item The two functions \texttt{get} and \texttt{send}, respectively line 5 and 9, interfaces the application with the clients.
-  The processing chain of functions is in between these two functions : $\texttt{get} \to \texttt{handler} \to \texttt{readFile} \to \texttt{reply} \to \texttt{send}$.
+  \item The \texttt{get} and \texttt{send} functionss, respectively line 5 and 9, interface the application with the clients.
+  The processing chain of functions occurs between these two functions : $\texttt{get} \to \texttt{handler} \to \texttt{readFile} \to \texttt{reply} \to \texttt{send}$.
 \end{itemize}
 
+\includecode{js,
+  caption={Simple web application. \textnormal{this application replies to every user request with its own source code and the value of a request counter}},
+  label={lst:source}
+}
+{../../example/source.js}
+
 This application is transformed manually into the fluxions chain depicted in Figure \ref{fig:fluxions}.
-We expect a similar result with the compiler described in section \ref{compiler}.
-The circles represent registered fluxions.
+We expect a similar result with the compiler described in section \ref{section:compiler}.
+Circles represent registered fluxions.
 Envelope symbols represent messages streams between fluxions with the variables transmitted from one fluxion to the other.
-The square in the messaging system holds the memory \textit{context} of the \texttt{reply} fluxion.
-When a new \texttt{GET} REST request is received by the starting fluxion named \texttt{get}, a \texttt{start} message triggers the flow.
-The \texttt{handler} fluxion receives this \texttt{start} message, read the source file and forward it to the \texttt{reply} fluxion which increments the counter, and sends the result back.
+The square in the messaging system holds the \textit{context} of the \texttt{reply} fluxion.
+When a new REST request \texttt{GET} is received, a \texttt{start} message triggers the flow.
+The \texttt{handler} fluxion receives this \texttt{start} message, reads the source file and forwards it to the \texttt{reply} fluxion which increments the counter, and sends the result back.
 Each fluxion propagates the necessary values from one fluxion to the other exclusively by messages.
 Horizontal dashed lines show virtual transmission of messages between fluxions although they all go through the messaging system.
 
@@ -121,13 +120,33 @@ Horizontal dashed lines show virtual transmission of messages between fluxions a
 \end{figure}
 
 Listing \ref{lst:fluxional} describes this counting application in our high-level fluxional language.
-This language brings a stricter segmentation than the initial code by allowing to only register and define fluxions.
-In this language, a fluxion is defined by a name, a description of the memory \textit{context}, the operator \texttt{>}\texttt{>} for starting fluxions or \texttt{-}\texttt{>} for following fluxions and finally a list of downstream fluxions with the content of the message for each stream.
-The body containing the processing function is following the fluxion definition.
-It uses the Javascript language syntax, and is indented with 2 spaces to improve readability.
-The processing function can access and manipulate only two objects : \texttt{msg} and \texttt{this}.
-The first is the received message, the second is the persisted \textit{context} of the fluxion.
-There is an exception for the starting fluxion whose body isn't a function, because it never receives any stream, but is only executed once to initialize the application.
+There is two types of fluxion depending on their input streams.
+A fluxion with no input stream is a \textit{root} fluxion, while the others are \textit{following} fluxions.
+The \textit{root} fluxion initializes the application.
+
+There is two types of strea based on the two functions to send messages, \textit{start} and \textit{post}.
+A stream is defined with an operator indicating its type, a list of recipient fluxions separated by commas, and a description of its message body. 
+The operator to represent a \textit{start} stream is a double arrow, $\twoheadrightarrow$ or \texttt{>}\texttt{>}, while for a \textit{post} stream it is a single arrow, $\rightarrow$ or \texttt{->}.
+The description of the message body is a comma separated list of variables identifiers enclosed in square brackets.
+It is optional and only gives indications about the message content.
+A stream is defined with this syntax :\\
+\texttt{<operator> <recipients list> [<body description>]}\\
+For the last fluxion of the chain, the output stream is a special stream called \texttt{null}.
+
+A fluxion is defined with a header followed by a body with an indentation of two spaces.
+The header starts with the keyword \texttt{flx}, followed by its name and a description of its memory \textit{cakeontext}.
+After this first line, there is a list of output streams as defined above, and finally the body of the fluxion containing the processing function.
+The processing function is defined with the Javascript syntax, augmented with the stream syntax to allow it to send output streams.
+It can access and manipulate only two objects : \texttt{msg}, the received message and \texttt{this}, the persisted \textit{context}.
+The \textit{root} fluxion is an exception, as it doesn't have input streams its body isn't a processing function but initialization code.
+A fluxion is defined with this syntax :\\
+\texttt{flx <name> {<context>}}\\
+\texttt{<output streams>}\\
+\texttt{  <processing function>}\\
+
+% This language brings a stricter segmentation than the initial code by allowing to only register and define fluxions.
+% A fluxion is defined by a name, a description of the \textit{context}, the operator \texttt{>}\texttt{>} for starting fluxions or \texttt{-}\texttt{>} for following fluxions and finally a list of downstream fluxions with the content of the message for each stream.
+% The body containing the processing function is following the fluxion definition.
 
 \begin{code}[flx, caption={Manual transformation of the example application in our high-level fluxional language},label={lst:fluxional}]
 flx get
@@ -136,32 +155,32 @@ flx get
       fs = require('fs'),
       count = 0;
 
-  app.get('/', >> handler);
+@\label{lst:fluxional-streamtohandler}@  app.get('/', >> handler);
   app.listen(8080);
   console.log('>> listening 8080');
 
 flx handler
 -> reply [res]
   function handler(req, res) {
-    fs.readFile(__filename, -> reply);
+@\label{lst:fluxional-readfile}@      fs.readFile(__filename, -> reply);
   }
 
 flx reply {count}
 -> null
   function reply(error, data) {
-    count += 1;
+@\label{lst:fluxional-counter}@    count += 1;
     var code = ('' + data).replace(/\n/g, '<br>').replace(/ /g, '&nbsp');
-    res.send('downloaded ' + count + ' times<br><br><code>' + code + '</code>');
+@\label{lst:fluxional-ressend}@    res.send('downloaded ' + count + ' times<br><br><code>' + code + '</code>');
   }
 \end{code}
 
 The application is organized as follow :
 \begin{itemize}
-  \item The \texttt{get} fluxion is the starting fluxion.
-  It initializes the application to listen for user request calling \texttt{app.get}.
-  Every request is sent to the \texttt{handler} request.
-  \item The \texttt{handler} fluxion reads the source file to send it to the user, and forwards the result to the \texttt{reply} fluxion.
-  \item The \texttt{reply} fluxion increments the counter, formats the reply, and sends it back to the user using the function \texttt{res.send}.
+  \item The \texttt{get} fluxion is the \textit{root} fluxion.
+  It initializes the application to listen for user requests by calling \texttt{app.get}.
+  Every request is forwarded on the stream to the \texttt{handler} fluxion, line \ref{lst:fluxional-streamtohandler}.
+  \item The \texttt{handler} fluxion reads the file containing the source code of the application, and forwards the result to the \texttt{reply} fluxion, line \ref{lst:fluxional-readfile}.
+  \item The \texttt{reply} fluxion increments the counter, line \ref{lst:fluxional-counter}, formats the reply, and sends it back to the user using the function \texttt{res.send}, line \ref{lst:fluxional-ressend}.
 \end{itemize}
 
 Our goal, as described in the introduction, is not to propose a new programming paradigm with this high-level language but to automate the architecture shift with a compiler.

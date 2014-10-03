@@ -14,15 +14,15 @@ Many tools have been developed to express and manage these service parts and the
 We can cite Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Marz2011}.
 However, these tools propose specific interfaces and languages, different from the initial monolithic approach generally used in the early steps of a project.
 It requires the development team either to be trained or to hire experts, and to start over the initial code base.
-Therefore, these modifications cause the development team to spend development resources in background without adding visible value for the users.
+These modifications cause the development team to spend development resources in background without adding visible value for the users.
 
 To lift the risks described above, we propose a tool to compile the initial code base into a high-level language compatible with a more efficient processing model.
-We focus on web applications driven by users requests streams, developed in a dynamic language like Javascript using the \textit{Node.js} execution environment.
-We think that it is possible to analyze this type of application to compile it into a network of autonomous, movable functions communicating by data streams.
-This tool and its runtime aim not to modify the existing code, but rely on a layer of meta information over the initial code base.
+We focus on web applications driven by users requests, developed in a dynamic language like Javascript using the \textit{Node.js} execution environment.
+We think that it is possible to analyze this type of application as a stream of requests, to compile it into a network of autonomous, movable functions communicating through data streams.
+This tool and its runtime aim not to modify the existing code, but rely on a high-level language expression over the initial code base.
 
-This paper presents an early version of this tool as a proof of concept of this compilation approach.
+This paper presents an early version of this tool as a proof of concept for this compilation approach.
 The execution environment is described in section \ref{section:model}.
 The compiler is described in section \ref{section:compiler}.
-In section \ref{section:related}, we compare our work with related works.
-Finally, we conclude this paper.
+We compare our work with related works in section \ref{section:related}.
+And finally, we conclude this paper.
