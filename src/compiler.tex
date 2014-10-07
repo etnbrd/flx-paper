@@ -35,24 +35,76 @@ Section \ref{section:linker} explains how the \textit{linker} resolves the missi
 The Sun programming guide\footnote{\raggedright http://docs.oracle.com/cd/E19455-01/806-5257/6je9h032b/index.html} defines \textbf{parallelism} as \textit{a condition that arises when at least two threads are executing simultaneously}, and \textbf{concurrency} as \textit{a condition that exists when at least two threads are making progress. A more generalized form of parallelism that can include time-slicing as a form of virtual parallelism}.
 \textbf{Asynchronism} is a condition that arises when a client continues its execution while waiting for the result to its request.
 
-Promises\cite{Liskov1988} and callbacks, are abstractions that transform blocking synchronous operations into non-blocking asynchronous operations.
-Asynchronous operations run in a thread in parallel with the main, and only, thread of the application ; they don't block the application.
-When the asynchronous operation completes, the requested result is available for the application to retrieve it.
-The asynchronous operation splits the execution in two concurrent execution paths, one that needs the requested result, the callback or the promise, and one that doesn't.
-These two concurrent paths are executed by the main thread of the application.
-A rupture points is where the execution forks in two concurrent paths.
-These points mark out the limits between the independent parts of an application.
+% When the result of the asynchronous request is available for the client, a synchronization mechanism is used to retrieve it.
+% Examples of synchronization methods are Promises\cite{Liskov1988} or callbacks.
+% A callback uses the pattern of inversion of control.
+% Instead of the client waiting for the result, the system calls back the client with the available result.
+
+% The caller of the asynchronous operation can continue its execution until the end.
+% The callee of the asynchronous operation is executed in parallel with the caller, in a dedicated thread of execution.
+% When the callee finishes, the result of the execution is available.
+
+% The caller and the callee are not executed in the same thread of execution.
+% But the continuation of execution after the callee is executed in the same thread as the callback.
+
+
+% The client doesn't wait for the result to be available and continue its execution.
+% The result is queued to be processed later by the client.
+% The client is continuously in execution. At the end of any execution, it dequeues a result from an asynchronous operation to process with a callback.
+
+% The client dequeue the results to execute them on a single thread, while the asynchronous operation happens on parallel threads.
+% An asynchronous operation with callback is executed from the main thread, from the asynchronous operation, to the parallel I/O thread, and then to the main thread again.
+% But provided with the correct memory isolation, callback could be executed on another thread.
+% They contain both the input data, and the processing function in a single object enqueued.
+% This model is exactly similar to the pattern thread-pool pattern where all tasks are enqueued on a queue, and dequeued by a pool of thread.
+
+% Node.js uses only one thread to dequeue and execute the callbacks to avoid concurrency in the execution, and the synchronization with it.
+
+
+
+% A rupture point is the point where the decision for the callback to be executed on the main thread, or in another thread.
+% A rupture point happens between the end of execution of the asynchronous operation and the queuing of the callback.
+% A rupture point happens before the callback is queued to be executed.
+% A rupture point happens before the choice of the queue onto which enqueue the callback is made.
+
+% A rupture point is the interface between the end of the asynchronous operation and the callback.
+
+
+
+
+% A rupture point is a discontinuity in the execution due to an asynchronous operation.
+
+
+
+In the \textit{Node.js} environment, all of the application execution take place in a single thread : the main thread.
+When the application calls an asynchronous function, the requested operation takes place in a thread in parallel : the I/O thread.
+At the end of this operation, the I/O thread pushes the result and a function to process it in a queue to be executed by the main thread.
+This function is named a callback and is provided by the application purposely to process the result of the asynchronous operation.
+The \textit{Node.js} environment confine the application to run in a single thread to avoid concurrency and the memory synchronizations problems associated with it.
+Without these memory concerns, the callback and the associated result could be deported on a different thread, provided that the needed memory be accessible.
+
+% Promises\cite{Liskov1988} and callbacks, are abstractions that transform blocking synchronous operations into non-blocking asynchronous operations.
+% Asynchronous operations run in a thread in parallel with the main, and only, thread of the application ; they don't block the application.
+% When the asynchronous operation completes, the requested result is available for the application to retrieve it.
+% The asynchronous operation splits the execution in two concurrent execution paths, one that needs the requested result, the callback or the promise, and one that doesn't.
+% These two concurrent paths are executed by the main thread of the application.
+% A rupture points is where the execution forks in two concurrent paths.
+% These points mark out the limits between the independent parts of an application.
  
-The analyzer detects rupture points to break the application into independent parts.
-In this section, we define what a rupture point is, and how the compiler detects them.
+% The analyzer detects rupture points to break the application into independent parts.
+% In this section, we define what a rupture point is, and how the compiler detects them.
 
 \subsubsection{Rupture points}
 
-Rupture points represent a concurrency between two execution paths.
-They are composed of an asynchronous function, and a callback to process the result of the operation.
-The first execution path is the suite of instructions following after the asynchronous function.
-The second execution path is the callback.
-A rupture point is an interface between these two execution paths and splits them in two application parts.
+A rupture point is the discontinuity between the asynchronous operation and the callback execution.
+It marks out the separation between two independent application parts, each with a different execution path.
+In the \textit{Node.js} environment, these two application parts are executed one after the other on the same execution thread.
+But the rupture point split the two application parts and reveal a pipeline parallelism, as defined in\cite{Gordon2006}.
+% Rupture points represent a concurrency between two execution paths.
+% They are composed of an asynchronous function, and a callback to process the result of the operation.
+% The first execution path is the suite of instructions following after the asynchronous function.
+% The second execution path is the callback.
+% A rupture point is an interface between these two execution paths and splits them in two application parts.
 Listing \ref{lst:hello} is an example of a rupture point in a simple application.
 The division of this application into two application parts is illustrated figure \ref{fig:flux-1}.
 The asynchronous function call \texttt{fs.readFile} and the callback \texttt{function display} represent the rupture point between the first execution path, line \ref{lst:first_ep} and the second, line \ref{lst:second_ep}.
@@ -162,8 +214,13 @@ The variable tracker is still in early development and is limited to only a few 
 
 \subsection{Linker : memory distribution} \label{section:linker}
 
+\comment{
+  As each fluxion is a unique thread accessing a dedicated memory, there is no concurrency, therefor, no synchronization needs, and no possibility of memory corruption.
+  But we need to prove that the transformation to message passing is not altering the memory consistency, given the correct isolation.
+}
+
 % Because of the central memory, parallelism is not sufficient for an application to be distributed.
-Parallelism is not enough for an application to be distributed.
+Pipeline parallelism is not enough for an application to be distributed.
 The compiler also needs to distribute the memory into the application parts for the application to be compliant with the fluxional execution model.
 In Javascript, scopes are nested one in the other up to the all-enclosing global scope.
 Each function creates a new scope containing variables local to itself, and chained to the scope of the parent function.
