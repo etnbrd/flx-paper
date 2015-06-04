@@ -1,32 +1,33 @@
 \section{Fluxional execution model} \label{section:model}
 
-We transform a monolithic application into a network of autonomous parts communicating by message streams.
-Many execution models designed for such distributed system are renowned for their performances\cite{Welsh2000, Jain2006, Wu2007, Zaharia2010, Akidau2013, Marz2011}.
+Many frameworks for distributed systems are renowned for their performances\cite{Welsh2000, Jain2006, Wu2007, Zaharia2010, Akidau2013, Marz2011}.
 However, we focus on a compilation approach to replace the shift in programming model rather than the performance of the runtime.
-Therefore, we present in this section an extremely simplified but generic execution model inspired by the literature, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
+We present in this section an extremely simplified but generic execution model inspired by the literature, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
+The execution model is not distributed, however it isolates the execution of fluxions to reproduce the execution conditions of a distributed execution model.
+
+\comment{TODO explain the fluxionnal high-level language}
 
 \subsection{Fluxions}
 
-The fluxional execution model manages and invokes autonomous execution units.
-An execution unit listens for, and sends back data in streams.
-A stream is a continuous and infinite sequence of data encapsulated in messages.
-% We named this execution unit a fluxion, by contraction between a flux and a function.
-A fluxion is a function, as in functional programming, consuming an input stream and generating one or more outputs streams.
+The fluxional execution model manages and invokes autonomous execution units named fluxion.
+A fluxion is a function consuming an input stream and generating one or more outputs streams.
+It listens for, and sends back continuous sequence of messages.
 It is composed of a unique name, a processing function, and a persisted memory called a \textit{context}.
-
-Communications are carried between fluxions by a messaging system.
-A message is composed of the recipient fluxions' names and a body.
+The \textit{context} of a fluxion persists the state on which a fluxion rely between two message receptions.
 At a message reception, the fluxion modifies its \textit{context}, and sends back messages to downstream fluxions.
-The \textit{context} of a fluxion contains all of the state variables that a fluxion depends on between two executions - that is two message receptions.
+A message is composed of the recipient fluxions' names and a body.
 
-Fluxions form a processing chain linked by message streams.
-All these chains constitute a directed graph, operated by the messaging system.
+\comment{TODO an example of a Fluxion in the fluxionnal language}
+
+Fluxions are the stages in a pipeline architecture.
+The communications between fluxions are carried by the messaging system.
 
 \subsection{Messaging system}
 
-The messaging system is the core of our fluxional execution model.
-It carries messages along streams, and invokes fluxions at a message reception.
-
+In a distributed approach, the messages between fluxions would be carried over a distributed message broker.
+But because this execution model is not distributed, we simplify a distributed message broker with a centralised approach.
+% The messaging system is the core of the execution model.
+% It carries messages and invokes fluxions at reception.
 The messaging system loops over a message queue to process messages one after the other by invocation of the destination fluxion.
 % Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
 The life cycle of a fluxional application is illustrated in figure \ref{fig:MesSys}.
@@ -37,9 +38,9 @@ The life cycle of a fluxional application is illustrated in figure \ref{fig:MesS
   \label{fig:MesSys}
 \end{figure}
 
-The messaging system carries message streams based on the names of the recipient fluxions.
-So it needs every fluxion to be registered.
-If two fluxions share the same name, the messaging system would be in a conflicting situation.
+The messaging system carries messages based on the names of the recipient fluxions.
+If two fluxions share the same name, it would lead to a conflicting situation for the messaging system.
+Every fluxion needs to be registered with a unique name.
 This registration associates a processing function with a unique name and an initial \textit{context}.
 The registration is done using the \texttt{register(<nom>, <fn>, <context>)} function, \circled{1}.
 % A fluxion can dynamically register other fluxions
@@ -89,7 +90,7 @@ The original source code of this application is available on github\cite{flx-exa
 In this source code, some points are worth noticing.
 
 \begin{itemize}
-  \item The \texttt{reply} function, line 5 to 11, contains the logic we want to split into the fluxional processing chain.
+  \item The \texttt{handler} function, line 5 to 11, contains the logic we want to split into the fluxional processing chain.
   It receives the user request in the variable \texttt{res} which is used by the last function of the chain, \texttt{reply}.
   \item The \texttt{count} object at line 3 is a persistent memory that increments the request counter.
   This object needs to be mapped to a fluxion \textit{execution context} in the fluxional execution model.
@@ -101,7 +102,7 @@ In this source code, some points are worth noticing.
   caption={Simple web application. \textnormal{this application replies to every user request with its own source code and the value of a request counter}},
   label={lst:source}
 }
-{../../example/source.js}
+{../../flx-example/source.js}
 
 This application is transformed manually into the fluxions chain depicted in Figure \ref{fig:fluxions}.
 We expect a similar result with the compiler described in section \ref{section:compiler}.
@@ -124,7 +125,7 @@ There is two types of fluxion depending on their input streams.
 A fluxion with no input stream is a \textit{root} fluxion, while the others are \textit{following} fluxions.
 The \textit{root} fluxion initializes the application.
 
-There is two types of strea based on the two functions to send messages, \textit{start} and \textit{post}.
+There is two types of stream based on the two functions to send messages, \textit{start} and \textit{post}.
 A stream is defined with an operator indicating its type, a list of recipient fluxions separated by commas, and a description of its message body. 
 The operator to represent a \textit{start} stream is a double arrow, $\twoheadrightarrow$ or \texttt{>}\texttt{>}, while for a \textit{post} stream it is a single arrow, $\rightarrow$ or \texttt{->}.
 The description of the message body is a comma separated list of variables identifiers enclosed in square brackets.
@@ -134,7 +135,7 @@ A stream is defined with this syntax :\\
 For the last fluxion of the chain, the output stream is a special stream called \texttt{null}.
 
 A fluxion is defined with a header followed by a body with an indentation of two spaces.
-The header starts with the keyword \texttt{flx}, followed by its name and a description of its memory \textit{cakeontext}.
+The header starts with the keyword \texttt{flx}, followed by its name and a description of its memory \textit{context}.
 After this first line, there is a list of output streams as defined above, and finally the body of the fluxion containing the processing function.
 The processing function is defined with the Javascript syntax, augmented with the stream syntax to allow it to send output streams.
 It can access and manipulate only two objects : \texttt{msg}, the received message and \texttt{this}, the persisted \textit{context}.

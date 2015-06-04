@@ -1,14 +1,10 @@
 \begin{abstract}
-
 The audience's growth of a web application is highly uncertain, it can increase and decrease in a matter of hours if not minutes.
 This uncertainty often leads the development team to quickly adopt disruptive and continuity-threatening shifts of technology to deal with the higher connections spikes.
 To avoid these shifts, we propose to abstract web applications into a high-level language, allowing a high-level code reasoning.
 This reasoning may allow later to provide code mobility to dynamically cope with audience growth and decrease.
 
-Our approach expresses a web application as a network of small autonomous parts moving from one machine to another and communicating by message streams.
+We propose a compiler to transform a Javascript, monolithic, web application into a network of small independent parts communicating by message streams.
 We named these parts \textit{fluxions}, by contraction between a flux and a function.
-\textit{Fluxions} are distributed over a network of machines.
-
-Our high-level language proposition consists of a compiler and its execution model to express a web application into a network of \textit{fluxions} and streams.
-We expect that the dynamic reorganization of these independent parts in a cluster of machine can help an application to deal with its load as network routers do with IP traffic, without imposing this disruptive shift of technology.
+We expect dynamic reorganization of these parts in a cluster of machine can help an application to deal with its load in the same way network routers do with IP traffic.
 \end{abstract}

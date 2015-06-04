@@ -1,28 +1,37 @@
 \section{Introduction}
 
-The growth of web platforms is partially due to Internet's capacity to stimulate services development, allowing very quick releases of a minimal viable products.
+The growth of web platforms is partially due to Internet's capacity to allow very quick releases of a minimal viable products (MVP).
 In a matter of hours, it is possible to upload a first product and start gathering a user community around.
-\textit{``Release early, release often''} is commonly heard as an advice to quickly gather a user community, as the size of the community is a factor of success.
+\textit{``Release early, release often''}, and \textit{``Fail fast''}.
+It is imperative to test the viability of a solution by quickly requesting feedbacks from the community.
+The development often starts with a feature-driven, monolithic, approach, with imperative languages such as Java or Ruby, to quickly concretize a MVP.
 
 If the service complies successfully with users requirements, its community might grow with its popularity.
-To cope with this growth, the resources quantity available to the service shall grow proportionally.
-Eventually this growth requires to discard the initial monolithic approach that supported the rapid enhancements in features satisfying the community, and requires instead to adopt a more efficient processing model.
-Many of the most efficient models split the system into parts to reduce local coupling and can distribute the execution on a cluster of commodity machines\cite{Fox1997} to support incremental scalability.
-System S\cite{Jain2006,Wu2007}, the Staged Event-driven Architecture (SEDA)\cite{Welsh2000} and MapReduce \cite{Dean2008} are examples of that trend.
-Once split, the service parts are connected by a messaging system, often asynchronous, using communication paradigms like events, messages or streams.
+An application is said scalable, if it can quickly respond to this growth.
+It is difficult to develop scalable applications with this feature-driven approach.
+%To cope with this growth, the resources quantity available to the service shall grow proportionally.
+Eventually this growth requires to discard the initial monolithic approach to adopt a more efficient processing model instead.
+Many of the most efficient models distribute the system on a cluster of commodity machines\cite{Fox1997}.
+MapReduce \cite{Dean2008} and the Staged Event-driven Architecture (SEDA) \cite{Welsh2000} are famous examples of that trend, using a pipeline architecture.
+Once split, the service parts are connected by an asynchronous messaging system.
 Many tools have been developed to express and manage these service parts and their communications.
-We can cite Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Marz2011}.
-However, these tools propose specific interfaces and languages, different from the initial monolithic approach generally used in the early steps of a project.
+We can cite Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Marz2011}, and many, many others. \comment{cite Nayad, and more recent papers}
+However, these tools impose specific interfaces and languages, different from the initial monolithic approach.
 It requires the development team either to be trained or to hire experts, and to start over the initial code base.
-These modifications cause the development team to spend development resources in background without adding visible value for the users.
+This shift cause the development team to spend development resources in background without adding visible value for the users.
+It is a risk for the economic evolution of the team
 
 To lift the risks described above, we propose a tool to compile the initial code base into a high-level language compatible with a more efficient processing model.
-We focus on web applications driven by users requests, developed in a dynamic language like Javascript using the \textit{Node.js} execution environment.
-We think that it is possible to analyze this type of application as a stream of requests, to compile it into a network of autonomous, movable functions communicating through data streams.
-This tool and its runtime aim not to modify the existing code, but rely on a high-level language expression over the initial code base.
+We focus on web applications driven by users requests, developed in Javascript using the \textit{Node.js} execution environment.
+Javascript is increasingly used to develop web applications.
+We think that it is possible to analyze this type of application as a stream of requests, passing through a pipeline of stages.
+Indeed, the event-loop used in this execution environment is very similar to the pipeline architecture.
+We propose a compiler to transform a monolithic Javascript application into a network of autonomous parts communicating by message streams.
+We named these parts \textit{fluxions}, by contraction between a flux and a function.
+%This tool and its runtime aim not to modify the existing code, but rely on a high-level language expression over the initial code base.
 
-This paper presents an early version of this tool as a proof of concept for this compilation approach.
-The execution environment is described in section \ref{section:model}.
-The compiler is described in section \ref{section:compiler}.
+This short paper presents an early version of this tool as a proof of concept for this compilation approach.
+We start by describing in section \ref{section:model} the execution environment targeted by this compiler.
+Then, we present the compiler in section \ref{section:compiler}, and its evaluation in section \ref{section:evaluation}.
 We compare our work with related works in section \ref{section:related}.
 And finally, we conclude this paper.

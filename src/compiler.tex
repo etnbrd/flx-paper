@@ -4,22 +4,33 @@
 % This section explains the compiler we developed to transform a subset of classic web application to be compliant with the execution model previously described.
 % This transformation unveils two problems due to the differences between a web application and the execution model.
 % In the first section, a distributed system is defined by the parallel execution of its parts, and the distribution of its memory.
-Current Web applications are mostly written in Java. The langage proposes both data encapsulation and a threading model that ease the development of distributed applications.
-Yet, Java framework for developing efficient applications are complex systems that impose new APIs\cite{Coward2003} to the developers.
-They are error-prone, and leads to deadlocks and other synchronization problems.
-Since 2009, \textit{Node.js}\cite{Dahl} provides a Javascript execution environnment for network applications.
+Current Web applications are mostly written in Java.
+The langage proposes both data encapsulation and a threading model that allow the development of parallel applications.
+%Yet, Java framework for developing efficient applications are complex systems that impose new APIs\cite{Coward2003} to the developers.
+But, this approach is error-prone, and leads to deadlocks and other synchronization problems. \comment{TODO citation needed : threads are a bad idea, or something like this.}
+Since 2009, \textit{Node.js}\cite{Dahl} provides a Javascript execution environment for real-time web applications.
+
+\comment{TODO talk about the ascension of Javascript}
+
 We focus on this promising environment for its initial simplicity and efficiency.
 We develop a compiler that transforms a \textit{Node.js} application into a fluxional system compliant with the architecture described in section \ref{section:model}.
+
+We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
+If we are able to transform a consequent subset of currently running applications without external developer help, we expect a real execution gain in a cloud environment.
+
+\comment{TODO remove the next few lines, and talk about turn-based programming instead, and follow with what is a rupture point}
+
 As javascript forbids user-space thread API, a javascript application is developed as a mono-threaded application.
 Moreover, in Javascript  the memory is hierarchical and the root scope may be accessed by any function, which leads to bad component isolation.
 Our compiler uses a new approach to find rupture points marking out independent parts into most of \textit{Node.js} applications.
 It assures isolation and memory consistency for the application parts.
 
-We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
-If we are able to transform a consequent subset of currently running applications without external developer help, we expect a real execution gain in a cloud environment.
+
+
 The rest of this section describes the two parts of the compiler responsible to isolate application parts.
 Section \ref{section:analyzer} explains how the \textit{analyzer} detects rupture points in the web application to mark out the independent parts.
 Section \ref{section:linker} explains how the \textit{linker} resolves the missing dependencies due to the distribution of the central memory.
+
 
 % TODO move this
 % The compiler reuses some tools from the Javascript community.
@@ -284,7 +295,7 @@ This global variable is used only in the \texttt{reply} function, line 7 and 9.
   caption={Source of the compilation example},
   label={lst:ex-source}
 }
-{../../example/source.js}
+{../../flx-example/source.js}
 
 The result of the compilation into our high-level language is in the file \texttt{result.flx}, presented in listing \ref{lst:ex-flxres}.
 The analyzer detects both asynchronous calls as rupture points.
@@ -316,7 +327,7 @@ This result is very similar to the manual division illustrated figure \ref{fig:f
   caption={High level fluxional language result of the compilation example},
   label={lst:ex-flxres}
 }
-{../../example/result.flx}
+{../../flx-example/result.flx}
 
 \begin{figure}[h!]
 \begin{center}
@@ -344,7 +355,7 @@ The callback of this asynchronous operation, \textit{reply} function, line 27, i
   caption={Result of the compilation example targeting the fluxional execution model},
   label={lst:ex-jsres}
 }
-{../../example/result.js}
+{../../flx-example/result.js}
 
 \subsection{Limitations}
 
