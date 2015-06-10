@@ -1,10 +1,14 @@
 \begin{abstract}
-The audience's growth of a web application is highly uncertain, it can increase and decrease in a matter of hours if not minutes.
-This uncertainty often leads the development team to quickly adopt disruptive and continuity-threatening shifts of technology to deal with the higher connections spikes.
-To avoid these shifts, we propose to abstract web applications into a high-level language, allowing a high-level code reasoning.
+The development of a web application often starts with a feature-oriented approach allowing to quickly react to users feedbacks.
+However, this approach poorly scales in performance.
+Yet, the audience of a web application can increase by an order of magnitude in a matter of hours, and this first approach is unable to deal with the higher connections spikes.
+It leads the development team to adopt a distributed approach.
+This represent a disruptive and continuity-threatening shift of technology.
+To avoid this shift, we propose to abstract the feature-oriented development into a high-level language, allowing a high-level code reasoning.
 This reasoning may allow later to provide code mobility to dynamically cope with audience growth and decrease.
 
-We propose a compiler to transform a Javascript, monolithic, web application into a network of small independent parts communicating by message streams.
+We want to propose a compiler to transform a Javascript, monolithic, web application into a network of small independent parts communicating by message streams.
 We named these parts \textit{fluxions}, by contraction between a flux and a function.
-We expect dynamic reorganization of these parts in a cluster of machine can help an application to deal with its load in the same way network routers do with IP traffic.
+We expect the dynamic reorganization of these parts in a cluster of machine can help an application to deal with its load in a similar way network routers do with IP traffic.
+% This is a work in progress. we rather raise questions than provide definitive answers.
 \end{abstract}
