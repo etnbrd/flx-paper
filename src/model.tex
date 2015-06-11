@@ -156,22 +156,22 @@ flx get
       fs = require('fs'),
       count = 0;
 
-\\@\label{lst:fluxional-streamtohandler}@  app.get('/', >> handler);
+  app.get('/', >> handler); @\label{lst:fluxional-streamtohandler}@
   app.listen(8080);
   console.log('>> listening 8080');
 
 flx handler
 -> reply [res]
   function handler(req, res) {
-\\@\label{lst:fluxional-readfile}@      fs.readFile(__filename, -> reply);
+    fs.readFile(__filename, -> reply); @\label{lst:fluxional-readfile}@
   }
 
 flx reply {count}
 -> null
   function reply(error, data) {
-\\@\label{lst:fluxional-counter}@    count += 1;
+    count += 1; @\label{lst:fluxional-counter}@
     var code = ('' + data).replace(/\n/g, '<br>').replace(/ /g, '&nbsp');
-\\@\label{lst:fluxional-ressend}@    res.send('downloaded ' + count + ' times<br><br><code>' + code + '</code>');
+    res.send('downloaded ' + count + ' times<br><br><code>' + code + '</code>' ); @\label{lst:fluxional-ressend}@
   }
 \end{code}
 
