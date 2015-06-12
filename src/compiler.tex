@@ -115,40 +115,45 @@ Some callback functions are declared \textit{in situ}, and are trivially detecte
 For variable identifier, or other expressions, the compiler tries to detect their type by tracking their assignations and modification.
 Missing callbacks by false negatives in the detection is sub-optimal, but false positives are more critical, as they eventually introduce bugs.
 Therefore, the detection needs to be as accurate as possible to screen out false positives.
-Our tracking method is a simplified version of the points-to analysis \cite{Wei2014}.
-It walks an intermediate representation of the source code to spot the statements modifying a certain variable.
+It walks an intermediate representation of the source code to spot the statements modifying a variable.
 From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
 The variable tracker is still in early development and is limited to only a few cases.
+Ideally, our tracking method would be a simplified version of the points-to analysis \cite{Wei2014}.
 
 \subsection{Linker} \label{section:compiler:linker}
 
 In an stream processing, there is roughly two kinds of usage of the global memory : data and state \cite{Fernandez2014a}.
-Naively, the state is a communication channel between different instant in time, and that data is a communication channel between different point in the application space.
-Data flows from stage to stage through the pipeline, and is never stored on any fluxion. In \textit{Node.js}, it is stored in the heap, only as a buffer between the different callbacks.
+Naively, the data represent a communication channel between different point in the application space, and the state represent a communication channel between different instant in time.
+Data flows from stage to stage through the pipeline, and is never stored on any fluxion. In the source application, it is stored in the heap, only as a buffer between the different callbacks.
 State, on the other hand, remains in the memory to impact the future behaviors of the application.
 State might be shared by several parts of the application.
-The identification of rupture points is not enough for a fluxion to be isolated, and its execution parallelized.
-The compiler also needs to analyze the memory accesses to identify the regions needed by each fluxion, and allow their coordination.
+So, the identification of rupture points is not enough for a fluxion to be isolated, and its execution parallelized.
+The compiler also needs to analyze the memory accesses to identify which part of the state is needed by each fluxion, and allow their coordination.
 
 \subsubsection{Scope isolation}
 
 In Javascript, the memory is organized in scopes.
 They are nested one in the other up to the all-enclosing global scope.
-Each function creates a new scope containing variables local to itself, and chained to the scope of the parent function.
-The child function can access variables in the scope of the parent functions, up to the global scope.
+Each function creates a new scope containing variables local to itself.
+It is chained to the scope of the parent function, so that the child function can access variables in the scope of the parent functions, up to the global scope.
 However, the scope of the function inside a fluxion - the \textit{context} - is not chained to its parent.
 As a rupture points is always between a child scope and its parent, it eventually breaks a chain of scopes, and makes the child unable to access its parent as expected.
 The parent is in the upstream fluxion, and the child in the downstream fluxion.
-This situation, if not resolved, leads the application to a runtime error.
-The linker analyzes how scopes are distributed among the fluxions to identify how the variable broken onto several fluxions are used in the upstreams and downstreams fluxions.
+This situation, if not resolved, introduces errors in the compilation result.
+The linker analyzes how scopes are distributed among the fluxions to identify how the variables broken onto several fluxions are used in the upstreams and downstreams fluxions.
+At the end of this analysis, the compiler knows for every variable, if it is read or modified inside each fluxion.
 
 However, scopes are only the abstract representation of the memory, it is only the surface.
 Internally, the heap is a global memory without any fencing.
 A variable in one scope can point to the same object as another variable in another scope.
-If the first variable is modified, the content of the second variable is modified, without visible access to it.
+If the first variable is modified, the modification propagates to the second variable, without this second variable being visibly modified.
 This situation produces side-effect between the two scopes.
 We call these side-effects scope leaking.
 A very simple example of scope leaking is illustrated in listing \ref{lst:scopeleak}.
+The scope analysis previously presented is unable to take scope leaking into account.
+Our compiler is currently in early stage of development.
+It is unable to analyze the memory deeply enough to provide a sound and complete analysis.
+Therefore it might lead to runtime errors.
 % We identified two basic situations leading to scope leaks.
 % \begin{itemize}
 % \item Passing a reference in arguments.
@@ -167,24 +172,18 @@ scopeLeak(b);
 console.log(b); // "changed";
 \end{code}
 
-The scope analysis previously presented is unable to take scope leaking into account.
-Our compiler currently uses the scope analysis.
-It is unable to provide real isolation to fluxions, therefore it might lead to runtime errors.
-
-At the end of this analysis, the compiler knows for every variable, if it is read or modified inside each fluxion.
-
 \subsubsection{State sharing}
 
 Depending on the result of the previous analysis, there is three different ways the compiler can resolve the conflict.
 
 \begin{description}
 \item[Scope]
-If a variables is modified inside only one fluxion, then it can be part of the context of this fluxion.
-The fluxion has an exclusive access to its context.
-If the context doesn't contains references shared with other fluxions, then it can be isolated on its own worker to be parallelized.
+If a variable is modified inside only one fluxion, then it can be part of the context of this fluxion.
+The fluxion has an exclusive access to it.
+If the context of a fluxion doesn't contains references shared with other fluxions, then it can be isolated on its own worker for its execution to be parallelized.
 
 \item[Stream]
-If a variable is modified inside one fluxion, but read inside downstream fluxions, then it can be part of the message to be sent to these downstream fluxions.
+If a variable is modified inside one fluxion, but read inside at least one downstream fluxion, then it can be part of the message to be sent to the downstream fluxions.
 It is possible to stream variables only to downstream fluxions.
 Indeed, if the fluxion retro propagates the variable for an upstream fluxion to read, the upstream fluxion might use the old version while the new version is on its way.
 To avoid such race conditions, we avoid retro propagation.
