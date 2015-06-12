@@ -59,10 +59,14 @@ The messaging system sends messages to the isolated worker hosting the destinati
 The worker containing the messaging system locally hosts fluxions that need access to the external network.
 % Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
 The life cycle of a fluxional application is illustrated in figure \ref{fig:MesSys}.
+Circles represent registered fluxions.
+The fluxion \textit{reply} as a context containing the variable \texttt{count}.
+The red arrows represent the actual message path in the messaging system, while the dashed lines between fluxions represent the message streams as seen in the fluxionnal application.
+The streams between workers are serialized.
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
-  \caption{Messaging system details}
+  \caption{The fluxionnal execution model in details}
   \label{fig:MesSys}
 \end{figure}
 
@@ -73,11 +77,10 @@ This registration associates a processing function with a unique name and an ini
 The registration is done using the function \texttt{register(<name>, <fn>, <context>)}, \circled{1}.
 % A fluxion can dynamically register other fluxions
 
-To trigger a chain of fluxions, a message is sent using the function \texttt{start(<msg>)}, \circled{2}.
+When a new REST request \texttt{GET} is received, a \texttt{start} message triggers the flow using the function \texttt{start(<msg>)}, \circled{2}.
 This first message represent the incoming of a request from a user.
-% This function pushes a first message in the queue.
-The system dequeues this message and dispatch it to the destination fluxion, \circled{3} and \circled{4}.
-The recipient function sends back messages from the isolated worker using the function \texttt{post(<msg>)}, \circled{5}, to be enqueued in the centralised message queue, \circled{6}.
+The system dequeues this message and dispatch it to the destination fluxion, handler, \circled{3} and \circled{4}.
+The fluxion handler sends back a message using the function \texttt{post(<msg>)}, \circled{5}, to be enqueued in the centralized message queue, \circled{6}.
 The system loops through steps \circled{3} and \circled{4} until the queue is empty.
 This cycle starts again for each new incoming request causing a \textit{start} message.
 
@@ -134,14 +137,8 @@ In this source code, some points are worth noticing.
 }
 {../../flx-example/source.js}
 
-This application is transformed manually into the fluxions chain depicted in Figure \ref{fig:MesSys}. \comment{TODO change the figure to reflect the source, and modify the paragraph below}
+This application is transformed manually into the fluxions chain depicted in Figure \ref{fig:MesSys}.
 We expect a similar result with the compiler described in section \ref{section:compiler}.
-Circles represent registered fluxions.
-Envelope symbols represent message streams between fluxions with the variables transmitted from one fluxion to the other.
-The square in the messaging system holds the \textit{context} of the \texttt{reply} fluxion.
-When a new REST request \texttt{GET} is received, a \texttt{start} message triggers the flow.
-The \texttt{handler} fluxion receives this \texttt{start} message, reads the source file and forwards it to the \texttt{reply} fluxion which increments the counter, and sends the result back.
-Each fluxion propagates the necessary values from one fluxion to the other exclusively by messages.
 % Horizontal dashed lines show virtual transmission of messages between fluxions although they all go through the messaging system.
 
 % \begin{figure}[h!]
