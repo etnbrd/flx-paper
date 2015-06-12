@@ -1,15 +1,15 @@
 \section{Fluxionnal compiler} \label{section:compiler}
 
 Web applications are currently, mostly written in Java.
-The langage proposes both data encapsulation and a threading model that allow the development of parallel applications.
+The langage proposes both data encapsulation in object and a threading model that allow the development of parallel applications.
 But, this approach is error-prone, and leads to deadlocks and other synchronization problems \cite{Adya2002}.
 Since 2009, \textit{Node.js}\cite{Dahl} propose an alternative to this model.
-It provides a Javascript execution environment for real-time web applications.
+It provides a Javascript execution environment for real-time web applications, with data encapsulation in modules, and a concurrency model based on an event-loop.
 We focus on this promising environment for its initial simplicity and efficiency.
 We develop a compiler that transforms a \textit{Node.js} application into a fluxional system compliant with the architecture described in section \ref{section:model}.
-We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
 Our compiler uses a new approach to find independent parts in \textit{Node.js} applications.
 It finds rupture points that represent limitations between potential fluxions.
+We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
 Our goal is to compile a few real applications without modifying their code, so as to validate this approach.
 
 Section \ref{section:compiler:analyzer} define rupture points, and explains how the compiler detects them.
@@ -19,7 +19,7 @@ Section \ref{section:compiler:linker} explains how the compiler distribute the c
 
 \subsubsection{Rupture points} \label{section:compiler:analyzer:rupture}
 
-A \textbf{rupture point} is a call of a loosely coupled function.
+A rupture point is a call of a loosely coupled function.
 It is an asynchronous call without subsequent synchronization with the caller.
 In \textit{Node.js}, I/O operations are asynchronous functions.
 That is a function call that resumes immediately, with a function to process later the result of the operation : the callback.
@@ -43,19 +43,20 @@ Similarly, there is two types of rupture point, respectively \textit{start} and 
 
 \textbf{Start rupture points} are indicated by listeners. They are on the border between the application and the outside, continuously receiving incoming user requests.
 An example of a start rupture point is in listing \ref{lst:source}, between the call to \texttt{app.get()}, and its listener \texttt{handler}.
-These rupture points indicate the input of a data stream in the program, and the beginning of a chain of application parts following this stream.
+These rupture points indicate the input of a data stream in the program, and the beginning of a chain of fluxions to process this stream.
 
-\textbf{Post rupture points} represent a continuity in the execution flow after a finite asynchronous operation, such as reading a file, or querying a database.
+\textbf{Post rupture points} are indicated by continuations.
+They represent a continuity in the execution flow after an asynchronous operation yielding a unique result, such as reading a file, or querying a database.
 An example of a post rupture points is in listing \ref{lst:source}, between the call to \texttt{fs.readFile()}, and its continuation \texttt{reply}.
 
 % The compilation results for these rupture points is illustrated in listing \ref{lst:ex-jsres} and explained in section \ref{section:example}.
 
-The isolation of the execution of the asynchronous call and the callback is illustrated figure \ref{fig:basicrp}. The interface line represent the limit between two fluxions. It means that the upstream fluxion sends a message to the downstream fluxion to continue the execution with the callback.
+The isolation of the execution between the asynchronous call and the callback is illustrated figure \ref{fig:basicrp}. The interface line represent the limit between two fluxions. It means that the upstream fluxion sends a message to the downstream fluxion to continue the execution with the callback.
 
 \begin{figure}[h!]
 \begin{center}
   \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
-  \caption{Basic rupture point interface. \textnormal{The rupture point interface is placed between the asynchronous operation and the callback to reduce the impact on the application structure.}}
+  \caption{Basic rupture point interface. \textnormal{The rupture point interface is placed between the asynchronous operation and the callback in between the two call stacks.}}
   \label{fig:basicrp}
 \end{center}
 \end{figure}
@@ -100,7 +101,7 @@ Therefore, the identification of a rupture point holds on the callee, not on the
 In listing \ref{lst:source}, the two rupture points are identified because of \texttt{app.get} and \texttt{fs.readFile}, not because of \texttt{handler} and \texttt{reply}.
 The asynchronism is provided by the execution engine, not the language.
 Therefore, it is impossible to identify an asynchronous function from a synchronous function based on their syntax.
-The compiler uses a list of common asynchronous callee, like the express and file system methods.
+The compiler uses a list of common asynchronous callee, like the \texttt{express} and file system methods.
 This list can be augmented to match asynchronous callee individually for any application.
 
 % The compiler is prebuilt knowing some module names exposing asynchronous functions, like the \textit{express} and the \textit{fs} module in listing \ref{lst:rupturepoints}.
@@ -119,7 +120,7 @@ It walks an intermediate representation of the source code to spot the statement
 From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
 The variable tracker is still in early development and is limited to only a few cases.
 
-\subsection{Linker} \label{section:linker}
+\subsection{Linker} \label{section:compiler:linker}
 
 In an stream processing, there is roughly two kinds of usage of the global memory : data and state \cite{Fernandez2014a}.
 Naively, the state is a communication channel between different instant in time, and that data is a communication channel between different point in the application space.

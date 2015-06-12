@@ -1,33 +1,32 @@
 \section{Fluxional execution model} \label{section:model}
 
-Many frameworks for distributed systems are renowned for their performances\cite{Welsh2000, Jain2006, Wu2007, Zaharia2010, Akidau2013, Marz2011}.
+Many frameworks for distributed systems are renowned for their performances\cite{Akidau2013, Jain2006, Marz2011, Welsh2000, Wu2007, Zaharia2010}.
 However, we focus on a compilation approach to replace the shift in programming model rather than the performance of the runtime.
 We present in this section an extremely simplified but generic execution model inspired by the literature, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
-The execution model is not distributed on remote machines, however it isolates the execution of fluxions in different process to reproduce the execution conditions of a distributed execution model.
+The execution model is not distributed on remote machines, however it isolates the execution of fluxions in different processes to reproduce the execution conditions of a distributed execution model.
 We are interested in the problems arising from this isolation.
 
 \subsection{Fluxions and workers}
 
 The fluxional execution model manages and invokes autonomous execution units named fluxion $\bnfpn{flx}$.
 A fluxion is composed of a unique name $\bnfpn{id}$, a processing function $\bnfpn{fn}$, and a persisted memory called a \textit{context} $\bnfpn{ctx}$.
-It is a function $\bnfpn{fn}$ consuming an input stream $\bnfpn{stream}$ and generating one or more outputs streams to other fluxions $\bnfpn{dest}$.
-It listens for, and sends back continuous sequence of messages.
+Its function $\bnfpn{fn}$ consumes an input stream $\bnfpn{stream}$ and generates one or more outputs streams to other fluxions $\bnfpn{dest}$.
 The \textit{context} persists the state on which a fluxion rely between two message receptions.
 At a message reception, the fluxion modifies its \textit{context}, and sends back messages to downstream fluxions.
 A message is composed of the recipient fluxions' names and a body.
 
 Fluxions are executed on workers.
 A worker is an event-loop and an isolated heap ; it is a \textit{Node.js} instance.
-
 The context of a fluxion is lexically isolated.
 It has a distinct lexical scope containing variables not shared with any other fluxion.
-Fluxions on the same worker share the same event-loop, and the same heap ; they send references to each over.
-Fluxions on different workers have different event-loop and heaps ; their communications are serialized, so it impossible to send heap references.
-The event-loop assures the exclusivity and atomicity of operations of each fluxion on the heap.
-This organization shows that the more the memory is shared, the harder it is to distribute fluxions on different workers to allow parallelisation of their execution.
+However, fluxions on the same worker share the same event-loop, and the same heap ; they can send references to each over.
+Fluxions on different workers have different event-loops and heaps ; their communications are serialized, so it impossible to send heap references.
+Fluxions are the stages in a pipeline architecture.
+The streams of messages between fluxions are carried by the messaging system.
 
-We represent here the syntax of a high-level language to represent a program in the fluxionnal form.
-It is the target for our compiler.
+The event-loop assures the exclusivity and atomicity of operations of each fluxion on the heap.
+\comment{The following sentence is poorly constructed}
+This organization shows that the more the memory is shared, the harder it is to distribute fluxions on different workers to allow parallelisation of their execution.
 
 \begin{bnf*}
   \bnfprod{program}    {\bnfpn{flx} \bnfor \bnfpn{flx} \bnfsp \bnftd{eol} \bnfsp \bnfpn{program}}\\
@@ -45,17 +44,19 @@ It is the target for our compiler.
 \end{bnf*}
 \vspace{-1.5\baselineskip}~\\
 
-Fluxions are the stages in a pipeline architecture.
-The streams of messages between fluxions are carried by the messaging system.
+We represent here the syntax of a high-level language to represent a program in the fluxionnal form.
+It is the target for our compiler.
 
 \subsection{Messaging system}
 
 In a distributed approach, the messages between fluxions would be carried over a distributed message broker.
-But because this execution model intends only to simulate a distributed execution environement, we simplify a distributed message broker with a centralised message queue.
+However this execution model is only a simulation of a distributed execution environement.
+We simplify the distributed message broker with a master message queue, but each worker still has its own message queue.
 % The messaging system is the core of the execution model.
 % It carries messages and invokes fluxions at reception.
+
 The messaging system sends messages to the isolated worker hosting the destination fluxion.
-The worker containing the messaging system is itself a worker, and contains locally fluxion that cannot be isolated from the network interfaces.
+The worker containing the messaging system locally hosts fluxions that need access to the external network.
 % Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
 The life cycle of a fluxional application is illustrated in figure \ref{fig:MesSys}.
 
@@ -133,21 +134,21 @@ In this source code, some points are worth noticing.
 }
 {../../flx-example/source.js}
 
-This application is transformed manually into the fluxions chain depicted in Figure \ref{fig:fluxions}.
+This application is transformed manually into the fluxions chain depicted in Figure \ref{fig:MesSys}. \comment{TODO change the figure to reflect the source, and modify the paragraph below}
 We expect a similar result with the compiler described in section \ref{section:compiler}.
 Circles represent registered fluxions.
-Envelope symbols represent messages streams between fluxions with the variables transmitted from one fluxion to the other.
+Envelope symbols represent message streams between fluxions with the variables transmitted from one fluxion to the other.
 The square in the messaging system holds the \textit{context} of the \texttt{reply} fluxion.
 When a new REST request \texttt{GET} is received, a \texttt{start} message triggers the flow.
 The \texttt{handler} fluxion receives this \texttt{start} message, reads the source file and forwards it to the \texttt{reply} fluxion which increments the counter, and sends the result back.
 Each fluxion propagates the necessary values from one fluxion to the other exclusively by messages.
-Horizontal dashed lines show virtual transmission of messages between fluxions although they all go through the messaging system.
+% Horizontal dashed lines show virtual transmission of messages between fluxions although they all go through the messaging system.
 
-\begin{figure}[h!]
-  \includegraphics[width=\linewidth]{ressources/flux.pdf}
-  \caption{Fluxions chain manually extracted from the example application}
-  \label{fig:fluxions}
-\end{figure}
+% \begin{figure}[h!]
+%   \includegraphics[width=\linewidth]{ressources/flux.pdf}
+%   \caption{Fluxions chain manually extracted from the example application}
+%   \label{fig:fluxions}
+% \end{figure}
 
 \begin{code}[flx, caption={Manual transformation of the example application in our high-level fluxional language},label={lst:fluxional}]
 flx get
@@ -184,4 +185,5 @@ The application is organized as follow :
   \item The \texttt{reply} fluxion increments the counter, line \ref{lst:fluxional-counter}, formats the reply, and sends it back to the user using the function \texttt{res.send}, line \ref{lst:fluxional-ressend}.
 \end{itemize}
 
+\comment{TODO transition missing}
 Our goal, as described in the introduction, is not to propose a new programming paradigm with this high-level language but to automate the architecture shift with a compiler.

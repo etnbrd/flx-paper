@@ -1,15 +1,15 @@
 \section{Introduction}
 
 The growth of web platforms is partially due to Internet's capacity to allow very quick releases of a minimal viable products (MVP).
-In a matter of hours, it is possible to upload a first product and start gathering a user community around.
+In a matter of hours, it is possible to upload a prototype and start gathering a user community around.
 \textit{``Release early, release often''}, and \textit{``Fail fast''} are the punchlines of the web entrepreneurial community.
 It is crucial for the prosperity of such project to validate quickly that the proposed solution meets the needs of its users.
-The lack of market need is the number one reason for startup failure.\ftnt{https://www.cbinsights.com/blog/startup-failure-post-mortem/}
-That is why the development team quickly concretises an MVP and iterate on it using a feature-driven, monolithic, approach.
+Indeed, the lack of market need is the number one reason for startup failure.\ftnt{https://www.cbinsights.com/blog/startup-failure-post-mortem/}
+That is why the development team quickly concretises an MVP and iterates on it using a feature-driven, monolithic, approach.
 Such as proposed by imperative languages like Java or Ruby.
 
 If the service complies successfully with users requirements, its community might grow with its popularity.
-An application is said scalable, if it can quickly respond to this growth.
+If the service can quickly respond to this growth, it is scalable.
 However, it is difficult to develop scalable applications with the feature-driven approach mentioned above.
 Eventually this growth requires to discard the initial monolithic approach to adopt a more efficient processing model instead.
 Many of the most efficient models distribute the system on a cluster of commodity machines\cite{Fox1997}.
@@ -19,9 +19,9 @@ Many tools have been developed to express and manage these service parts and the
 We can cite Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013}, Naiad \cite{McSherry} and Storm \cite{Marz2011}\cite{Toshniwal2014}, and many, many others.
 However, these tools impose specific interfaces and languages, different from the initial monolithic approach.
 It requires the development team either to be trained or to hire experts, and to start over the initial code base.
-This shift cause the development team to spend development resources in background without adding visible value for the users.
+This shift causes the development team to spend development resources in background without adding visible value for the users.
 It is a risk for the economic evolution of the project.
-The number two and three reason for startup failures are running out of cash, and not having the right competences in the team.
+The number two and three reasons for startup failures are running out of cash, and not having the right competences in the team.
 % \ftnt{https://www.cbinsights.com/blog/startup-failure-post-mortem/}
 
 To lift the risks described above, we propose a tool to compile the initial code base into a high-level language compatible with the more efficient processing model.
@@ -32,6 +32,7 @@ We think that it is possible to analyze this type of application as a stream of 
 Indeed, the event-loop used in \textit{Node.js} is very similar to the pipeline architecture.
 We propose a compiler to transform a monolithic Javascript application into a network of autonomous parts communicating by message streams.
 We named these parts \textit{fluxions}, by contraction between a flux and a function.
+
 We are interested in the problems arising from the isolation of the global memory into these fluxions.
 %This tool and its runtime aim not to modify the existing code, but rely on a high-level language expression over the initial code base.
 
