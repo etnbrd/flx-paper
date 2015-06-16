@@ -3,7 +3,7 @@
 Web applications are currently, mostly written in Java.
 The langage proposes both data encapsulation in objects and a threading model that allows the development of parallel applications.
 But, this approach is error-prone, and leads to deadlocks and other synchronization problems \cite{Adya2002}.
-Since 2009, \textit{Node.js} propose an alternative to this model.
+Since 2009, \textit{Node.js} proposes an alternative to this model.
 It provides a Javascript execution environment for real-time web applications, with data encapsulation in modules, and a concurrency model based on an event-loop.
 We focus on this promising environment for its initial simplicity and efficiency.
 We develop a compiler that transforms a \textit{Node.js} application into a fluxional system compliant with the architecture described in section \ref{section:model}.
@@ -24,9 +24,9 @@ It is an asynchronous call without subsequent synchronization with the caller.
 In \textit{Node.js}, I/O operations are asynchronous functions.
 That is a function call that resumes immediately, with a function to process later the result of the operation : the callback.
 The callback is loosely coupled with the initial caller, because they are not executed on the same call stack.
-This rupture in the call stack marks out the separation between two independent application parts.
+This rupture in the call stacks marks out the separation between two independent application parts.
 In the \textit{Node.js} environment, these two application parts are executed sequentially on the same thread to avoid concurrent memory accesses.
-But the compiler isolates their memories to reveal a pipeline parallelism, as defined in\cite{Gordon2006}.
+But the compiler intends to isolate their memories to reveal a pipeline parallelism, as defined in\cite{Gordon2006}.
 
 A callback is a function passed as a parameter to a function call.
 It is invoked by the callee to continue the execution with data not available in the caller context.
@@ -55,9 +55,9 @@ The isolation of the execution between the asynchronous call and the callback is
 
 \begin{figure}[h!]
 \begin{center}
-  \label{fig:basicrp}
   \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
   \caption{The rupture point interface is placed between the asynchronous operation and the callback in between the two call stacks.}
+  \label{fig:basicrp}
 \end{center}
 \end{figure}
 
@@ -79,7 +79,7 @@ This list can be augmented to match asynchronous callee individually for any app
 After the identification of the callee, the callback needs to be identified as well to be encapsulated in the downstream fluxion.
 For each asynchronous call detected, the compiler test if one of the arguments is of type \texttt{function}.
 Some callback functions are declared \textit{in situ}, and are trivially detected.
-For variable identifier, or other expressions, the compiler tries to detect their type by tracking their assignations and modification.
+For variable identifier, an dother expressions, the compiler tries to detect their type by tracking their assignations and modification.
 Missing callbacks by false negatives in the detection is sub-optimal, but false positives are more critical, as they eventually introduce bugs.
 Therefore, the detection needs to be as accurate as possible to screen out false positives.
 It walks an intermediate representation of the source code to spot the statements modifying a variable.
@@ -111,7 +111,7 @@ The parent is in the upstream fluxion, and the child in the downstream fluxion.
 %For example, callback functions declared \textit{in situ}.
 Or when it is between a closure, and its definition context.
 The definition context is in the upstream fluxion and the closure in the downstream fluxion.
-If this situations aren't resolved, they introduces errors in the compilation result.
+If this situations aren't resolved, they introduce errors in the compilation result.
 The linker analyzes how scopes are distributed among the fluxions to identify how the variables broken onto several fluxions are used in the upstreams and downstreams fluxions.
 At the end of this analysis, the compiler knows for every variable, if it is read or modified inside each fluxion.
 
@@ -132,15 +132,11 @@ The variable \texttt{a} is never modified visibly, yet, it is modified through t
 
 \begin{code}[js, caption={Example of a scope leak due to assignment},label={lst:assignment}]
 var a = {item: 'unchanged'};
-var b;
+var b = a;
 
-async_fn(function callback_1(result) {
-  b = a;
-  
-  async_fn(function callback_2(result) {
-    b.item = 'changed';
-    console.log(a.item); // 'changed';
-  })
+async_fn(function callback() {
+  b.item = 'changed';
+  console.log(a.item); // 'changed';
 })
 \end{code}
 
@@ -193,7 +189,7 @@ The scope analysis previously presented is unable to take these scope leaking in
 It is unable to analyze the memory deeply enough to provide a sound and complete analysis.
 Therefore it might lead to runtime errors.
 Moreover, we present only basic situations of scope leaking.
-Javascript exposes many other features leading to scope leaking.
+Javascript exposes many other features leading to scope leaking, like prototype inheritance.
 
 \subsubsection{State sharing}
 
@@ -212,16 +208,16 @@ It is possible to stream variables only to downstream flux\-ions.
 Indeed, if the fluxion retro propagates the variable for an upstream fluxion to read, the upstream fluxion might use the old version while the new version is on its way.
 To avoid such race conditions, we avoid retro propagation.
 
-Additionally, it is impossible to stream variables containing closures.
+Additionally, it is currently impossible to stream variables containing closures.
 Indeed, it is impossible to serialize closure from within Javascript.
 As the fluxionnal execution model is currently confined inside the Javascript execution environment, it is unable to send closures from one worker to the other.
 
 \paragraph{Share}
 If a variable is needed for modification by more than one fluxion, or is read by an upstream fluxion, then it needs to be synchronized between the fluxions.
 The synchronization of a distributed memory is a well-known subject, with Brewer's conjecture \cite{Gilbert2002}, and the BASE semantics\cite{Fox1997}.
-We currently choose to not allow such synchronization between workers.
+However, we currently choose to not allow such synchronization between workers.
 All the fluxions sharing a variable are gathered on the same worker to disallow parallel access on their shared memory.
-Similarly, if a fluxion shares references with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
+Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
 
 
 

@@ -20,12 +20,12 @@ A worker is an event-loop and an isolated heap ; it is a \textit{Node.js} instan
 The context of a fluxion is lexically isolated.
 It has a distinct lexical scope containing variables not shared with any other fluxion.
 However, fluxions on the same worker share the same event-loop, and the same heap ; they can send references to each over.
-Fluxions on different workers have different event-loops and heaps ; their communications are serialized, so it is impossible to send heap references.
+Fluxions on different workers have different event-loops and heaps ; their communications are serialized, so it is useless to send heap references.
 Fluxions are the stages in a pipeline architecture.
 The streams of messages between fluxions are carried by the messaging system.
 
 The event-loop assures the exclusivity of operations on the heap.
-Only one fluxion is executed at once.
+Only one fluxion is executed at once on a worker.
 Consequently, the more fluxions share states, the less time fraction each fluxion has for its execution.
 If a fluxion has its own exclusive state, it can be parallelized.
 
@@ -62,7 +62,7 @@ The master worker locally hosts fluxions that need access to the external networ
 The life cycle of a fluxional application is illustrated in figure \ref{fig:MesSys}.
 Circles represent registered fluxions.
 The fluxion \textit{reply} as a context containing the variable \texttt{count}.
-The red arrows represent the actual message path in the messaging system, while the dashed lines between fluxions represent the message streams as seen in the fluxionnal application.
+The red arrows represent the actual message paths in the messaging system, while the dashed lines between fluxions represent the message streams as seen in the fluxionnal application.
 The streams between workers are serialized.
 
 \begin{figure}[h!]
