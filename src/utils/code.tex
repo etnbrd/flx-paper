@@ -43,7 +43,7 @@
   stringstyle=\color{gray}\bfseries,
   basicstyle=\color{gray}\ttfamily\scriptsize,
   sensitive=true,
-  escapeinside={\/\/\@}{\@},
+  escapeinside={\/\/\@}{\@}
 }
 
 \lstdefinelanguage{flx}{
@@ -55,14 +55,15 @@
   literate= {+>}{{\ttfamily\scriptsize>>}}2
             {->}{{\CodeSymbol{->}}}2
             {>>}{{\CodeSymbol{>>}}}2, % This is a hack to get -> and >> be highlighted like keywords.
-  ndkeywords={source\_js, handler\_1000, reply\_1001, null},
+  ndkeywords={app\_js, get, handler, reply, anonymous\_1000, null},
   keywordstyle=\color{red}\bfseries,
   ndkeywordstyle=\color{black}\bfseries,
   identifierstyle=\color{black},
   commentstyle=\color{lightgray}\ttfamily,
   stringstyle=\color{gray}\bfseries,
   basicstyle=\color{gray}\ttfamily\scriptsize,
-  sensitive=true
+  sensitive=true,
+  escapeinside={\/\/\@}{\@}
 }
 
 \newcommand{\userlstset}[1]{

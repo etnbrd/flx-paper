@@ -1,14 +1,14 @@
 \section{Fluxionnal compiler} \label{section:compiler}
 
 Web applications are currently, mostly written in Java.
-The langage proposes both data encapsulation in object and a threading model that allow the development of parallel applications.
+The langage proposes both data encapsulation in objects and a threading model that allows the development of parallel applications.
 But, this approach is error-prone, and leads to deadlocks and other synchronization problems \cite{Adya2002}.
-Since 2009, \textit{Node.js}\cite{Dahl} propose an alternative to this model.
+Since 2009, \textit{Node.js} propose an alternative to this model.
 It provides a Javascript execution environment for real-time web applications, with data encapsulation in modules, and a concurrency model based on an event-loop.
 We focus on this promising environment for its initial simplicity and efficiency.
 We develop a compiler that transforms a \textit{Node.js} application into a fluxional system compliant with the architecture described in section \ref{section:model}.
 Our compiler uses a new approach to find independent parts in \textit{Node.js} applications.
-It finds rupture points that represent limitations between potential fluxions.
+It finds rupture points that represent boundaries between fluxions.
 We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
 Our goal is to compile a few real applications without modifying their code, so as to validate this approach.
 
@@ -32,13 +32,13 @@ A callback is a function passed as a parameter to a function call.
 It is invoked by the callee to continue the execution with data not available in the caller context.
 We distinguish three kinds of callbacks.
 
-\begin{description}
-  \item[Iterators] are functions called for each item in a set, often synchronously.
-  \item[Listeners] are functions called asynchronously for each event in a stream.
-  \item[Continuations] are functions called asynchronously once a result is available.
-\end{description}
+\textbf{Iterators} are functions called for each item in a set, often synchronously.
 
-There is two types of asynchronous callback, listeners and continuations.
+\textbf{Listeners} are functions called asynchronously for each event in a stream.
+
+\textbf{Continuations} are functions called asynchronously once a result is available.
+
+There is two types of asynchronous callbacks : listeners and continuations.
 Similarly, there is two types of rupture point, respectively \textit{start} and \textit{post}.
 
 \textbf{Start rupture points} are indicated by listeners. They are on the border between the application and the outside, continuously receiving incoming user requests.
@@ -55,48 +55,15 @@ The isolation of the execution between the asynchronous call and the callback is
 
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
-  \caption{Basic rupture point interface. \textnormal{The rupture point interface is placed between the asynchronous operation and the callback in between the two call stacks.}}
   \label{fig:basicrp}
+  \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
+  \caption{The rupture point interface is placed between the asynchronous operation and the callback in between the two call stacks.}
 \end{center}
 \end{figure}
 
-% \begin{figure}[h!]
-% \begin{center}
-%   \includegraphics[width=\linewidth]{ressources/specialrp.pdf}
-%   \caption{Special rupture point interface. \textnormal{The rupture point interface is placed before the asynchronous operation, to avoid moving the result accross the interface from one application part to the other. However, the resolution of the arguments for this asynchronous call is kept upstream to reduce the impact on the application structure}}
-%   \label{fig:specialrp}
-% \end{center}
-% \end{figure}
-
-% The application in listing \ref{lst:rupturepoints} presents the two types of rupture points.
-% The division of this application is illustrated figure \ref{fig:flux-2}.
-
-% \begin{code}[js, caption={Example of an application presenting the two types of rupture points. \textnormal{A \texttt{start} with the call to \texttt{app.get()}, and a \texttt{post} with the call to \texttt{fs.readFile()}}},label={lst:rupturepoints}]
-% var app = require('express')(),
-%     fs = require('fs');
-
-% app.get('/', function handleRequest(req, res) {
-%   fs.readFile(__filename, function reply(err, data) {
-%     res.send(err || data.toString());
-%   })
-% });
-
-% app.listen(8080);
-% console.log('server listening to 8080');
-% \end{code}
-
-% \begin{figure}[h!]
-% \begin{center}
-%   \includegraphics[width=\linewidth]{ressources/flux-2.pdf}
-%   \caption{Division of the listing \ref{lst:rupturepoints} into three application parts}
-%   \label{fig:flux-2}
-% \end{center}
-% \end{figure}
-
 \subsubsection{Detection}
 
-Listeners and continuations are not asynchronous because they are different than any other function, but because they are called asynchronously.
+Listeners and continuations are asynchronous because they are called asynchronously, and not because they are defined differently than any other function.
 Therefore, the identification of a rupture point holds on the callee, not on the callback.
 In listing \ref{lst:source}, the two rupture points are identified because of \texttt{app.get} and \texttt{fs.readFile}, not because of \texttt{handler} and \texttt{reply}.
 The asynchronism is provided by the execution engine, not the language.
@@ -118,14 +85,14 @@ Therefore, the detection needs to be as accurate as possible to screen out false
 It walks an intermediate representation of the source code to spot the statements modifying a variable.
 From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
 The variable tracker is still in early development and is limited to only a few cases.
-Ideally, our tracking method would be a simplified version of the points-to analysis \cite{Wei2014}.
+In future works, our tracking method would be inspired from the points-to analysis \cite{Wei2014}.
 
 \subsection{Linker} \label{section:compiler:linker}
 
-In an stream processing, there is roughly two kinds of usage of the global memory : data and state \cite{Fernandez2014a}.
-Naively, the data represent a communication channel between different point in the application space, and the state represent a communication channel between different instant in time.
-Data flows from stage to stage through the pipeline, and is never stored on any fluxion. In the source application, it is stored in the heap, only as a buffer between the different callbacks.
-State, on the other hand, remains in the memory to impact the future behaviors of the application.
+In a stream processing, there is roughly two kinds of usage of the global memory : data and state \cite{Fernandez2014a}.
+Naively, the data represent a communication channel between different point in the application space, and the state represents a communication channel between different instant in time.
+The data flow from stage to stage through the pipeline, and are never stored on any fluxion. In the source application, it is stored in the heap, only as a buffer between the different callbacks.
+The state, on the other hand, remains in the memory to impact the future behaviors of the application.
 State might be shared by several parts of the application.
 So, the identification of rupture points is not enough for a fluxion to be isolated, and its execution parallelized.
 The compiler also needs to analyze the memory accesses to identify which part of the state is needed by each fluxion, and allow their coordination.
@@ -136,94 +103,144 @@ In Javascript, the memory is organized in scopes.
 They are nested one in the other up to the all-enclosing global scope.
 Each function creates a new scope containing variables local to itself.
 It is chained to the scope of the parent function, so that the child function can access variables in the scope of the parent functions, up to the global scope.
-However, the scope of the function inside a fluxion - the \textit{context} - is not chained to its parent.
-As a rupture points is always between a child scope and its parent, it eventually breaks a chain of scopes, and makes the child unable to access its parent as expected.
+However, the scope of the function inside a fluxion is isolated from its ancestors.
+
+A rupture point eventually breaks a chain of scopes.
+When it is between a child scope and its parent, it makes the child unable to access its parent as expected.
 The parent is in the upstream fluxion, and the child in the downstream fluxion.
-This situation, if not resolved, introduces errors in the compilation result.
+%For example, callback functions declared \textit{in situ}.
+Or when it is between a closure, and its definition context.
+The definition context is in the upstream fluxion and the closure in the downstream fluxion.
+If this situations aren't resolved, they introduces errors in the compilation result.
 The linker analyzes how scopes are distributed among the fluxions to identify how the variables broken onto several fluxions are used in the upstreams and downstreams fluxions.
 At the end of this analysis, the compiler knows for every variable, if it is read or modified inside each fluxion.
 
-However, scopes are only the abstract representation of the memory, it is only the surface.
+However, scopes are an abstract representation of the memory, it is only the surface.
 Internally, the heap is a global memory without any fencing.
 A variable in one scope can point to the same object as another variable in another scope.
 If the first variable is modified, the modification propagates to the second variable, without this second variable being visibly modified.
-This situation produces side-effect between the two scopes.
+This situation produces side-effects between the two scopes.
 We call these side-effects scope leaking.
-A very simple example of scope leaking is illustrated in listing \ref{lst:scopeleak}.
-The scope analysis previously presented is unable to take scope leaking into account.
-Our compiler is currently in early stage of development.
-It is unable to analyze the memory deeply enough to provide a sound and complete analysis.
-Therefore it might lead to runtime errors.
-% We identified two basic situations leading to scope leaks.
-% \begin{itemize}
-% \item Passing a reference in arguments.
-% \item Using a parent scope to leak a reference between two scopes.
-% \end{itemize}
+If these two scopes are isolated on two different workers, the side-effects are unable to propagate as expected.
+We identified three basic situations leading to scope leaks.
 
-\begin{code}[js, caption={Example of a simple scope leak},label={lst:scopeleak}]
-function scopeLeak(a)
-{
-  a.item = "changed";
+\paragraph{Assignment}
+
+If a variable is assigned the object of another variable, there is possibly side effects between these two variables.
+It is illustrated in listing \ref{lst:assignment}.
+The variable \texttt{a} is never modified visibly, yet, it is modified through the variable \texttt{b}.
+
+\begin{code}[js, caption={Example of a scope leak due to assignment},label={lst:assignment}]
+var a = {item: 'unchanged'};
+var b;
+
+async_fn(function callback_1(result) {
+  b = a;
+  
+  async_fn(function callback_2(result) {
+    b.item = 'changed';
+    console.log(a.item); // 'changed';
+  })
+})
+\end{code}
+
+\paragraph{Function call}
+
+When a variable containing an object is passed as an argument to a function call, it is assigned to a different variable as a parameter inside the function scope.
+There is possibly side effects between these two variables.
+It is illustrated in listing \ref{lst:argument}.
+The variable \texttt{a} is passed as an argument to the function \texttt{async\_fn}.
+The function \texttt{callback} is then called by \texttt{async\_fn} with the object from \texttt{a} as an argument.
+The variable \texttt{a} is never modified visibly, yet it is modified through the variable \texttt{b}.
+
+\begin{code}[js, caption={Example of a scope leak due to a function call},label={lst:argument}]
+var a = {item: 'unchanged'};
+
+async_fn(function callback(b) {
+  b.item = 'changed';
+  console.log(a.item); // 'changed';
+}, a);
+\end{code}
+
+\paragraph{Closure}
+
+A closure is a function which conserves its access over its creation context.
+When the closure is called, it can modify this creation context from outside the scope of this creation context.
+There is possibly side effects from outside this scope.
+It is illustrated in listing \ref{lst:closure}.
+The variable \texttt{a} is only modified visibly inside an anonymous function.
+This anonymous function is returned to be assigned in the variable \texttt{closure}.
+The variable \texttt{a} is modified when \texttt{closure} is called.
+
+\begin{code}[js, caption={Example of a scope leak due to a closure},label={lst:closure}]
+function closureFactory() {
+  var a = {item: 'unchanged'};
+  return function() {
+    a.item = 'changed';
+  }
 }
 
-var b = {item: "unchanged"};
+var closure = closureFactory();
 
-scopeLeak(b);
-console.log(b); // "changed";
+async_fn(function() {
+  closure();
+  // inside closureFactory : a.item === 'changed';
+});
 \end{code}
+
+Our compiler is currently in early stage of development.
+The scope analysis previously presented is unable to take these scope leaking into account.
+It is unable to analyze the memory deeply enough to provide a sound and complete analysis.
+Therefore it might lead to runtime errors.
+Moreover, we present only basic situations of scope leaking.
+Javascript exposes many other features leading to scope leaking.
 
 \subsubsection{State sharing}
 
-Depending on the result of the previous analysis, there is three different ways the compiler can resolve the conflict.
+Depending on the result of the previous analysis on the variable usage through scopes, there is three different ways the compiler can resolve the conflict.
 
-\begin{description}
-\item[Scope]
+
+\paragraph{Scope}
 If a variable is modified inside only one fluxion, then it can be part of the context of this fluxion.
 The fluxion has an exclusive access to it.
 If the context of a fluxion doesn't contains references shared with other fluxions, then it can be isolated on its own worker for its execution to be parallelized.
 
-\item[Stream]
+\paragraph{Stream}
 If a variable is modified inside one fluxion, but read inside at least one downstream fluxion, then it can be part of the message to be sent to the downstream fluxions.
-It is possible to stream variables only to downstream fluxions.
+
+It is possible to stream variables only to downstream flux\-ions.
 Indeed, if the fluxion retro propagates the variable for an upstream fluxion to read, the upstream fluxion might use the old version while the new version is on its way.
 To avoid such race conditions, we avoid retro propagation.
 
-\item[Share]
+Additionally, it is impossible to stream variables containing closures.
+Indeed, it is impossible to serialize closure from within Javascript.
+As the fluxionnal execution model is currently confined inside the Javascript execution environment, it is unable to send closures from one worker to the other.
+
+\paragraph{Share}
 If a variable is needed for modification by more than one fluxion, or is read by an upstream fluxion, then it needs to be synchronized between the fluxions.
-The synchronization of a distributed memory is a well-known subject, with Brewer's conjecture \cite{Gilbert2002, codahale2010}, and the BASE semantics\cite{Fox1997}.
+The synchronization of a distributed memory is a well-known subject, with Brewer's conjecture \cite{Gilbert2002}, and the BASE semantics\cite{Fox1997}.
 We currently choose to not allow such synchronization between workers.
 All the fluxions sharing a variable are gathered on the same worker to disallow parallel access on their shared memory.
 Similarly, if a fluxion shares references with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
-\end{description}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \endinput
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

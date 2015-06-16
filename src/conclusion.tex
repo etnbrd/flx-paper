@@ -7,9 +7,16 @@
 % To identify these parts, we spotted rupture points as indicators for a possible parallelism and memory distribution.
 % This compilation tool allow for the use of the distributed architecture previously described to enable scalability, with a minimum change on the imperative programming style mastered by most developers.
 
-In this paper, we presented our work on a high-level language allowing a high-level code reasoning.
-We presented a compiler to transform a \textit{Node.js} web application into a network of independent parts communicating by message streams.
-To identify these parts, the compiler spots rupture points in the application indicating an independence between two parts, possibly leading to parallelism and memory distribution.
+In this paper, we presented our work on a high-level language allowing to represent a web application as a network of independent parts communicating by message streams.
+We presented a compiler to transform a \textit{Node.js} web application into this high-level representation.
+To identify two independent parts, the compiler spots rupture points in the application, possibly leading to memory isolation and thus, parallelism.
+The compiler is still in early development, and is unable to soundly distribute memory.
+However, we proved it is possible to compile an application so that parts of its execution are parallelized, with minimum helps from the developer - only to identify the asynchronous calls.
 We also presented the execution model to operate an application expressed in our high-level language.
 This distributed approach allows code-mobility which may lead to a better scalability.
 We believe this high-level approach can enable the scalability required by highly concurrent web applications without discarding the familiar monolithic and asynchronous programming model used in \textit{Node.js}.
+
+
+
+
+
