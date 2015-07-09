@@ -11,7 +11,7 @@ We are interested in the problems arising from this isolation.
 The fluxional execution model manages and invokes autonomous execution units named fluxion $\bnfpn{flx}$.
 A fluxion is composed of a unique name $\bnfpn{id}$, a processing function $\bnfpn{fn}$, and a persisted memory called a \textit{context} $\bnfpn{ctx}$.
 Its function $\bnfpn{fn}$ consumes an input stream $\bnfpn{stream}$ and generates one or more outputs streams to other fluxions $\bnfpn{dest}$.
-The \textit{context} persists the state on which a fluxion rely between two message receptions.
+The \textit{context} persists the state on which a fluxion relies between two message receptions.
 At a message reception, the fluxion modifies its \textit{context}, and sends back messages to downstream fluxions.
 A message is composed of the recipient fluxions' names and a body.
 
