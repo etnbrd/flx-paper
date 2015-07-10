@@ -79,7 +79,7 @@ This list can be augmented to match asynchronous callee individually for any app
 After the identification of the callee, the callback needs to be identified as well to be encapsulated in the downstream fluxion.
 For each asynchronous call detected, the compiler test if one of the arguments is of type \texttt{function}.
 Some callback functions are declared \textit{in situ}, and are trivially detected.
-For variable identifier, an dother expressions, the compiler tries to detect their type by tracking their assignations and modification.
+For variable identifier, and other expressions, the compiler tries to detect their type by tracking their assignations and modification.
 Missing callbacks by false negatives in the detection is sub-optimal, but false positives are more critical, as they eventually introduce bugs.
 Therefore, the detection needs to be as accurate as possible to screen out false positives.
 It walks an intermediate representation of the source code to spot the statements modifying a variable.
