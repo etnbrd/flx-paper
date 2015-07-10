@@ -1,14 +1,14 @@
 \section{Fluxional execution model} \label{section:model}
 
 The compiler we present in section \ref{section:compiler} focus on web applications that tend to follow the functional paradigm while keeping a global memory.
-Such applications are built using functions, but these functions are executed sequentially to assure the exclusivity of access on the global memory.
-This is a serious performance issue, as it avoid to leverage the parallelism of modern architectures.
+Such applications are built using functions that are executed sequentially to assure the exclusivity of access on the global memory.
+This is a serious performance issue, as it avoids to leverage the parallelism of modern architectures.
 
-We present in this section a different execution model that isolate the memory of some functions.
+We present in this section a different execution model that isolate the memory accessible to some functions.
 This approach allows to execute these functions in parallel, hence, to benefit of the performance improvements of this parallelism.
 This execution model is close to the actor model, as the function are executed on autonomous execution unit with their own isolated memory, communicating by messages.
-Due to the nature of real-time web application, we insist on the streaming aspect of this communications.
-The execution units exchange streams of messages, that correspond with the input stream of requests on the web application.
+Because we focus on real-time web applications, we insist on the streaming nature of these communications.
+The execution units exchange streams of messages, that correspond with the input stream of requests of the web application.
 
 \subsection{Fluxions and workers}
 
