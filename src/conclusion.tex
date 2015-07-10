@@ -17,6 +17,11 @@ This distributed approach allows code-mobility which may lead to a better scalab
 We believe this high-level approach can enable the scalability required by highly concurrent web applications without discarding the familiar monolithic and asynchronous programming model used in \textit{Node.js}.
 
 
+\endinput
 
-
+Many frameworks for distributed systems focus mainly on the performances\cite{Akidau2013, Jain2006, Marz2011, Welsh2000, Wu2007, Zaharia2010}.
+However, we focus on a compilation approach to replace the shift in programming model rather than the performance of the runtime.
+We present in this section an extremely simplified but generic execution model inspired by the literature, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
+The execution model is not distributed on remote machines, however it can isolate the execution of fluxions in different processes to reproduce the conditions of a distributed execution model.
+We are interested in the problems arising from this isolation.
 

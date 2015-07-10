@@ -1,10 +1,14 @@
 \section{Fluxional execution model} \label{section:model}
 
-Many frameworks for distributed systems focus mainly on the performances\cite{Akidau2013, Jain2006, Marz2011, Welsh2000, Wu2007, Zaharia2010}.
-However, we focus on a compilation approach to replace the shift in programming model rather than the performance of the runtime.
-We present in this section an extremely simplified but generic execution model inspired by the literature, only to support the confirmation of feasibility for the compilation process detailed in section \ref{section:compiler}.
-The execution model is not distributed on remote machines, however it can isolate the execution of fluxions in different processes to reproduce the conditions of a distributed execution model.
-We are interested in the problems arising from this isolation.
+The compiler we present in section \ref{section:compiler} focus on web applications that tend to follow the functional paradigm while keeping a global memory.
+Such applications are built using functions, but these functions are executed sequentially to assure the exclusivity of access on the global memory.
+This is a serious performance issue, as it avoid to leverage the parallelism of modern architectures.
+
+We present in this section a different execution model that isolate the memory of some functions.
+This approach allows to execute these functions in parallel, hence, to benefit of the performance improvements of this parallelism.
+This execution model is close to the actor model, as the function are executed on autonomous execution unit with their own isolated memory, communicating by messages.
+Due to the nature of real-time web application, we insist on the streaming aspect of this communications.
+The execution units exchange streams of messages, that correspond with the input stream of requests on the web application.
 
 \subsection{Fluxions and workers}
 
@@ -56,13 +60,13 @@ We simplify the distributed message broker with a master message queue to centra
 % The messaging system is the core of the execution model.
 % It carries messages and invokes fluxions at reception.
 The messaging system sends messages to the worker hosting the destination fluxion.
-The master worker locally hosts fluxions that need access to the external network or the global memory.
+Locally, the master worker hosts fluxions that need access to the external network or the global memory.
 % Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
 
-The life cycle of a fluxional application is illustrated in figure \ref{fig:MesSys}.
+The execution cycle of a fluxional application is illustrated in figure \ref{fig:MesSys}.
 Circles represent registered fluxions.
 The fluxion \textit{reply} has a context containing the variable \texttt{count}.
-The red arrows represent the actual message paths in the messaging system, while the dashed lines between fluxions represent the message streams as seen in the fluxionnal application.
+The plain arrows represent the actual message paths in the messaging system, while the dashed lines between fluxions represent the message streams as seen in the fluxionnal application.
 The streams between workers are serialized.
 
 \begin{figure}[h!]
@@ -78,42 +82,42 @@ This registration associates a processing function with a unique name and an ini
 The registration is done by calling \texttt{register(<name>, <fn>, <context>)}, \circled{1}.
 % A fluxion can dynamically register other fluxions
 
-When a new REST request \texttt{GET} is received, a \texttt{start} message triggers the flow using the function \texttt{start(<msg>)}, \circled{2}.
+When a new request is received, a \texttt{start} message triggers the flow using the function \texttt{start(<msg>)}, \circled{2}.
 This first message represent the incoming of a request from a user.
 The system dequeues this message and dispatch it to the destination fluxion, \textit{handler}, \circled{3} and \circled{4}.
 The fluxion \textit{handler} sends back a message using the function \texttt{post(<msg>)}, \circled{5}, to be enqueued in the centralized message queue, \circled{6}.
 The system loops through steps \circled{3} and \circled{4} until the queue is empty.
 This cycle starts again for each new incoming request causing a \texttt{start} message.
 
-Algorithms \ref{alg:parcours} and \ref{alg:traitement} describe the behavior of the messaging system after the \texttt{start} function invocation.
+% Algorithms \ref{alg:parcours} and \ref{alg:traitement} describe the behavior of the messaging system after the \texttt{start} function invocation.
 
-\begin{algorithm}
-\caption{Message queue walking algorithm}
-\label{alg:parcours}
-\begin{algorithmic}
-\Function{loopMessage}{\null}
-\While{$msg$ \textbf{presents in} $msgQueue$}
-\State $msg \gets$ \Call{dequeue}{\null} \Comment{\circled{3}}
-\State \Call{ProcessMsg}{$msg$}
-\EndWhile
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
+% \begin{algorithm}
+% \caption{Message queue walking algorithm}
+% \label{alg:parcours}
+% \begin{algorithmic}
+% \Function{loopMessage}{\null}
+% \While{$msg$ \textbf{presents in} $msgQueue$}
+% \State $msg \gets$ \Call{dequeue}{\null} \Comment{\circled{3}}
+% \State \Call{ProcessMsg}{$msg$}
+% \EndWhile
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
 
-\begin{algorithm}
-\caption{Message processing algorithm}
-\label{alg:traitement}
-\begin{algorithmic}
-\Function{processMsg}{$msg$}
-\For{$dest$ \textbf{in} $msg.dest$}
-\State $worker \gets lookup(dest)$
-\State \Call{worker.send}{$fluxion, msg.body$} \Comment{\circled{4}}
-% \State $message \gets$ \Call{exec}{$fluxion, msg.body$} \Comment{\circled{4} \& \circled{5}}
-% \State \Call{enqueue}{$message$} \Comment{\circled{6}}
-\EndFor
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
+% \begin{algorithm}
+% \caption{Message processing algorithm}
+% \label{alg:traitement}
+% \begin{algorithmic}
+% \Function{processMsg}{$msg$}
+% \For{$dest$ \textbf{in} $msg.dest$}
+% \State $worker \gets lookup(dest)$
+% \State \Call{worker.send}{$fluxion, msg.body$} \Comment{\circled{4}}
+% % \State $message \gets$ \Call{exec}{$fluxion, msg.body$} \Comment{\circled{4} \& \circled{5}}
+% % \State \Call{enqueue}{$message$} \Comment{\circled{6}}
+% \EndFor
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
 
 \subsection{Service example}
 
@@ -122,21 +126,29 @@ This application reads the file containing its own source code, and sends it bac
 
 The original source code of this application is available on github\cite{flx-example}, and in listing \ref{lst:source}.
 In this source code, some points are worth noticing.
+The \texttt{handler} function, line 5 to 11, receives the input stream of request.
+It is the first function we execute in an isolated fluxion.
+The \texttt{count} variable at line 3 increments the request counter.
+This object needs to be persisted in the fluxion \textit{execution context}.
+The \texttt{app.get} and \texttt{app.send} methods, respectively line 5 and 9, interface the application with the clients.
+The processing chain of functions occurs between these two functions : $\texttt{get} \twoheadrightarrow \texttt{handler} \to \texttt{readFile} \to \texttt{reply} \to \texttt{send}$.
 
-\begin{itemize}
-  \item The \texttt{handler} function, line 5 to 11, contains the logic we want to split into the fluxional processing chain.
-  It receives the user request in the variable \texttt{res} which is used by the last function of the chain, \texttt{reply}.
-  \item The \texttt{count} object at line 3 is a persistent memory that increments the request counter.
-  This object needs to be mapped to a fluxion \textit{execution context} in the fluxional execution model.
-  \item The \texttt{app.get} and \texttt{app.send} methods, respectively line 5 and 9, interface the application with the clients.
-  The processing chain of functions occurs between these two functions : $\texttt{get} \twoheadrightarrow \texttt{handler} \to \texttt{readFile} \to \texttt{reply} \to \texttt{send}$.
-\end{itemize}
+\begin{code}[js,
+  caption={Simple web application that replies to every request with its own source code and a counter},
+  label={lst:source}]
+var app = require('express')(),
+    fs = require('fs'),
+    count = 0;
 
-\includecode{js,
-  caption={Simple web application. \textnormal{this application replies to every user request with its own source code and the value of a request counter}},
-  label={lst:source}
-}
-{../../flx-example/source.js}
+app.get('/', function handler(req, res){
+  fs.readFile(__filename, function reply(err, data) {
+    count += 1;
+    res.send(err || template(count, data));
+  });
+});
+
+app.listen(8080);
+\end{code}
 
 This application is transformed manually into the high-level fluxionnal language in listing \ref{lst:fluxional}, and illustred in Figure \ref{fig:MesSys}.
 We expect a similar result with the compiler described in section \ref{section:compiler}.
@@ -157,7 +169,6 @@ flx get
 
   app.get('/', >> handler); //@\label{lst:fluxional-streamtohandler}@
   app.listen(8080);
-  console.log('+> listening 8080');
 
 flx handler on worker
 -> reply [res]
@@ -165,12 +176,11 @@ flx handler on worker
     fs.readFile(__filename, -> reply); //@\label{lst:fluxional-readfile}@
   }
 
-flx reply {count}
+flx reply {count, template}
 -> null
   function reply(error, data) {
     count += 1; //@\label{lst:fluxional-counter}@
-    var code = ('' + data).replace(/\n/g, '<br>').replace(/ /g, '&nbsp');
-    res.send('downloaded ' + count + ' times<br><br><code>' + code + '</code>' ); //@\label{lst:fluxional-ressend}@
+    res.send(err || template(count, data)); //@\label{lst:fluxional-ressend}@
   }
 \end{code}
 
