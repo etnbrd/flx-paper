@@ -8,8 +8,7 @@ As asynchronism is inherent to the execution engine, and not the language, the d
 We chose to develop a compiler and not a Javascript interpreter.
 Hence we need the developer to identify the asynchronism.
 We agree with the reviewers, this interaction with the developer would possibly impact the developer productivity if the compiler was to be released as is.
-However, it is possible to circumvent this limitation by integrating the compiler as a Just-in-Time compiler.
-With information from the execution engine about the asynchronism of specific functions, the compiler would not require any interaction with the developer.
+However, with information from the execution engine about the asynchronism of specific functions, the compiler would not require any interaction with the developer.
 We omitted this detail in the paper to avoid confusing the original idea with possible improvements.
 
 We agree with the reviewers that the literature already addressed the parallelization of loops constructs of imperative languages.
@@ -46,7 +45,7 @@ We leverage this particular situation to parallelize each iteration of the event
 Moreover, as the event-loop executes different functions, or callbacks, at each iteration, the different functions are more likely to access distinct memory regions.
 This increases the likeliness of independence and parallelization.
 
-Finally, because we focus on streaming real-time web application, the different callbacks executed by the event-loop are organized as a pipeline.
+Finally, because we focus on streaming web application, the different callbacks executed by the event-loop are organized as a pipeline.
 For each input user request, the first callback triggers the execution of the second, which triggers the execution of the third, and so on until the last callback responds to the user.
 We propose to parallelize the execution of these callbacks.
 Each callback is isolated to form a stage in a parallel pipeline through which flows the stream of input request.
