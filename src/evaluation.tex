@@ -59,9 +59,9 @@ The original callback is replaced with a placeholder function to send a message 
 The compiler identifies that this callback uses the variables \texttt{req}, \texttt{res}, and \texttt{next}.
 It puts these variables in the stream of the message to send to the downstream fluxion \texttt{anonymous\-\_1000}.
 
-The compilation result needs to be modified manually to fix some mistakes.
-These mistakes comes from the compiler being unstable, and in early stages of development, but most of these mistakes could be avoided in the future.
-The modified and simplified compilation result is in listing \ref{lst:flx-gifsocket}.
+% The compilation result needs to be modified manually to fix some mistakes.
+% These mistakes comes from the compiler being unstable, and in early stages of development, but most of these mistakes could be avoided in the future.
+% The modified and simplified compilation result is in listing \ref{lst:flx-gifsocket}.
 
 The compilation doesn't seem to introduce bugs, as the result of compilation executes without errors, and works as expected.
 However, it is important to note that the fluxion \texttt{anonymous\_1000} is not yet isolated on a remote worker.

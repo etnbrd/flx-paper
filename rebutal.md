@@ -8,8 +8,7 @@ As asynchronism is inherent to the execution engine, and not the language, the d
 We chose to develop a compiler and not a Javascript interpreter.
 Hence we need the developer to identify the asynchronism.
 We agree with the reviewers, this interaction with the developer would possibly impact the developer productivity if the compiler was to be released as is.
-However, with information from the execution engine about the asynchronism of specific functions, the compiler would not require any interaction with the developer.
-We omitted this detail in the paper to avoid confusing the original idea with possible improvements.
+However, with informations from the execution engine about the asynchronism of specific functions, the compiler would not require any interaction with the developer.
 
 We agree with the reviewers that the literature already addressed the parallelization of loops constructs of imperative languages.
 However, we strongly insist on the novelty of our approach.
