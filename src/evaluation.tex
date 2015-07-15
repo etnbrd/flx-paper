@@ -115,7 +115,7 @@ Isolating the fluxion \texttt{anonymous\_1000} produces runtime exceptions becau
 We detail in the next paragraph, how the compiler handles this situation.
 In this evaluation, we ignore the case of error, and focus on the closure \texttt{next}.
 
-\subsubsection{next}
+\subsubsection{Closure next}
 
 The function \texttt{next} is a closure over the \textit{express} \texttt{Router}.
 This function is provided by the \texttt{Router} itself to allow one function in the chain to call the next.
@@ -143,7 +143,7 @@ The isolated fluxion correctly receives, and returns its serialized messages.
 The client successfully receives a gif frame containing the text.
 However, in this evaluation, we ignored the case of error.
 
-\subsubsection{fluxionnal web framework}
+\subsubsection{Fluxionnal web framework}
 
 In case of error, the anonymous callback calls \texttt{res.writeHead} and \texttt{res.end}.
 These two closures are similar to the closure \texttt{next}.
