@@ -1,21 +1,22 @@
 \section{Fluxionnal compiler} \label{section:compiler}
 
-Web applications are currently, mostly written in Java.
-The langage proposes both data encapsulation in objects and a threading model that allows the development of parallel applications.
-But, this approach is error-prone, and leads to deadlocks and other synchronization problems \cite{Adya2002}.
-Since 2009, \textit{Node.js} proposes an alternative to this model.
+% Web applications are currently mostly written in Java.
+% The language proposes both data encapsulation in objects and a threading model that allows the development of parallel applications.
+% But, this approach is error-prone, and leads to deadlocks and other synchronization problems \cite{Adya2002}.
+Since 2009, \textit{Node.js} proposes an alternative to the difficult threading model adopted almost universally \cite{Adya2002}.
 It provides a Javascript execution environment for real-time web applications, with data encapsulation in modules, and a concurrency model based on an event-loop.
 We focus on this promising environment for its initial simplicity and efficiency.
 
 An event-loop executes a program on a single thread of execution to avoid synchronization over the global memory, and the problems that come with it.
 It features asynchronous programming to avoid wasting execution time waiting for long operations to complete, like input/output operations.
 These operations are executed in parallel, as they don't require access to the global memory.
-To resume the execution the call to an asynchronous operation requires a callback.
+To resume the execution, the call to an asynchronous operation requires a callback.
 That is a function passed as a parameter of the callee to resume execution once the asynchronous operation is finished.
-Callbacks is a software construct present in any language with higher-order functions.
+Callback is a software construct present in any language with higher-order functions.
 
 Callbacks are queued after the operation complete to be executed sequentially by the event-loop.
-A callback is loosely coupled with the caller of the asynchronous operation. They are not executed on the same call stack.
+A callback is loosely coupled with the caller of the asynchronous operation.
+They are not executed on the same call stack.
 This rupture marks out the separation between two independent application parts.
 The two parts are callbacks, as the caller of the asynchronous operation is itself the callback of another caller, up until the root of the program.
 The execution is organized as a tree of callbacks executed independently.
@@ -34,7 +35,7 @@ This compiler identifies rupture points between application parts and resolves t
 
 The compiler analyzes the Abstract Syntax Tree (AST) representing the source of an application.
 From the AST, it identifies rupture points between the callbacks to represent the application as a pipeline.
-Section \ref{section:compiler:analyzer} define rupture points, and explains how the compiler detects them.
+Section \ref{section:compiler:analyzer} defines rupture points, and explains how the compiler detects them.
 From the AST, it also builds a representation of the scopes of each variable used in the application to map the dependencies between the stages of the pipeline.
 Section \ref{section:compiler:linker} explains how the compiler distribute the central memory into isolated fluxions.
 

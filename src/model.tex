@@ -1,18 +1,31 @@
 \section{Fluxional execution model} \label{section:model}
 
-The compiler we present in section \ref{section:compiler} focus on web applications that tend to follow the functional paradigm while keeping a global memory.
-Such applications are built using functions that are executed sequentially to assure the exclusivity of access on the global memory.
-This is a serious performance issue, as it avoids to leverage the parallelism of modern architectures.
+% The compiler we present in section \ref{section:compiler} focuses on web applications that tend to follow the functional paradigm while keeping a global memory.
+% Such applications are built using functions that are executed sequentially to assure the exclusivity of access on the global memory.
+% This is a serious performance issue, as it avoids to leverage the parallelism of modern architectures.
 
-We present in this section a different execution model that isolate the memory accessible to some functions.
-This approach allows to execute these functions in parallel, hence, to benefit of the performance improvements of this parallelism.
-This execution model is close to the actor model, as the function are executed on autonomous execution unit with their own isolated memory, communicating by messages.
-Because we focus on real-time web applications, we insist on the streaming nature of these communications.
-The execution units exchange streams of messages, that correspond with the input stream of requests of the web application.
+% We present in this section a different execution model that isolates the memory accessible to some functions.
+% This approach allows to execute these functions in parallel, hence, to benefit of the performance improvements of this parallelism.
+% This execution model is close to the actor model, as the function are executed on autonomous execution units with their own isolated memory, communicating by messages.
+
+In this section, we present an execution model to allow the execution of functions in parallel of a main thread.
+Each parallel function is encapsulated in an autonomous execution container with its own memory.
+
+This execution model is similar to actors, as the execution container are independent and communicate by messages.
+Though the communication are assimilated to stream of messages, similarly to the data-flow programming model.
+It will later allow to reason on the throughput of these streams, and to react to load increases.
+% As we focus on real-time web applications, the streams of message correspond to the input stream of requests.
+
+This execution model is also similar to functions, as the execution container contains function to execute at each message reception.
+The function receives parameters from the input message, and sends one, or more, output streams of messages to other execution container.
+
+In the following paragraphs, we present the autonomous containers, and how they are distributed on different execution units.
+Then we present the messaging system to carry the communication between these execution containers.
+Finally, we present an example application using this execution model.
 
 \subsection{Fluxions and workers}
 
-The fluxional execution model manages and invokes autonomous execution units named fluxion $\bnfpn{flx}$.
+The fluxional execution model manages and invokes autonomous execution containers named fluxion $\bnfpn{flx}$.
 A fluxion is composed of a unique name $\bnfpn{id}$, a processing function $\bnfpn{fn}$, and a persisted memory called a \textit{context} $\bnfpn{ctx}$.
 Its function $\bnfpn{fn}$ consumes an input stream $\bnfpn{stream}$ and generates one or more outputs streams to other fluxions $\bnfpn{dest}$.
 The \textit{context} persists the state on which a fluxion relies between two message receptions.
