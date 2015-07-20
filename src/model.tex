@@ -15,7 +15,7 @@ In this section, we present an execution model to provide scalability to web app
 The execution of functions may dynamically be reallocated at run time depending on the load of servers.
 Reallocated functions are executed in parallel, encapsulated in an autonomous execution container with its own memory.
 This execution model is similar to the actors model, as the execution container are independent and communicate by messages.
-Though the communication are assimilated to stream of messages, similarly to the data-flow programming model.
+Though the communications are assimilated to stream of messages, similarly to the data-flow programming model.
 It will later allow to reason on the throughput of these streams, and to react to load increases.
 % As we focus on real-time web applications, the streams of message correspond to the input stream of requests.
 
