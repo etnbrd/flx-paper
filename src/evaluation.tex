@@ -51,7 +51,7 @@ app.listen(8000);
 
 We compile this application with the compiler detailed in section \ref{section:compiler}.
 % The function \texttt{getRawBody}, line \ref{lst:gifsocket:getRawBody}, is asynchronous.
-The function call \texttt{app.get} is asynchronous, but the compiler is unable to detect the function \texttt{saveBody} returned by \texttt{bodyParser} as a callback.
+The function call \texttt{app.post}, line \ref{lst:gifsocket:app.post}, is asynchronous, but the compiler is currently unable to detect the function \texttt{saveBody} returned by \texttt{bodyParser} as a callback.
 The compiler detects only one rupture point, between \texttt{getRawBody} and its anonymous callback, line \ref{lst:gifsocket:callback}.
 It encapsulates this callback in a fluxion named \texttt{anonymous\-\_1000}.
 The original callback is replaced with a placeholder function to send a message to this fluxion now containing the callback.

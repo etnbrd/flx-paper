@@ -14,7 +14,7 @@ To resume the execution, the call to an asynchronous operation requires a callba
 That is a function passed as a parameter of the callee to resume execution once the asynchronous operation is finished.
 Callback is a software construct present in any language with higher-order functions.
 
-Callbacks are queued after the operation complete to be executed sequentially by the event-loop.
+After the operation completes, its callback is queued to be executed sequentially by the event-loop.
 A callback is loosely coupled with the caller of the asynchronous operation.
 They are not executed on the same call stack.
 This rupture marks out the separation between two independent application parts.
@@ -89,10 +89,11 @@ The isolation of the execution between the asynchronous call and the callback is
 Listeners and continuations are asynchronous because they are called asynchronously, and not because they are defined differently than any other function.
 Therefore, the identification of a rupture point holds on the callee, not on the callback.
 In listing \ref{lst:source}, the two rupture points are identified because of \texttt{app.get} and \texttt{fs.readFile}, not because of \texttt{handler} and \texttt{reply}.
-The asynchronism is provided by the execution engine, not the language.
-Therefore, it is impossible to identify an asynchronous function from a synchronous function based on their syntax.
+Moreover, the asynchronism is provided by the execution engine, not the language.
+It is impossible to identify an asynchronous function from a synchronous function based on their syntax.
 The compiler uses a list of common asynchronous callee, like the \texttt{express} and file system methods.
 This list can be augmented to match asynchronous callee individually for any application.
+To identify the callee, the analyzer walks the AST to find a call expression matching this list.
 
 % The compiler is prebuilt knowing some module names exposing asynchronous functions, like the \textit{express} and the \textit{fs} module in listing \ref{lst:rupturepoints}.
 % To detect asynchronous calls, the compiler keeps a list of variables holding these modules.
@@ -102,18 +103,20 @@ This list can be augmented to match asynchronous callee individually for any app
 After the identification of the callee, the callback needs to be identified as well to be encapsulated in the downstream fluxion.
 For each asynchronous call detected, the compiler test if one of the arguments is of type \texttt{function}.
 Some callback functions are declared \textit{in situ}, and are trivially detected.
-For variable identifier, and other expressions, the compiler tries to detect their type by tracking their assignations and modification.
+For variable identifier, and other expressions, the analyzer tries to detect their type.
+To do so, the analyzer walks back the AST to track their assignations and modifications, and determine their last value.
+% It walks an intermediate representation of the source code to spot the statements modifying a variable.
+% From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
+
 Missing callbacks by false negatives in the detection is sub-optimal, but false positives are more critical, as they eventually introduce bugs.
 Therefore, the detection needs to be as accurate as possible to screen out false positives.
-It walks an intermediate representation of the source code to spot the statements modifying a variable.
-From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
 The variable tracker is still in early development and is limited to only a few cases.
 In future works, our tracking method would be inspired from the points-to analysis \cite{Wei2014}.
 
 \subsection{Pipeliner} \label{section:compiler:linker} % TODO change the label
 
 In a stream processing, there is roughly two kinds of usage of the global memory : data and state \cite{Fernandez2014a}.
-Naively, the data represent a communication channel between different point in the application space, and the state represents a communication channel between different instant in time.
+Naively, the data represent a communication channel between different application parts, and the state represents a communication channel between different instant in time.
 The data flow from stage to stage through the pipeline, and are never stored on any fluxion. In the source application, it is stored in the heap, only as a buffer between the different callbacks.
 The state, on the other hand, remains in the memory to impact the future behaviors of the application.
 State might be shared by several parts of the application.
@@ -149,7 +152,7 @@ We identified three basic situations leading to scope leaks.
 
 \paragraph{Assignment}
 
-If a variable is assigned the object of another variable, there is possibly side effects between these two variables.
+If the object of a variable is assigned to another variable, there is possibly side effects between these two variables.
 It is illustrated in listing \ref{lst:assignment}.
 The variable \texttt{a} is never modified visibly, yet, it is modified through the variable \texttt{b}.
 
@@ -183,9 +186,8 @@ async_fn(function callback(b) {
 
 \paragraph{Closure}
 
-A closure is a function which conserves its access over its creation context.
-When the closure is called, it can modify this creation context from outside the scope of this creation context.
-There is possibly side effects from outside this scope.
+When a closure is called, it can modify its creation context from outside the scope of this creation context.
+It leads to side effects from outside this scope.
 It is illustrated in listing \ref{lst:closure}.
 The variable \texttt{a} is only modified visibly inside an anonymous function.
 This anonymous function is returned to be assigned in the variable \texttt{closure}.
@@ -208,16 +210,18 @@ async_fn(function() {
 \end{code}
 
 Our compiler is currently in early stage of development.
-The scope analysis previously presented is unable to take these scope leaking into account.
 It is unable to analyze the memory deeply enough to provide a sound and complete analysis.
-Therefore it might lead to runtime errors.
-Moreover, we present only basic situations of scope leaking.
-Javascript exposes many other features leading to scope leaking, like prototype inheritance.
+Hence, the static scope analysis previously presented is unable to take these scope leaking into account.
+% Therefore it might lead to runtime errors.
+% Moreover, we present only basic situations of scope leaking.
+% Javascript exposes many other features leading to scope leaking, like prototype inheritance.
+We believe that with the right combination of static and dynamic analysis it is possible to produce a sound and complete representation of the memory.
+We leave the improvement of this analysis for future work.
 
 \subsubsection{State sharing}
 
-Depending on the result of the previous analysis on the variable usage through scopes, there is three different ways the compiler can resolve the conflict.
-
+The previous analysis leads to a representation of the memory usage through the network of fluxions, and the dependencies between them.
+Depending on this representation, there is three different ways the compiler can resolve the dependencies broken by scopes isolation.
 
 \paragraph{Scope}
 If a variable is modified inside only one fluxion, then it can be part of the context of this fluxion.
@@ -225,11 +229,10 @@ The fluxion has an exclusive access to it.
 If the context of a fluxion doesn't contains references shared with other fluxions, then it can be isolated on its own worker for its execution to be parallelized.
 
 \paragraph{Stream}
-If a variable is modified inside one fluxion, but read inside at least one downstream fluxion, then it can be part of the message to be sent to the downstream fluxions.
+If a variable is modified inside one fluxion, and read inside at least one downstream fluxion, then it can be part of the message to be sent to the downstream fluxions.
 
-It is possible to stream variables only to downstream flux\-ions.
+It is impossible to send variables to upstream flux\-ions, without race conditions.
 Indeed, if the fluxion retro propagates the variable for an upstream fluxion to read, the upstream fluxion might use the old version while the new version is on its way.
-To avoid such race conditions, we avoid retro propagation.
 
 Additionally, it is currently impossible to stream variables containing closures.
 Indeed, it is impossible to serialize closure from within Javascript.
@@ -237,8 +240,9 @@ As the fluxionnal execution model is currently confined inside the Javascript ex
 
 \paragraph{Share}
 If a variable is needed for modification by more than one fluxion, or is read by an upstream fluxion, then it needs to be synchronized between the fluxions.
-The synchronization of a distributed memory is a well-known subject, with Brewer's conjecture \cite{Gilbert2002}, and the BASE semantics\cite{Fox1997}.
-However, we currently choose to not allow such synchronization between workers.
+The synchronization of a distributed memory is a well-known subject starting with % Brewer's conjecture \cite{Gilbert2002}, and 
+the BASE semantics\cite{Fox1997}.
+However, in this work, we choose to not allow such synchronization between workers.
 All the fluxions sharing a variable are gathered on the same worker to disallow parallel access on their shared memory.
 Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
 

@@ -13,7 +13,7 @@
 
 In this section, we present an execution model to provide scalability to web applications.
 The execution of functions may dynamically be reallocated at run time depending on the load of servers.
-Reallocated functions are executed in parallel, encapsulated in an autonomous execution container with its own memory.
+Functions are encapsulated in an autonomous execution container with their own state, so as to be reallocated, and executed in parallel.
 This execution model is similar to the actors model, as the execution container are independent and communicate by messages.
 Though the communications are assimilated to stream of messages, similarly to the data-flow programming model.
 It will later allow to reason on the throughput of these streams, and to react to load increases.
@@ -40,7 +40,7 @@ A worker is an event-loop and an isolated heap ; it is a \textit{Node.js} instan
 The context of a fluxion is lexically isolated.
 It has a distinct lexical scope containing variables not shared with any other fluxion.
 However, fluxions on the same worker share the same event-loop, and the same heap ; they can send references to each over.
-Fluxions on different workers have different event-loops and heaps ; their communications are serialized, so it is useless to send heap references.
+Fluxions on different workers have different event-loops and heaps ; their communications are serialized, hence heap references would be broken.
 Fluxions are the stages in a pipeline architecture.
 The streams of messages between fluxions are carried by the messaging system.
 
@@ -82,7 +82,7 @@ Locally, the master worker hosts fluxions that need access to the external netwo
 The execution cycle of a fluxional application is illustrated in figure \ref{fig:MesSys}.
 Circles represent registered fluxions.
 The fluxion \textit{reply} has a context containing the variable \texttt{count}.
-The plain arrows represent the actual message paths in the messaging system, while the dashed lines between fluxions represent the message streams as seen in the fluxionnal application.
+The plain arrows represent the actual message paths in the messaging system, while the dashed arrows between fluxions represent the message streams as seen in the fluxionnal application.
 The streams between workers are serialized.
 
 \begin{figure}[h!]
@@ -145,9 +145,9 @@ In this source code, some points are worth noticing.
 The \texttt{handler} function, line 5 to 11, receives the input stream of request.
 It is the first function we execute in an isolated fluxion.
 The \texttt{count} variable at line 3 increments the request counter.
-This object needs to be persisted in the fluxion \textit{execution context}.
+This object needs to be persisted in the fluxion \textit{context}.
 The \texttt{app.get} and \texttt{app.send} methods, respectively line 5 and 9, interface the application with the clients.
-The processing chain of functions occurs between these two functions : $\texttt{get} \twoheadrightarrow \texttt{handler} \to \texttt{readFile} \to \texttt{reply} \to \texttt{send}$.
+The processing chain of functions occurs between these two functions : $\texttt{get} \twoheadrightarrow \texttt{handler} , \texttt{readFile} \to \texttt{reply} , \texttt{send}$.
 
 \begin{code}[js,
   caption={Simple web application that replies to every request with its own source code and a counter},
