@@ -30,7 +30,7 @@ To execute a callback in parallel, its memory needs to be independent from the g
 The dependencies resulting from closures needs to be addressed, and resolved by our compiler.
 
 To summarize, the source languages we focus on should present higher-order functions and be implemented as an event-loop with a global memory.
-We develop a compiler that transforms a \textit{Node.js} application into a fluxional system compliant with the architecture described in section \ref{section:model}.
+We developed a compiler that transforms a \textit{Node.js} application into a fluxional system compliant with the architecture described in section \ref{section:model}.
 This compiler identifies rupture points between application parts and resolves their memory dependencies to execute them in isolation of the global memory, hence in parallel inside fluxions.
 
 The compiler analyzes the Abstract Syntax Tree (AST) representing the source of an application.
