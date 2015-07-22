@@ -12,15 +12,15 @@
 % Each parallel function is encapsulated in an autonomous execution container with its own memory.
 
 In this section, we present an execution model to provide scalability to web applications.
-The execution of functions may dynamically be reallocated at run time depending on the load of servers.
+% The execution of functions may dynamically be reallocated at run time depending on the load of servers.
 Functions are encapsulated in an autonomous execution container with their own state, so as to be reallocated, and executed in parallel.
 This execution model is similar to the actors model, as the execution container are independent and communicate by messages.
 Though the communications are assimilated to stream of messages, similarly to the data-flow programming model.
 It will later allow to reason on the throughput of these streams, and to react to load increases.
 % As we focus on real-time web applications, the streams of message correspond to the input stream of requests.
 
-This execution model is also close to the functional paradigm, as the execution container contains function to execute at each message reception.
-The function receives parameters from the input message, and sends one, or more, output streams of messages to other execution container.
+% This execution model is also close to the functional paradigm, as the execution container contains function to execute at each message reception.
+% The function receives parameters from the input message, and sends one, or more, output streams of messages to other execution container.
 
 In the following paragraphs, we present the autonomous containers, and how they are distributed on different execution units.
 Then we present the messaging system to carry the communication between these execution containers.
