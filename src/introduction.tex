@@ -9,11 +9,12 @@ That is why the development team quickly concretises an MVP using a feature-driv
 
 If the service successfully complies with users requirements, its community might grow with its popularity.
 The service needs to be scalable to be able to respond to this growth.
-However, feature-based development best practices are incompatible with the requirement of scalability.
+However, feature-based development best practices are hardly compatible with the requirement of scalability.
 The features are bundled in modules which spread through the code base.
-This intertwining overlaps, hence disturbs the organization of a scalable execution.
+This organization in module overlaps, hence disturbs the organization of a scalable execution.
 Eventually this growth requires to discard the initial approach to adopt a more efficient processing model instead.
-Many of the most efficient models distribute the system on a cluster of commodity machines \cite{Fox1997}.
+Many of the most efficient models decompose applications into execution units, disregarding the initial feature oriented approach.
+This decomposition may be spread over a cluster of commodity machines \cite{Fox1997}.
 MapReduce \cite{Dean2008} and the Staged Event-driven Architecture (SEDA) \cite{Welsh2000} are famous examples of that trend. %, using a pipeline architecture.
 Once split, the service parts are connected by an asynchronous messaging system.
 Many tools have been developed to express and manage these service parts and their communications.
@@ -24,8 +25,8 @@ This shift causes the development team to spend development resources in backgro
 It is a risk for the evolution of the project as the number two and three reasons for startup failures are running out of cash, and missing the right competences.
 % \ftnt{https://www.cbinsights.com/blog/startup-failure-post-mortem/}
 
-The risks described above comes from a disruption between the two levels of application expression, the feature level and the execution level.
-To lift these risks, we propose a tool to identify the alignment between the two level, so as to allow a continuous transition from one to the other.
+The risks described above come from a disruption between the two levels of application expression, the feature level and the execution level.
+To lift these risks, we propose a tool to identify the alignment between the two levels, so as to allow a continuous transition from one to the other and back.
 % This compiler transforms the initial code base into a high-level language.
 % in the application allowing parallelism, hence scalability.
 We focus on web applications driven by users requests, developed in Javascript using the \textit{Node.js} execution environment.

@@ -91,6 +91,8 @@
       <file>../src/bib/Parallelisation.bib</file>
       <file>../src/bib/Distributed Systems.bib</file>
       <file>../src/bib/Compilation.bib</file>
+      <file>../src/bib/MyPublications.bib</file>
+      <file>../src/bib/Sync-Async.bib</file>
     </requires>
   </external>
 </requests>
