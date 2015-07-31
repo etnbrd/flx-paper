@@ -13,9 +13,9 @@
 
 In this section, we present an execution model to provide scalability to web applications.
 % The execution of functions may dynamically be reallocated at run time depending on the load of servers.
-Functions are encapsulated in an autonomous execution container with their own state, so as to be reallocated, and executed in parallel.
+Functions are encapsulated in autonomous execution containers with their state, so as to be reallocated and executed in parallel.
 This execution model is similar to the actors model, as the execution container are independent and communicate by messages.
-Though the communications are assimilated to stream of messages, similarly to the data-flow programming model.
+Though the communications are assimilated to stream of messages, similarly to the dataflow programming model.
 It allows to reason on the throughput of these streams, and to react to load increases.
 % As we focus on real-time web applications, the streams of message correspond to the input stream of requests.
 
@@ -27,28 +27,37 @@ Then we present the messaging system to carry the communication between these ex
 Finally, we present an example application using this execution model.
 
 \subsection{Fluxions}
+% $\bnfpn{flx}$
+% $\bnfpn{id}$
+% $\bnfpn{fn}$
+% $\bnfpn{ctx}$
+% $\bnfpn{fn}$
+% $\bnfpn{stream}$
+% $\bnfpn{dest}$
 
-The fluxional execution model manages and invokes autonomous execution containers named fluxion $\bnfpn{flx}$.
-A fluxion is composed of a unique name $\bnfpn{id}$, a processing function $\bnfpn{fn}$, and a local memory called a \textit{context} $\bnfpn{ctx}$.
-Its function $\bnfpn{fn}$ consumes an input stream $\bnfpn{stream}$ and generates one or more outputs streams to other fluxions $\bnfpn{dest}$.
+The fluxional execution model manages and invokes autonomous execution containers named fluxion.
+A fluxion is composed of a unique name, a processing function, and a local memory called a \textit{context}.
+Its function consumes an input stream and generates one or more outputs streams to destination fluxions.
+Figure \ref{fig:flx-lang} presents the fluxionnal language we designed to express fluxions.
+
 The \textit{context} handles the state on which a fluxion relies between two message receptions.
 At a message reception, the fluxion modifies its \textit{context}, and sends back messages to downstream fluxions.
 A message is composed of the recipient fluxions' names and a body.
 
-The \textit{context} of a fluxion might be shared with other fluxions.
-Fluxions depending upon the same states are grouped.
-Each fluxion is associated with one or more tags to express these dependencies.
-If we can consider the fluxion names as the graph of data communications, then we can consider these tags as the graph of state communications.
-To assure the consistency of the states, all the fluxions of a group access the state in a mutual exclusion fashion.
+A function might need to share its state with other functions.
+The context of their encapsulating fluxion need to hold the same state.
+Such fluxions are grouped to ensure the dependency on this shared state.
+Each fluxion is associated with tags to express these groups.
+The message streams hold the data communications ; similarly these groups represent the graph of state communications between fluxion.
+To assure the consistency of the shared state, all the fluxions of a group access the state in a mutual exclusion fashion.
 They are all executed sequentially.
 
 Fluxions are executed on an event-loop with an isolated heap ; it is a \textit{Node.js} instance.
-The event-loop assures the exclusivity of operations on the heap.
-Only one fluxion is executed at once on the event-loop.
-Consequently, the more fluxions on an event-loop, the less time fraction each fluxion has for its execution.
-That is why we propose to stretch the execution of an application by distributing the fluxions on different event-loop.
-This distribution is based on the dependencies between fluxions.
-
+We propose to stretch the execution of an application by distributing the fluxions on different event-loops.
+But the distribution is limited by the dependencies between fluxions.
+All the fluxions of a group need to be gathered on the same event-loop.
+Indeed, each event-loop assures the exclusivity of access to the state: only one fluxion is executed at once.
+Consequently, the more fluxions are gathered on an event-loop, the less time fraction each fluxion can use without impacting the throughput.
 
 % A fluxion receiving and sending heap reference can be stateless, hence replicated.
 % However, because it share references, it needs to be on the same group than other another fluxions (think about req / res).
@@ -60,13 +69,15 @@ This distribution is based on the dependencies between fluxions.
 
 
 
-We represent here the syntax of a high-level language to represent a program in the fluxionnal form.
-It is the target for our compiler.
+
+% It is the target for our compiler.
+\begin{figure}
+\vspace{-0.6\baselineskip}
 \begin{bnf*}
   \bnfprod{program}    {\bnfpn{flx} \bnfor \bnfpn{flx} \bnfsp \bnftd{eol} \bnfsp \bnfpn{program}}\\
   \bnfprod{flx}        {\bnfts{\texttt{flx}} \bnfsp \bnfpn{id} \bnfsp \bnfpn{tags} \bnfsp \bnfpn{ctx} \bnfsp \bnftd{eol} \bnfsp \bnfpn{streams} \bnfsp \bnftd{eol} \bnfsp \bnfpn{fn}}\\
   % \bnfprod{tags}       {\bnfts{\bnfpn{id}} \bnfor \bnfpn{id} \bnfsp \bnftd{eol} \bnfsp \bnfpn{tags} \bnfor \bnftd{empty string}}\\
-  \bnfprod{tags}       {\bnfts{\texttt{\&}} \bnfpn{list} \bnfor \bnftd{empty string}}\\
+  \bnfprod{tags}       {\bnfts{\texttt{\&}} \bnfsp \bnfpn{list} \bnfor \bnftd{empty string}}\\
   \bnfprod{streams}    {\bnfts{\texttt{null}} \bnfor \bnfpn{stream} \bnfor \bnfpn{stream} \bnfsp \bnftd{eol} \bnfsp \bnfpn{streams}}\\
   \bnfprod{stream}     {\bnfpn{op} \bnfsp \bnfpn{dest} \bnfsp [\bnfpn{msg}]}\\
   \bnfprod{dest}       {\bnfpn{list}}\\
@@ -78,7 +89,9 @@ It is the target for our compiler.
   \bnfprod{fn}         {\bnftd{Javascript and stream syntax}}\\
 \end{bnf*}
 \vspace{-2.5\baselineskip}
-
+\caption{Syntax of a high-level language to represent a program in the fluxionnal form}
+\label{fig:flx-lang}
+\end{figure}
 
 \subsection{Messaging system}
 
@@ -94,10 +107,9 @@ It is the target for our compiler.
 The messaging system assures the stream communications between fluxions.
 It carries messages based on the names of the recipient fluxions, so every fluxion needs to be registered with a unique name.
 The messages are queued for the event-loop to execute the associated fluxions sequentially.
+Each event-loop has its own memory and thread of execution, it is isolated from the others.
 The messaging system allows the execution to be distributed on several event-loop.
-Each event-loop executes a group of fluxion with dependencies on the same state.
-An event-loop is isolated from the other event-loops.
-The messaging-system carries messages from one event-loop to the other, and assure that the message is queued on the event-loop executing the destination fluxion.
+It carries messages from one event-loop to the other, and assure that the message is queued on the event-loop executing the destination fluxion.
 
 % If two fluxions share the same name, it would lead to a conflicting situation for the messaging system.
 
@@ -233,10 +245,12 @@ The output streams in the chains carry the variable \texttt{res}.
 It is interesting to note that if the last fluxion, \texttt{reply}, did not had a context, the group of fluxion based on the tag \texttt{network} would be stateless.
 It would allow to replicate the whole group on as many event-loop as needed to cope with the incoming traffic.
 
-This execution model allows to parallelize the execution of an application.
-Hence, it improves the scalability of the application.
-Fluxions can be distributed on different event-loop, hence executed in parallel. As a fluxion contains its state and expresses its dependencies, it can migrate accordingly.
-Fluxions with no state could be replicated to make data parallelism, additionally to the pipeline parallelism.
+This execution model allows to parallelize the execution of different parts of an application, hence it improves the scalability of that application.
+As a fluxion contains its state and expresses its dependencies, it can be migrated.
+It allows to adapt the number of fluxions per core to get the desired throughput.
+
+
+% Fluxions with no state could be replicated to make data parallelism, additionally to the pipeline parallelism.
 
 Our goal, as described in the introduction, is not to propose a new programming paradigm with this high-level language but to automate the architecture shift.
 We present the compiler to automate this architecture shift in the next section.
