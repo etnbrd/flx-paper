@@ -13,8 +13,9 @@
 
 In this section, we present an execution model to provide scalability to web applications.
 % The execution of functions may dynamically be reallocated at run time depending on the load of servers.
+To achieve scalability, the execution model provides a granularity of parallelism at the function level.
 Functions are encapsulated in autonomous execution containers with their state, so as to be reallocated and executed in parallel.
-This execution model is similar to the actors model, as the execution container are independent and communicate by messages.
+This execution model is close to the actors model, as the execution containers are independent and communicate by messages.
 Though the communications are assimilated to stream of messages, similarly to the dataflow programming model.
 It allows to reason on the throughput of these streams, and to react to load increases.
 % As we focus on real-time web applications, the streams of message correspond to the input stream of requests.
@@ -36,21 +37,19 @@ Finally, we present an example application using this execution model.
 % $\bnfpn{dest}$
 
 The fluxional execution model manages and invokes autonomous execution containers named fluxion.
-A fluxion is composed of a unique name, a processing function, and a local memory called a \textit{context}.
-Its function consumes an input stream and generates one or more outputs streams to destination fluxions.
-Figure \ref{fig:flx-lang} presents the fluxionnal language we designed to express fluxions.
-
-The \textit{context} handles the state on which a fluxion relies between two message receptions.
+A fluxion is composed of a unique name to receive messages, a processing function, and a local memory called a \textit{context}.
+% Figure \ref{fig:flx-lang} presents the fluxionnal language we designed to express fluxions.
+% The function encapsulated by a fluxion consumes an input stream and generates one or more outputs streams.
 At a message reception, the fluxion modifies its \textit{context}, and sends back messages to downstream fluxions.
-A message is composed of the recipient fluxions' names and a body.
+The \textit{context} handles the state on which a fluxion relies between two message receptions.
+% A message is composed of the recipient fluxions' names and a body.
 
-A function might need to share its state with other functions.
-The context of their encapsulating fluxion need to hold the same state.
-Such fluxions are grouped to ensure the dependency on this shared state.
-Each fluxion is associated with tags to express these groups.
-The message streams hold the data communications ; similarly these groups represent the graph of state communications between fluxion.
+The execution model allows fluxions to share states.
+Such fluxions are grouped to ensure the dependency between their contexts.
+The fluxions of a group are tagged ; a group, hence a tag, representing the dependency to a shared state.
 To assure the consistency of the shared state, all the fluxions of a group access the state in a mutual exclusion fashion.
 They are all executed sequentially.
+The compromise to share state, is to give up parallelism.
 
 Fluxions are executed on an event-loop with an isolated heap ; it is a \textit{Node.js} instance.
 We propose to stretch the execution of an application by distributing the fluxions on different event-loops.
@@ -58,6 +57,10 @@ But the distribution is limited by the dependencies between fluxions.
 All the fluxions of a group need to be gathered on the same event-loop.
 Indeed, each event-loop assures the exclusivity of access to the state: only one fluxion is executed at once.
 Consequently, the more fluxions are gathered on an event-loop, the less time fraction each fluxion can use without impacting the throughput.
+
+%These groups represent the graph of state communications between fluxion.
+%Hence, this graph indicates the states that are limiting the parallelism.
+
 
 % A fluxion receiving and sending heap reference can be stateless, hence replicated.
 % However, because it share references, it needs to be on the same group than other another fluxions (think about req / res).
