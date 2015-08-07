@@ -108,11 +108,17 @@ Consequently, the more fluxions are gathered on an event-loop, the less time fra
 % Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
 
 The messaging system assures the stream communications between fluxions.
-It carries messages based on the names of the recipient fluxions, so every fluxion needs to be registered with a unique name.
-The messages are queued for the event-loop to execute the associated fluxions sequentially.
-Each event-loop has its own memory and thread of execution, it is isolated from the others.
-The messaging system allows the execution to be distributed on several event-loop.
-It carries messages from one event-loop to the other, and assure that the message is queued on the event-loop executing the destination fluxion.
+It carries messages based on the names of the recipient fluxions, so every fluxion needs to have a unique name.
+After the execution of a fluxion, it queues the resulting messages for the event loop to process.
+% The messages are queued for the event-loop to execute the associated fluxions sequentially.
+
+The execution model allows each group of fluxions to be executed on a remote event-loop.
+Therefore, some messages need to be send to remote event-loops.
+When processing a message, if the destination fluxion is local, the messaging system immediately invokes the fluxion with the message, if it is on a remote event-loop, the messaging system sends the message to be queued on the remote event-loop.
+
+
+
+% The messaging system carries messages from one event-loop to the other, and assure that the message is queued on the event-loop executing the destination fluxion.
 
 % If two fluxions share the same name, it would lead to a conflicting situation for the messaging system.
 
@@ -120,11 +126,11 @@ It carries messages from one event-loop to the other, and assure that the messag
 % The registration is done by calling \texttt{register(<name>, <fn>, <context>)}, \circled{1}.
 % A fluxion can dynamically register other fluxions
 
-The execution cycle of a fluxional application is illustrated in figure \ref{fig:MesSys}.
-Circles represent registered fluxions.
+The execution cycle of an example fluxional application is illustrated in figure \ref{fig:MesSys}. The source code for this application is in listing \ref{lst:source} and the fluxional code for this application is in listing \ref{lst:fluxional}.
+In the schema, circles represent registered fluxions.
 The fluxion \textit{reply} has a context containing the variable \texttt{count}.
 The plain arrows represent the actual message paths in the messaging system, while the dashed arrows between fluxions represent the message streams as seen in the fluxionnal application.
-The streams between workers are serialized.
+% The streams between workers are serialized.
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
@@ -132,12 +138,13 @@ The streams between workers are serialized.
   \label{fig:MesSys}
 \end{figure}
 
-When a new request is received, a \texttt{start} message triggers the flow, \circled{2}. %  using the function \texttt{start(<msg>)}
-This first message represents the incoming of a request from a user.
-The system dequeues this message and dispatch it to the destination fluxion, \textit{handler}, \circled{3} and \circled{4}.
-The fluxion \textit{handler} sends back a message, \circled{5}, to be enqueued in the centralized message queue, \circled{6}. % using the function \texttt{post(<msg>)}
-The system loops through steps \circled{3} and \circled{4} until the queue is empty.
-This cycle starts again for each new incoming request causing a \texttt{start} message.
+% This first message represents the incoming of a request from a user.
+The \textit{main} fluxion is the first fluxion in the flow.
+It never receives any message, but when the application receives a request, the \textit{main} fluxion triggers the flow with a \texttt{start} message, \circled{2}.
+This first message is to be received by the next fluxion \textit{handler}, \circled{3} and \circled{4}.
+The fluxion \textit{handler} sends back a message, \circled{5}, to be enqueued, \circled{6}.
+The system loops through steps \circled{3} through \circled{6} until the queue is empty.
+This cycle starts again for each new incoming request causing another \texttt{start} message.
 
 % Algorithms \ref{alg:parcours} and \ref{alg:traitement} describe the behavior of the messaging system after the \texttt{start} function invocation.
 
@@ -171,15 +178,15 @@ This cycle starts again for each new incoming request causing a \texttt{start} m
 
 \subsection{Service example}
 
-To illustrate the fluxional execution model, and the compiler we present an example of a simple web application.
+To illustrate the fluxional execution model, and the compiler, we present an example of a simple web application.
 This application reads the file containing its own source code, and sends it back along with a request counter.
 
 The original source code of this application is available on github\cite{flx-example}, and in listing \ref{lst:source}.
 In this source code, some points are worth noticing.
 The \texttt{handler} function, line 5 to 11, receives the input stream of request.
-The \texttt{template} function simply format the output stream to send back to the client.
 The \texttt{count} variable at line 3 increments the request counter.
 This object needs to be persisted in the fluxion \textit{context}.
+The \texttt{template} function simply format the output stream to send back to the client.
 The \texttt{app.get} and \texttt{res.send} functions, respectively line 5 and 8, interface the application with the clients.
 The processing chain of functions occurs between these two functions : $\texttt{get} \twoheadrightarrow \texttt{handler} \to \texttt{reply}$.
 
@@ -220,7 +227,7 @@ flx main & network
   app.get('/', >> handler); //@\label{lst:fluxional-streamtohandler}@
   app.listen(8080);
 
-flx handler
+flx handler & isolated
 -> reply [res]
   function handler(req, res) {
     fs.readFile(__filename, -> reply); //@\label{lst:fluxional-readfile}@
@@ -235,10 +242,10 @@ flx reply & network {count, template}
 \end{code}
 
 The application is organized as follow.
-The chain of fluxion starts with the fluxion \texttt{main}, continues with the fluxion \texttt{handler}, and ends with the fluxion \texttt{reply}.
+The flow of requests is received from the clients by the fluxion \texttt{main}, it continues in the fluxion \texttt{handler}, and finally go through the fluxion \texttt{reply} to be send back to the clients.
 The fluxions \texttt{main} and \texttt{reply} have the tag \texttt{network}.
-This tag indicates their dependency over the network interface, because they  received the response from and send it back to the client.
-The fluxion \texttt{handler} has no tag, it doesn't have any dependencies, and can be distributed on an isolated event-loop.
+This tag indicates their dependency over the network interface, because they  received the response from and send it back to the clients.
+The fluxion \texttt{handler} has no tag, it doesn't have any dependencies, hence it can be distributed on an isolated event-loop.
 
 The last fluxion, \texttt{reply}, depends on its context to holds the variable \texttt{count} and the function \texttt{template}.
 It also depends on the variable \texttt{res} created by the first fluxion, \texttt{main}.
