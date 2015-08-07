@@ -249,15 +249,18 @@ The fluxion \texttt{handler} has no tag, it doesn't have any dependencies, hence
 
 The last fluxion, \texttt{reply}, depends on its context to holds the variable \texttt{count} and the function \texttt{template}.
 It also depends on the variable \texttt{res} created by the first fluxion, \texttt{main}.
-This variable needs to flow through the chain of fluxion until the fluxion \texttt{reply} that depends on it.
-The output streams in the chains carry the variable \texttt{res}.
+This variable is carried by the stream through the chain of fluxion until the fluxion \texttt{reply} that depends on it.
+This variable holds the references to the network sockets.
+It is the variable the group \texttt{network} depends on.
 
-It is interesting to note that if the last fluxion, \texttt{reply}, did not had a context, the group of fluxion based on the tag \texttt{network} would be stateless.
-It would allow to replicate the whole group on as many event-loop as needed to cope with the incoming traffic.
+Moreover, if the last fluxion, \texttt{reply}, did not had a context, the group \texttt{network} would be stateless.
+The whole group could be replicated as many time as needed to cope with the incoming traffic.
 
-This execution model allows to parallelize the execution of different parts of an application, hence it improves the scalability of that application.
-As a fluxion contains its state and expresses its dependencies, it can be migrated.
-It allows to adapt the number of fluxions per core to get the desired throughput.
+This execution model allows to parallelize the execution of an application.
+Some parts are arranged in pipeline, like the fluxion \texttt{handler}, some other parts are replicated, like could be the group \texttt{network}.
+This parallelization improves the scalability of the application.
+Indeed, as a fluxion contains its state and expresses its dependencies, it can be migrated.
+It allows to adapt the number of fluxions per core to adjust the resource usage in function of the desired throughput.
 
 
 % Fluxions with no state could be replicated to make data parallelism, additionally to the pipeline parallelism.

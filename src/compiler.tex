@@ -1,46 +1,47 @@
 \section{Fluxionnal compiler} \label{section:compiler}
 
-% Web applications are currently mostly written in Java.
-% The language proposes both data encapsulation in objects and a threading model that allows the development of parallel applications.
-% But, this approach is error-prone, and leads to deadlocks and other synchronization problems \cite{Adya2002}.
-Since 2009, \textit{Node.js} proposes an alternative to the difficult threading model adopted almost universally \cite{Adya2002}.
-It provides a Javascript execution environment for real-time web applications, with data encapsulation in modules, and a concurrency model based on an event-loop.
-We focus on this promising environment for its initial simplicity and efficiency.
+% Since 2009, \textit{Node.js} proposes an alternative to the difficult threading model adopted almost universally \cite{Adya2002}.
+% % It provides a Javascript execution environment for real-time web applications.
+% Its concurrency model is based on an event-loop, and exposes performances interesting enough for half the silicon valley to migrate to.
+% We focus on this promising environment for its initial simplicity and efficiency.
 
-An event-loop executes a program on a single thread of execution to avoid synchronization over the global memory, and the problems that come with it.
-It features asynchronous programming to avoid wasting execution time waiting for long operations to complete, like input/output operations.
-These operations are executed in parallel, as they don't require access to the global memory.
-To resume the execution, the call to an asynchronous operation requires a callback.
-That is a function passed as a parameter of the callee to resume execution once the asynchronous operation is finished.
-Callback is a software construct present in any language with higher-order functions.
+% An event-loop executes a program on a single thread of execution.
+% It avoids synchronization over the global memory, and all the problems associated.
+% It features asynchronous programming to avoid wasting execution time waiting for long operations to complete, like input/output operations.
+% These operations are executed in parallel, as they don't require access to the global memory.
+% To resume the execution, the call to an asynchronous operation requires a callback.
+% That is a function passed as a parameter of the callee to resume execution once the asynchronous operation is finished.
+% Callback is a software construct present in any language with higher-order functions.
 
-After the operation completes, its callback is queued to be executed sequentially by the event-loop.
-A callback is loosely coupled with the caller of the asynchronous operation.
-They are not executed on the same call stack.
-This rupture marks out the separation between two independent application parts.
-The two parts are callbacks, as the caller of the asynchronous operation is itself the callback of another caller, up until the root of the program.
-The execution is organized as a tree of callbacks executed independently.
-It is a particularity of using the event-loop as a base for the concurrency model in the implementation of the execution engine.
+% After the operation completes, its callback is queued to be executed sequentially by the event-loop.
+% A callback is loosely coupled with the caller of the asynchronous operation.
+% They are not executed on the same call stack.
+% This rupture marks out the separation between two independent application parts.
+% The two parts are callbacks, as the caller of the asynchronous operation is itself the callback of another caller, up until the root of the program.
+% The execution is organized as a tree of callbacks executed independently.
+% It is a particularity of using the event-loop as a base for the concurrency model in the implementation of the execution engine.
 
-However, the rupture between two callbacks is not trivial.
-Languages providing higher-order functions often provide closures as the implementation of lexical scoping.
-A closure is a function that keeps the execution context of its initial definition.
-It means that the callback provided to an asynchronous function keeps access on the memory scope of the caller of this asynchronous function.
-To execute a callback in parallel, its memory needs to be independent from the global memory.
-The dependencies resulting from closures needs to be addressed, and resolved by our compiler.
+% However, the rupture between two callbacks is not trivial.
+% Languages providing higher-order functions often provide closures as the implementation of lexical scoping.
+% A closure is a function that keeps the execution context of its initial definition.
+% It means that the callback provided to an asynchronous function keeps access on the memory scope of the caller of this asynchronous function.
+% To execute a callback in parallel, its memory needs to be independent from the global memory.
+% The dependencies resulting from closures needs to be addressed, and resolved by our compiler.
 
-To summarize, the source languages we focus on should present higher-order functions and be implemented as an event-loop with a global memory.
+The source languages we focus on should present higher-order functions and be implemented as an event-loop with a global memory.
+\textit{Node.js} is an example of implementation for such a language.
 We developed a compiler that transforms a \textit{Node.js} application into a fluxional system compliant with the architecture described in section \ref{section:model}.
-This compiler identifies rupture points between application parts and resolves their memory dependencies to execute them in isolation of the global memory, hence in parallel inside fluxions.
+This compiler identifies application parts as fluxions to represent the application as a pipeline and resolves their memory dependencies to execute them in isolation of the global memory.
+As explained in the previous section, this isolation allows fluxions to be executed in parallel.
 
 The compiler analyzes the Abstract Syntax Tree (AST) representing the source of an application.
-From the AST, it identifies rupture points between the callbacks to represent the application as a pipeline.
+From the AST, it identifies asynchronous calls as rupture points.
 Section \ref{section:compiler:analyzer} defines rupture points, and explains how the compiler detects them.
 From the AST, it also builds a representation of the scopes of each variable used in the application to map the dependencies between the stages of the pipeline.
 Section \ref{section:compiler:linker} explains how the compiler distribute the central memory into isolated fluxions.
 
-We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
-Our goal is to compile a few real applications without modifying their code, so as to validate this approach.
+% We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
+% Our goal is to compile a few real applications without modifying their code, so as to validate this approach.
 
 \subsection{Analyzer} \label{section:compiler:analyzer}
 
@@ -115,6 +116,13 @@ In future works, our tracking method would be inspired from the points-to analys
 
 \subsection{Pipeliner} \label{section:compiler:linker} % TODO change the label
 
+The rupture between two callbacks is not trivial.
+Languages providing higher-order functions often provide closures as the implementation of lexical scoping.
+A closure is a function that keeps the execution context of its initial definition.
+It means that the callback provided to an asynchronous function keeps access on the memory scope of the caller of this asynchronous function.
+To execute a callback in parallel, its memory needs to be independent from the global memory.
+The dependencies resulting from closures needs to be addressed, and resolved by the second part of our compiler, the pipeliner.
+
 In a stream processing, there is roughly two kinds of usage of the global memory : data and state \cite{Fernandez2014a}.
 Naively, the data represent a communication channel between different application parts, and the state represents a communication channel between different instant in time.
 The data flow from stage to stage through the pipeline, and are never stored on any fluxion. In the source application, it is stored in the heap, only as a buffer between the different callbacks.
@@ -122,6 +130,9 @@ The state, on the other hand, remains in the memory to impact the future behavio
 State might be shared by several parts of the application.
 So, the identification of rupture points is not enough for a fluxion to be isolated, and its execution parallelized.
 The compiler also needs to analyze the memory accesses to identify which part of the state is needed by each fluxion, and allow their coordination.
+
+
+
 
 \subsubsection{Scope isolation}
 
