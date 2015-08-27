@@ -30,20 +30,29 @@
 
 The source languages we focus on should present higher-order functions and be implemented as an event-loop with a global memory.
 \textit{Node.js} is an example of implementation for such a language.
+\comment{Expliquer pourquoi Node.js / Javascript ?}
 We developed a compiler that transforms a \textit{Node.js} application into a fluxional system compliant with the architecture described in section \ref{section:model}.
 This compiler identifies application parts as fluxions to represent the application as a pipeline and resolves their memory dependencies to execute them in isolation of the global memory.
 As explained in the previous section, this isolation allows fluxions to be executed in parallel.
 
-The compiler analyzes the Abstract Syntax Tree (AST) representing the source of an application.
-From the AST, it identifies asynchronous calls as rupture points.
-Section \ref{section:compiler:analyzer} defines rupture points, and explains how the compiler detects them.
-From the AST, it also builds a representation of the scopes of each variable used in the application to map the dependencies between the stages of the pipeline.
-Section \ref{section:compiler:linker} explains how the compiler distribute the central memory into isolated fluxions.
+
+From the source of a \textit{Node.js} application, the compiler extracts the Abstract Syntax Tree (AST) representing the source.
+From the AST, the first step of the compiler, the analyzer step, identifies the different application parts, their limits and how they relate to form a pipeline.
+Section \ref{section:compiler:analyzer} defines these limits, and explains how the compiler detects them.
+The analyzer step output a pipeline representation of the application.
+Though the stages are not yet isolated and encapsulated into fluxions.
+From the AST, the compiler also builds a representation of the memory scopes of variables.
+The second step of the compiler, the pipeliner step, analyzes the scope representation and the pipeline representation to identify the shared state between the application parts and distribute the central memory into isolated groups of fluxions.
+Section \ref{section:compiler:pipeliner} explains the transformation of shared memory into distributed fluxions.
 
 % We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
 % Our goal is to compile a few real applications without modifying their code, so as to validate this approach.
 
-\subsection{Analyzer} \label{section:compiler:analyzer}
+\subsection{Analyzer step} \label{section:compiler:analyzer}
+
+The analyzer step of the compiler identifies the application parts to later encapsulate into fluxions.
+The limit between two applications parts is defined by a rupture point.
+The analyzer outputs a representation of the application in a pipeline form, with application parts as the stages, and rupture points as the message streams.
 
 \subsubsection{Rupture points} \label{section:compiler:analyzer:rupture}
 
@@ -54,16 +63,13 @@ The two application parts are the caller of the asynchronous function call on on
 
 A callback is a function passed as a parameter to a function call.
 It is invoked by the callee to continue the execution with data not available in the caller context.
-We distinguish three kinds of callbacks.
-
-\textbf{Iterators} are functions called for each item in a set, often synchronously.
-
-\textbf{Listeners} are functions called asynchronously for each event in a stream.
-
-\textbf{Continuations} are functions called asynchronously once a result is available.
-
-There is two types of asynchronous callbacks : listeners and continuations.
+We distinguish three kinds of callbacks, but only two are asynchronous : listeners and continuations.
+% \textbf{Iterators} are functions called for each item in a set, often synchronously.
+% \textbf{Listeners} are functions called asynchronously for each event in a stream.
+% \textbf{Continuations} are functions called asynchronously once a result is available.
 Similarly, there is two types of rupture point, respectively \textit{start} and \textit{post}.
+In our high-level language, we differentiates the two types with two different arrows.
+Double arrow ($\twoheadrightarrow$ or \texttt{>>}) for \textit{start} rupture point and simple arrow ($\to$ or \texttt{->}) for \textit{post} rupture point.
 
 \textbf{Start rupture points} are indicated by listeners. They are on the border between the application and the outside, continuously receiving incoming user requests.
 An example of a start rupture point is in listing \ref{lst:source}, between the call to \texttt{app.get()}, and its listener \texttt{handler}.
@@ -75,23 +81,13 @@ An example of a post rupture points is in listing \ref{lst:source}, between the 
 
 % The compilation results for these rupture points is illustrated in listing \ref{lst:ex-jsres} and explained in section \ref{section:example}.
 
-The isolation of the execution between the asynchronous call and the callback is illustrated figure \ref{fig:basicrp}. The interface line represent the limit between two fluxions. It means that the upstream fluxion sends a message to the downstream fluxion to continue the execution with the callback.
-
-\begin{figure}[h!]
-\begin{center}
-  \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
-  \caption{The rupture point interface is placed between the asynchronous operation and the callback in between the two call stacks.}
-  \label{fig:basicrp}
-\end{center}
-\end{figure}
-
 \subsubsection{Detection}
 
-Listeners and continuations are asynchronous because they are called asynchronously, and not because they are defined differently than any other function.
-Therefore, the identification of a rupture point holds on the callee, not on the callback.
-In listing \ref{lst:source}, the two rupture points are identified because of \texttt{app.get} and \texttt{fs.readFile}, not because of \texttt{handler} and \texttt{reply}.
-Moreover, the asynchronism is provided by the execution engine, not the language.
-It is impossible to identify an asynchronous function from a synchronous function based on their syntax.
+% Listeners and continuations are asynchronous because they are called asynchronously, and not because they are defined differently than any other function.
+% Therefore, the identification of a rupture point holds on the callee, not on the callback.
+% In listing \ref{lst:source}, the two rupture points are identified because of \texttt{app.get} and \texttt{fs.readFile}, not because of \texttt{handler} and \texttt{reply}.
+% Moreover, the asynchronism is provided by the execution engine, not the language.
+% It is impossible to identify an asynchronous function from a synchronous function based on their syntax.
 The compiler uses a list of common asynchronous callee, like the \texttt{express} and file system methods.
 This list can be augmented to match asynchronous callee individually for any application.
 To identify the callee, the analyzer walks the AST to find a call expression matching this list.
@@ -109,12 +105,35 @@ To do so, the analyzer walks back the AST to track their assignations and modifi
 % It walks an intermediate representation of the source code to spot the statements modifying a variable.
 % From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
 
-Missing callbacks by false negatives in the detection is sub-optimal, but false positives are more critical, as they eventually introduce bugs.
-Therefore, the detection needs to be as accurate as possible to screen out false positives.
-The variable tracker is still in early development and is limited to only a few cases.
-In future works, our tracking method would be inspired from the points-to analysis \cite{Wei2014}.
+The isolation of the execution between the asynchronous call and the callback is illustrated figure \ref{fig:basicrp}.
+The interface line represent the limit between two fluxions.
+% It means that the upstream fluxion sends a message to the downstream fluxion to continue the execution with the callback.
 
-\subsection{Pipeliner} \label{section:compiler:linker} % TODO change the label
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
+  \begin{code}
+asyncCall(arguments, function callback(req, res){ //@\circled{2}@ });
+// Following statements //@\circled{1}@
+  \end{code}
+  \caption{Rupture point interface}
+  \label{fig:basicrp}
+\end{center}
+\end{figure}
+
+
+% Missing callbacks by false negatives in the detection is sub-optimal, but false positives are more critical, as they eventually introduce bugs.
+% Therefore, the detection needs to be as accurate as possible to screen out false positives.
+% The variable tracker is still in early development and is limited to only a few cases.
+% In future works, our tracking method would be inspired from the points-to analysis \cite{Wei2014}.
+
+
+
+
+
+
+
+\subsection{Pipeliner step} \label{section:compiler:pipeliner}
 
 The rupture between two callbacks is not trivial.
 Languages providing higher-order functions often provide closures as the implementation of lexical scoping.
