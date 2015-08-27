@@ -1,5 +1,18 @@
 \section{Related Works} \label{section:related}
 
+\comment{
+  Most of the code transformation intended for parallelization require annotations, or transform loops inside of a sequential program.
+  Our approach is different in that we aim at avoiding completely annotations.
+  Indeed, the knowledge of asynchronism from the developer is enough so that we don't need more annotations.
+  Furthermore, the transformation of the loops in sequential program is inherently limited by the sequential surrounding.
+  Amdahl's law state that such program cannot expect high speedup due to parallelization.
+  On the otherhand, the event-loop our approach is based on doesn't have any sequential surrounding.
+  It is the most outer loops, because it is not part of the language, but of the runtime.
+  Therefore, our approach is not limited by this sequential surrounding.
+}
+
+
+
 The idea to split a task into independent parts goes back to the Actor's model \cite{Hewitt1973} in 1973, and to Functional programming, like Lucid \cite{Ashcroft1977} in 1977 and all the following works on DataFlow leading up to Flow-Based programming (FBP) and Functional Reactive Programming (FRP).
 Both FBP and FRP, recently got some attention in the Javascript community with the projects \textit{NoFlo}\ftnt{http://noflojs.org/}, \textit{Bacon.js}\ftnt{https://baconjs.github.io/} and \textit{react}\ftnt{https://facebook.github.io/react/}.
 
