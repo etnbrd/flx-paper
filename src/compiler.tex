@@ -45,6 +45,14 @@ From the AST, the compiler also builds a representation of the memory scopes of 
 The second step of the compiler, the pipeliner step, analyzes the scope representation and the pipeline representation to identify the shared state between the application parts and distribute the central memory into isolated groups of fluxions.
 Section \ref{section:compiler:pipeliner} explains the transformation of shared memory into distributed fluxions.
 
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[width=\linewidth]{ressources/compiler-stream.pdf}
+  \caption{Compilation chain}
+  \label{fig:compilation}
+\end{center}
+\end{figure}
+
 % We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
 % Our goal is to compile a few real applications without modifying their code, so as to validate this approach.
 
@@ -113,7 +121,7 @@ The interface line represent the limit between two fluxions.
 \begin{center}
   \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
   \begin{code}
-asyncCall(arguments, function callback(req, res){ //@\circled{2}@ });
+asyncCall(arguments, function callback(result){ //@\circled{2}@ });
 // Following statements //@\circled{1}@
   \end{code}
   \caption{Rupture point interface}
