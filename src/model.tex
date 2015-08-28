@@ -23,8 +23,10 @@ It allows to reason on the throughput of these streams, and to react to load inc
 % This execution model is also close to the functional paradigm, as the execution container contains function to execute at each message reception.
 % The function receives parameters from the input message, and sends one, or more, output streams of messages to other execution container.
 
-In the following paragraphs, we present the autonomous containers : fluxions.
-Then we present the messaging system to carry the communication between these execution containers.
+The fluxional execution model executes programs written in our high-level fluxionnal language, whose grammar is presented in figure \ref{fig:flx-lang}.
+An application $\bnfpn{program}$ is partitioned into parts encapsulated in autonomous execution containers named \textit{fluxions} $\bnfpn{flx}$.
+In the following paragraphs, we present the \textit{fluxions}.
+Then we present the messaging system to carry the communications between \textit{fluxions}.
 Finally, we present an example application using this execution model.
 
 \subsection{Fluxions}
@@ -36,24 +38,24 @@ Finally, we present an example application using this execution model.
 % $\bnfpn{stream}$
 % $\bnfpn{dest}$
 
-% The fluxional execution model executes programs written in our high-level fluxionnal language, whose grammar is in figure \ref{fig:flx-lang}.
-In our fluxional execution model, an application is partitioned into parts encapsulated in autonomous execution containers named fluxions.
 % The fluxional execution model manages and invokes fluxions.
-A fluxion is composed of a unique name to receive messages, a processing function, and a local memory called a \textit{context}.
-Figure \ref{fig:flx-lang} presents the fluxionnal language we designed to express fluxions.
-% The function encapsulated by a fluxion consumes an input stream and generates one or more outputs streams.
-At a message reception, the fluxion modifies its \textit{context}, and sends messages to downstream fluxions.
-The \textit{context} handles the state on which a fluxion relies between two message receptions.
+A \textit{fluxion} $\bnfpn{flx}$ is named by a unique identifier $\bnfpn{id}$ to receive messages, and might be part of one or more groups indicated by tags $\bnfpn{tags}$.
+A \textit{fluxion} is composed of a processing function $\bnfpn{fn}$, and a local memory called a \textit{context} $\bnfpn{ctx}$.
+% Figure \ref{fig:flx-lang} presents the fluxionnal language we designed to express fluxions.
+% The function encapsulated by a \textit{fluxion} consumes an input stream and generates one or more outputs streams.
+At a message reception, the \textit{fluxion} modifies its \textit{context}, and sends messages on its output streams $\bnfpn{streams}$ to downstream \textit{fluxions}.
+The \textit{context} handles the state on which a \textit{fluxion} relies between two message receptions.
 % A message is composed of the recipient fluxions' names and a body.
+% Message passing is unable\footnote{at reasonable costs} to replace the synchronization allowed by shared state. % and required between some of the application parts.
+In addition to message passing, the execution model allows \textit{fluxions} to communicate by sharing state between their \textit{contexts}.
+% To allow this synchronization when required, the execution model allows fluxions to share state between their contexts.
+The fluxions that needs to synchronize together are grouped with the same tag, and loose their independence.
+% To assure the consistency of the shared state, all the fluxions of a group are executed sequentially.
+% Though, the different groups of fluxions are executed in parallel.
 
-Message passing is unable\footnote{at reasonable costs} to replace the synchronization allowed by shared state. % and required between some of the application parts.
-To allow this synchronization when required, the execution model allows fluxions to share state between their contexts.
-The fluxions that needs to synchronize together are grouped with the same tag.
-To assure the consistency of the shared state, all the fluxions of a group are executed sequentially.
-Though, the different groups of fluxions are executed in parallel.
-
-
-
+There is two types of streams, \textit{start} and \textit{post}, which corresponds to the nature of the rupture point yielding the stream.
+We differentiates the two types with two different arrows, double arrow ($\twoheadrightarrow$ or \texttt{>>}) for \textit{start} rupture points and simple arrow ($\to$ or \texttt{->}) for \textit{post} rupture points.
+The two different type of rupture points are further detailed in section \ref{section:compiler:analyzer:rupture}.
 
 
 % Fluxions are executed on an event-loop with an isolated heap ; it is a \textit{Node.js} instance.
@@ -87,12 +89,12 @@ Though, the different groups of fluxions are executed in parallel.
   % \bnfprod{tags}       {\bnfts{\bnfpn{id}} \bnfor \bnfpn{id} \bnfsp \bnftd{eol} \bnfsp \bnfpn{tags} \bnfor \bnftd{empty string}}\\
   \bnfprod{tags}       {\bnfts{\texttt{\&}} \bnfsp \bnfpn{list} \bnfor \bnftd{empty string}}\\
   \bnfprod{streams}    {\bnfts{\texttt{null}} \bnfor \bnfpn{stream} \bnfor \bnfpn{stream} \bnfsp \bnftd{eol} \bnfsp \bnfpn{streams}}\\
-  \bnfprod{stream}     {\bnfpn{op} \bnfsp \bnfpn{dest} \bnfsp [\bnfpn{msg}]}\\
+  \bnfprod{stream}     {\bnfpn{type} \bnfsp \bnfpn{dest} \bnfsp [\bnfpn{msg}]}\\
   \bnfprod{dest}       {\bnfpn{list}}\\
   \bnfprod{ctx}        {\bnfts{\texttt{\{}} \bnfpn{list} \bnfts{\texttt{\}}}}\\
   \bnfprod{msg}        {\bnfts{\texttt{[}} \bnfpn{list} \bnfts{\texttt{]}}}\\
   \bnfprod{list}       {\bnfpn{id} \bnfor \bnfpn{id} \bnfsp \bnfts{,} \bnfsp \bnfpn{list}}\\
-  \bnfprod{op}         {\bnfts{\texttt{>}\texttt{>}} \bnfor \bnfts{\texttt{-}\texttt{>}}}\\
+  \bnfprod{type}         {\bnfts{\texttt{>}\texttt{>}} \bnfor \bnfts{\texttt{-}\texttt{>}}}\\
   \bnfprod{id}         {\bnftd{Identifier}}\\
   \bnfprod{fn}         {\bnftd{imperative language and stream syntax}}\\
 \end{bnf*}
@@ -136,6 +138,9 @@ In the schema, circles represent registered fluxions.
 The fluxion \textit{reply} has a context containing the variable \texttt{count}.
 The plain arrows represent the actual message paths in the messaging system, while the dashed arrows between fluxions represent the message streams as seen in the fluxionnal application.
 % The streams between workers are serialized.
+
+To assure the consistency of their shared contexts, all the fluxions grouped with the same tag are executed sequentially and share the same message queue.
+Though, the different groups of fluxions are executed in parallel with different event queues.
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
