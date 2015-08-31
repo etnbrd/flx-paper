@@ -48,7 +48,8 @@ This first step outputs a pipeline representation of the application.
 Section \ref{section:compiler:analyzer} explains this first compilation step.
 In the pipeline representation, the stages are not yet independent and encapsulated into fluxions.
 % From the AST, the compiler also builds a representation of the memory scopes of variables.
-The pipeliner step analyzes the pipeline representation along with a representation of the memory scopes to distribute the shared memory into independent groups of fluxions.
+From the AST, \texttt{escope} produces a representation of the memory scopes.
+The pipeliner step analyzes the pipeline representation and the scopes representation to distribute the shared memory into independent groups of fluxions.
 Section \ref{section:compiler:pipeliner} explains this second compilation step.
 
 % We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
@@ -138,9 +139,21 @@ A rupture point eventually breaks the chain of scopes, hence the closures betwee
 The pipeliner step replaces the need for these closures by message passing, allowing application parts to be encapsulated in independent fluxions.
 It uses the scope representation, containing the variable usages through the pipeline.
 Depending on this representation, there is three different ways the compiler can replace the broken closures.
+We present these three alternative with the example figure \ref{fig:states}.
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[width=\linewidth]{ressources/states.pdf}
+  \caption{Rupture point interface}
+  \label{fig:states}
+\end{center}
+\end{figure}
 
 \paragraph{Scope}
 If a variable is modified inside only one application part in the current \textit{post}, then it can be part of the context of its fluxion.
+
+In figure \ref{fig:states}, the variable \texttt{a} is updated in the function \texttt{add}.
+The pipeliner steps store this variable in the context of the fluxion \texttt{add}.
 % The fluxion has an exclusive access to it.
 % If the context of a fluxion doesn't contains references shared with other fluxions, then it can be isolated on its own worker for its execution to be parallelized.
 
@@ -149,6 +162,9 @@ If a variable is modified inside an application part, and read inside downstream
 
 It is impossible to send variables to upstream flux\-ions, without race conditions.
 If the fluxion retro propagates the variable for an upstream fluxion to read, the upstream fluxion might use the old version while the new version is on its way.
+
+In figure \ref{fig:states}, the variable \texttt{b} is set in the function \texttt{onReq}, and read in the function \texttt{add}.
+The pipeliner steps makes the fluxion \texttt{onReq} send the updated variable \texttt{b}, in addition to the variable \texttt{v}, in the message sent to the fluxion \texttt{add}.
 
 % Additionally, it is currently impossible to stream variables containing closures.
 % Indeed, it is impossible to serialize closure from within Javascript.
@@ -162,14 +178,8 @@ To respect the semantics of the source application, we cannot tolerate inconsist
 Therefore, all the fluxions sharing a variable are grouped with the same tag.
 % Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
 
-\begin{figure}[h!]
-\begin{center}
-  \includegraphics[width=\linewidth]{ressources/states.pdf}
-  \caption{Rupture point interface}
-  \label{fig:basicrp}
-\end{center}
-\end{figure}
-
+In figure \ref{fig:states}, the variable \texttt{c} is set in the function \texttt{end}, and read in the function \texttt{add}.
+As the fluxion \texttt{add} is upstream of \texttt{end}, the pipeliner steps groups the fluxion \texttt{add} and \texttt{end} with the tag \texttt{c} to allow the two fluxions to share this variable.
 
 \endinput
 
