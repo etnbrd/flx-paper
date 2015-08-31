@@ -134,13 +134,13 @@ After the execution of a fluxion, it queues the resulting messages for the event
 % A fluxion can dynamically register other fluxions
 
 The execution cycle of an example fluxional application is illustrated in figure \ref{fig:MesSys}. The source code for this application is in listing \ref{lst:source} and the fluxional code for this application is in listing \ref{lst:fluxional}.
-In the schema, circles represent registered fluxions.
+In figure \ref{fig:MesSys}, circles represent registered fluxions.
 The fluxion \textit{reply} has a context containing the variable \texttt{count}.
 The plain arrows represent the actual message paths in the messaging system, while the dashed arrows between fluxions represent the message streams as seen in the fluxionnal application.
 % The streams between workers are serialized.
 
-To assure the consistency of their shared contexts, all the fluxions grouped with the same tag are executed sequentially and share the same message queue.
-Though, the different groups of fluxions are executed in parallel with different event queues.
+% To assure the consistency of their shared contexts, all the fluxions grouped with the same tag are executed sequentially and share the same message queue.
+% Though, the different groups of fluxions are executed in parallel with different event queues.
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
