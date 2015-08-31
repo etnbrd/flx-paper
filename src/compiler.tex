@@ -140,7 +140,7 @@ It uses the scope representation, containing the variable usages through the pip
 Depending on this representation, there is three different ways the compiler can replace the broken closures.
 
 \paragraph{Scope}
-If a variable is modified inside only one application part, then it can be part of the context of its fluxion.
+If a variable is modified inside only one application part in the current \textit{post}, then it can be part of the context of its fluxion.
 % The fluxion has an exclusive access to it.
 % If the context of a fluxion doesn't contains references shared with other fluxions, then it can be isolated on its own worker for its execution to be parallelized.
 
@@ -161,6 +161,14 @@ the BASE semantics\cite{Fox1997}.
 To respect the semantics of the source application, we cannot tolerate inconsistencies.
 Therefore, all the fluxions sharing a variable are grouped with the same tag.
 % Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[width=\linewidth]{ressources/states.pdf}
+  \caption{Rupture point interface}
+  \label{fig:basicrp}
+\end{center}
+\end{figure}
 
 
 \endinput
