@@ -144,7 +144,7 @@ We present these three alternative with the example figure \ref{fig:states}.
 \begin{figure}[h!]
 \begin{center}
   \includegraphics[width=\linewidth]{ressources/states.pdf}
-  \caption{Rupture point interface}
+  \caption{Example of }
   \label{fig:states}
 \end{center}
 \end{figure}
@@ -179,7 +179,7 @@ Therefore, all the fluxions sharing a variable are grouped with the same tag.
 % Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
 
 In figure \ref{fig:states}, the variable \texttt{c} is set in the function \texttt{end}, and read in the function \texttt{add}.
-As the fluxion \texttt{add} is upstream of \texttt{end}, the pipeliner steps groups the fluxion \texttt{add} and \texttt{end} with the tag \texttt{c} to allow the two fluxions to share this variable.
+As the fluxion \texttt{add} is upstream of \texttt{end}, the pipeliner steps groups the fluxion \texttt{add} and \texttt{end} with the tag \texttt{grp_c} to allow the two fluxions to share this variable.
 
 \endinput
 
