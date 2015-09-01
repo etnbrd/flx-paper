@@ -179,7 +179,22 @@ Therefore, all the fluxions sharing a variable are grouped with the same tag.
 % Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
 
 In figure \ref{fig:states}, the variable \texttt{c} is set in the function \texttt{end}, and read in the function \texttt{add}.
-As the fluxion \texttt{add} is upstream of \texttt{end}, the pipeliner steps groups the fluxion \texttt{add} and \texttt{end} with the tag \texttt{grp_c} to allow the two fluxions to share this variable.
+As the fluxion \texttt{add} is upstream of \texttt{end}, the pipeliner steps groups the fluxion \texttt{add} and \texttt{end} with the tag \texttt{grp_#c} to allow the two fluxions to share this variable.
+
+\comment{
+The pipeliner step build the contexts of each fluxion.
+Explain exactly what goes in the context.
+}
+
+\comment{
+The source language is a of higher-order.
+Variables may contains closures.
+This dynamism implies and drive our high-level language to be dynamic as well.
+That reflect in the possibility to instantiate new fluxions dynamically.
+
+However, we currently limit this.
+}
+
 
 \endinput
 
