@@ -135,11 +135,11 @@ asyncCall(arguments, function callback(result){ //@\circled{2}@ });
 
 \subsection{Pipeliner step} \label{section:compiler:pipeliner}
 
-A rupture point eventually breaks the chain of scopes, hence the closures between the upstream fluxion and the downstream fluxion.
-The pipeliner step replaces the need for these closures allowing application parts to rely on independent memory stores.
-It distributes the original shared memory store using message passing, and the fluxions contexts.
-To determine the distribution, it uses the scope representation, containing the variable usages through the pipeline.
-Depending on this representation, there is three different ways the compiler can replace the broken closures.
+A rupture point eventually breaks the chain of scopes between the upstream and downstream fluxion.
+The closure in the downstream fluxion cannot access the scope in the upstream fluxion as expected.
+The pipeliner step replaces the need for this closure, allowing application parts to rely only on independent memory stores and message passing.
+It determines the distribution using the scope representation, which represents the variables dependencies between application parts.
+Depending on this representation, there is three different ways the compiler can replace the broken closure.
 We present these three alternative with the example figure \ref{fig:states}.
 
 \begin{figure}[h!]
@@ -151,7 +151,7 @@ We present these three alternative with the example figure \ref{fig:states}.
 \end{figure}
 
 \paragraph{Scope}
-If a variable is modified inside only one application part in the current \textit{post}, then the pipeliner adds it the context of its fluxion.
+If a variable is modified inside only one application part in the current \textit{post} chain, then the pipeliner adds it the context of its fluxion.
 
 In figure \ref{fig:states}, the variable \texttt{a} is updated in the function \texttt{add}.
 The pipeliner steps store this variable in the context of the fluxion \texttt{add}.
@@ -160,13 +160,18 @@ The pipeliner steps store this variable in the context of the fluxion \texttt{ad
 
 \paragraph{Stream}
 If a variable is modified inside an application part, and read inside downstream application parts, then the pipeliner makes the upstreap fluxion add this variable to the message stream to be sent to the downstream fluxions.
-This variable is eventually in the context of an upstream fluxion, or is part of the original client request.
-
 It is impossible to send variables to upstream flux\-ions, without race conditions.
 If the fluxion retro propagates the variable for an upstream fluxion to read, the upstream fluxion might use the old version while the new version is on its way.
 
 In figure \ref{fig:states}, the variable \texttt{b} is set in the function \texttt{onReq}, and read in the function \texttt{add}.
 The pipeliner steps makes the fluxion \texttt{onReq} send the updated variable \texttt{b}, in addition to the variable \texttt{v}, in the message sent to the fluxion \texttt{add}.
+
+Exceptionally, if a variable is defined inside a \textit{post} chain, then this variable can be streamed inside this \textit{post} chain without restriction on the order of modification and read.
+Indeed, the execution of the upstream fluxion for the current \textit{post} chain is assured to end before the execution of the downstream fluxion.
+Therefore, no read of the variable by the upstream fluxion happen after the modification by the downstream fluxion. 
+The variable \texttt{b} is such a variable. 
+% A streamed variable is eventually in the context of an upstream fluxion, or is part of the original client request.
+
 
 % Additionally, it is currently impossible to stream variables containing closures.
 % Indeed, it is impossible to serialize closure from within Javascript.
@@ -184,48 +189,42 @@ And it adds this variable to the contexts of each fluxions.
 In figure \ref{fig:states}, the variable \texttt{c} is set in the function \texttt{end}, and read in the function \texttt{add}.
 As the fluxion \texttt{add} is upstream of \texttt{end}, the pipeliner steps groups the fluxion \texttt{add} and \texttt{end} with the tag \texttt{grp\_c} to allow the two fluxions to share this variable.
 
-\subsubsection{Higher-order language}
+% \subsubsection{Higher-order language}
 
-We target higher-order languages.
-Such languages allow to manipulate functions like any other kind of values.
-This feature allows for the callbacks construction, but it also allows for dynamic callback evaluation, resulting in a partially uncertain pipeline representation statically.
-Indeed, some callbacks being resolved dynamically, their values cannot be known during compile time.
-Creating a new fluxion from a dynamic callback is only a technical difficulty (adding a new name for the messaging system).
-
-However, it poses challenges regarding the distribution of closures.
-Indeed, a variable that was previously left unused and constrained inside one application part would be needed downstream by a new dynamic callback.
-This dynamic modification in the scope representation could impact the closure distribution.
-
-\begin{code}
-var a = 0;
-
-async(function begin() {
-  console.log('begin : ' + a);
-  if (Math.random() > 0.5)
-    async(fn1);
-  else
-    async(fn2);
-})
+% Higher-order languages allow to manipulate functions like any other kind of values.
+% This feature allows for the callbacks construction, but it also allows for dynamic callback evaluation
+% Therefore, the pipeline representation is completed only dynamically.
+% \comment{We currently limit dynamically resolved callbacks to become application parts.
+% I am working to dynamically create fluxions}.
 
 
-function fn1() {
-  async2(a, end);
-}
+% \begin{code}
+% var counter = 0;
 
-function fn2() {
-  a += 1;
-  async2(a, end);
-}
+% get(function server(request) {
+%   async(handlers[request])
+% })
 
-function end(a) {
-  console.log('end : ' + a);
-}
-\end{code}
+% var handlers = {
+%   'prompt' : function prompter () {
+%     send(counter);
+%   },
+%   'buy' : function buyer () {
+%     counter += 1;
+%     send(counter);
+%   },
+%   'sell' : function seller () {
+%     counter -= 1;
+%     send(counter);
+%   }
+% }
+% \end{code}
 
-As an example, in the code example above the compiler cannot know statically wether fn1 or fn2 will be used.
-Therefore, it doesn't know if the variable a needs to be kept 
+% As an example, in the code example above the compiler cannot know statically which of the \texttt{handlers} functions will be used.
+% Therefore it cannot create the fluxions during compilation time.
+% We modify the program to dynamically detect and create fluxion from dynamically evaluated callbacks.
 
-Therefore, we currently limit dynamically resolved callbacks to become application parts.
+% The runtime must works on graph to determine how an application can be distributed based on the dependency graph between fluxions.
 
 
 \endinput
