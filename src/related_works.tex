@@ -1,18 +1,5 @@
 \section{Related Works} \label{section:related}
 
-\comment{
-  Most of the code transformation intended for parallelization require annotations, or transform loops inside of a sequential program.
-  Our approach is different in that we aim at avoiding completely annotations.
-  Indeed, the knowledge of asynchronism from the developer is enough so that we don't need more annotations.
-  Furthermore, the transformation of the loops in sequential program is inherently limited by the sequential surrounding.
-  Amdahl's law state that such program cannot expect high speedup due to parallelization.
-  On the otherhand, the event-loop our approach is based on doesn't have any sequential surrounding.
-  It is the most outer loops, because it is not part of the language, but of the runtime.
-  Therefore, our approach is not limited by this sequential surrounding.
-}
-
-
-
 The idea to split a task into independent parts goes back to the Actor's model \cite{Hewitt1973} in 1973, and to Functional programming, like Lucid \cite{Ashcroft1977} in 1977 and all the following works on DataFlow leading up to Flow-Based programming (FBP) and Functional Reactive Programming (FRP).
 Both FBP and FRP, recently got some attention in the Javascript community with the projects \textit{NoFlo}\ftnt{http://noflojs.org/}, \textit{Bacon.js}\ftnt{https://baconjs.github.io/} and \textit{react}\ftnt{https://facebook.github.io/react/}.
 
@@ -20,19 +7,25 @@ The execution model we presented in section \ref{section:model}, is inspired by 
 It also drew its inspiration from more recent work following SEDA.
 Among the best-known following works, we cited in the introduction Spark \cite{Zaharia2010, Zaharia2012}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013} and Storm \cite{Toshniwal2014}.
 The first part of our work stands upon these thorough studies.
-However, we believe that it is too difficult for common developers to express their algorithm into a network of independent parts communicating through messages.
+However, we believe that it is too difficult for most developers to distribute the state of an application.
+% However, we believe that it is too difficult for most developers to express an application into a network of independent parts communicating through messages.
 This belief motivated us to propose a compiler from an imparative programming model to these more scalable, distributed execution engines.
 
 % The compiler makes use of the work on the BASE\cite{Fox1997} data semantics to justify trading off consitency for availability.
 % We cite the work on the BASE\cite{Fox1997} and ACID data semantics, but the compiler doesn't use these works.
 
 The transformation of an imperative programming model to be executed onto a parallel execution engine was recently addressed by Fernandez \textit{et. al.} \cite{Fernandez2014a}.
-However, like in similar works \cite{Mitchell2012,Power2010}, the developer needs to manually specify the distribution of state.
-We believe the difficulties encountered by developers in concurrent programming models lies more in the distribution of states, than on the structuration of the algorithm.
-Indeed, developers seems to have little difficulties programming in an asynchronous concurrent programming model, like the Javascript event-loop.
-In such programming model, the memory is global but the algorithm is ripped into multiple, asynchronous steps.
-While the synchronous concurrent programming model, based on multi-threading and locks to assure the consistency of shared states, is known to be more difficult to apprehend by novice developers \cite{Adya2002}.
+However, like in similar works \cite{Mitchell2012,Power2010}, the developers need to annotate their code to specify the distribution of state.
+It doesn't improve the accessibility of these distributed execution engines.
+Our approach avoids the need for annotations from the developer, thus aims at improving furthermore the accessibility.
+% Developers seems to have little difficulties programming in an asynchronous concurrent programming model, like the Javascript event-loop.
+% In such programming model, the memory is global but the algorithm is ripped into multiple, asynchronous steps.
+% While the synchronous concurrent programming model, based on multi-threading and locks to assure the consistency of shared states, is known to be more difficult to apprehend by novice developers \cite{Adya2002}.
 
+Most approaches of imperative code transformation for parallelization focus on parallelizing loops in a sequential program. \comment{TODO citation ?}
+Because of this sequential structure, the speedup of parallelization is inherently limited.
+On the other hand, our approach is based on an asynchronous programming model, discarding this sequential structure.
+Hence the attainable speedup is not limited by sequential structure.
 
 % TODO
 % There is some work on the transformation of a program into distributed parts\cite{Amini2012, Petit2009}.
