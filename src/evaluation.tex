@@ -5,24 +5,16 @@ We want to show the current limitation of this isolation and the modification ne
 % TODO -> and finally, we present the possibilities of future works.
 % We want to show the limitations of this isolation for future works, and the modifications needed to circumvent these limitations.
 
-For brevity, we present in this paper only one test on a real application, gifsockets-server\ftnt{https://github.com/twolfson/gifsockets-server}.
+We present a test of our compiler on a real application, gifsockets-server\ftnt{https://github.com/twolfson/gifsockets-server}.
 % This application is part of the selection from our previous paper \cite{Brodu2015}.
 % We chosed it because it is a working application, simple enough to illustrate this evaluation.
 This application was selected from the \texttt{npm} registry because it depends on \texttt{express}, it is tested and working, and it simple enough to illustrate this evaluation.
-It is part of the selection from our previous paper [citation removed for double-blind review].%\cite{Brodu2015}.
+It is part of the selection from a previous work. %\cite{Brodu2015}.
 
-This application is an example of a real-time chat using gif-based communication channels.
-The client sends a request containing a text typed by the user.
-The server transforms this text into a gif frame, and pushes this frame back to a never-ending gif to be displayed on the client.
+This application is a real-time chat using gif-based communication channels.
+% The client sends a request containing a text typed by the user.
+The server transforms the received text into a gif frame, and pushes it back to a never-ending gif to be displayed on the client.
 Listing \ref{lst:gifsocket} is a simplified version of this application, containing only essential lines.
-
-% The web application framework used in this application, \textit{express}, allows to register chains of functions to process user requests.
-On line \ref{lst:gifsocket:app.post}, the application registers two functions to process the requests received on the url \texttt{/image/text}.
-The closure \texttt{saveBody}, line \ref{lst:gifsocket:saveBody}, returned by \texttt{bodyParser}, line \ref{lst:gifsocket:bodyParser}, and the method \texttt{routes.write\-Text\-To\-Images} from the external module \texttt{gifsockets-middleware}, line \ref{lst:gifsocket:gif-mw}.
-The closure \texttt{saveBody} calls the asynchronous function \texttt{getRawBody} to get the request body.
-Its callback handles the errors, and calls \texttt{next} to continue the execution with the next function, \texttt{routes.write\-Text\-To\-Images}.
-
-% The closure \texttt{saveBody} gather the whole request, and let \textit{express} call the next function in the chain, \texttt{routes.write\-Text\-To\-Images}, by calling \texttt{next}, line \ref{lst:gifsocket:next}.
 
 \begin{code}[js, caption={Simplified version of gifsockets-server},label={lst:gifsocket}]
 var express = require('express'),
@@ -36,13 +28,6 @@ function bodyParser(limit) { //@\label{lst:gifsocket:bodyParser}@
       expected: req.headers['content-length'],
       limit: limit
     }, function (err, buffer) { //@\label{lst:gifsocket:callback}@
-      % // If there was an error (e.g. bad length, over length), respond poorly
-      % if (err) {
-      %   res.writeHead(500, {
-      %     'content-type': 'text/plain'
-      %   });
-      %   return res.end('Content was too long');
-      % }
       req.body = buffer;
       next(); //@\label{lst:gifsocket:next}@
     });
@@ -52,6 +37,14 @@ function bodyParser(limit) { //@\label{lst:gifsocket:bodyParser}@
 app.post('/image/text', bodyParser(1 * 1024 * 1024), routes.writeTextToImages); //@\label{lst:gifsocket:app.post}@
 app.listen(8000);
 \end{code}
+
+% The web application framework used in this application, \textit{express}, allows to register chains of functions to process user requests.
+On line \ref{lst:gifsocket:app.post}, the application registers two functions to process the requests received on the url \texttt{/image/text}.
+The closure \texttt{saveBody}, line \ref{lst:gifsocket:saveBody}, returned by \texttt{bodyParser}, line \ref{lst:gifsocket:bodyParser}, and the method \texttt{routes.write\-Text\-To\-Images} from the external module \texttt{gifsockets-middleware}, line \ref{lst:gifsocket:gif-mw}.
+The closure \texttt{saveBody} calls the asynchronous function \texttt{getRawBody} to get the request body.
+Its callback handles the errors, and calls \texttt{next} to continue the execution with the next function, \texttt{routes.write\-Text\-To\-Images}.
+
+% The closure \texttt{saveBody} gather the whole request, and let \textit{express} call the next function in the chain, \texttt{routes.write\-Text\-To\-Images}, by calling \texttt{next}, line \ref{lst:gifsocket:next}.
 
 
 \subsection{Compilation}
@@ -84,7 +77,7 @@ flx main
 >> anonymous_1000 [req, next]
   var express = require('express'),
       app = express(),
-      routes = require('gifsockets-middleware'); //@\label{lst:flx-gifsocket:gif-mw}@
+      routes = require('gifsockets-middleware'), //@\label{lst:flx-gifsocket:gif-mw}@
       getRawBody = require('raw-body');
 
   function bodyParser(limit) { //@\label{lst:flx-gifsocket:bodyParser}@
@@ -131,7 +124,7 @@ We modified the application to explicitly propagate this side-effect to continue
 The function \texttt{next} is a closure provided by the \texttt{Router} to continue the execution with the next function to handle the client request.
 Because it indirectly relies on network sockets, it is impossible to isolate its execution with the \texttt{anonymous\-\_1000} fluxion.
 Instead, we modify \textit{express}, so as to be compatible with the fluxionnal execution model.
-We explain the modification below, and illustrate them in listing \ref{lst:mflx-gifsocket}.
+We explain the modification below.% , and illustrate them in listing \ref{lst:mflx-gifsocket}.
 % The \texttt{req} and \texttt{next} objects needs to stay on the master worker to preserve their closures.
 
 Originally, the function \texttt{next} is the continuation to allow the anonymous callback, to continue the execution with the next function to handle the request.
@@ -158,38 +151,38 @@ The fluxion \texttt{express\_dispatcher} receives the stream from the upstream f
 % The special \texttt{next} function needs explicit references to the modified objects to send them back to \texttt{express\_dispatcher}.
 % The fluxion \texttt{express\_dispatcher} then merges back the modified copies and their originals, before calling the original function \texttt{next}.
 
-\begin{code}[flx, caption={Simplified modification on the compiled result},label={lst:mflx-gifsocket}]
-flx main
->> anonymous_1000 [req, next]
-  var express = require('express'),
-      app = express(),
-      routes = require('gifsockets-middleware'); //@\label{lst:flx-gifsocket:gif-mw}@
-      getRawBody = require('raw-body');
+% \begin{code}[flx, caption={Simplified modification on the compiled result},label={lst:mflx-gifsocket}]
+% flx main
+% >> anonymous_1000 [req, next]
+%   var express = require('express'),
+%       app = express(),
+%       routes = require('gifsockets-middleware'), //@\label{lst:flx-gifsocket:gif-mw}@
+%       getRawBody = require('raw-body');
 
-  function bodyParser(limit) { //@\label{lst:flx-gifsocket:bodyParser}@
-    return function saveBody(req, res, next) { //@\label{lst:flx-gifsocket:saveBody}@
-      getRawBody(req, { //@\label{lst:flx-gifsocket:getRawBody}@
-        expected: req.headers['content-length'], //@\label{lst:flx-gifsocket:req.headers}@
-        limit: limit
-      }, >> anonymous_1000);
-    };
-  }
+%   function bodyParser(limit) { //@\label{lst:flx-gifsocket:bodyParser}@
+%     return function saveBody(req, res, next) { //@\label{lst:flx-gifsocket:saveBody}@
+%       getRawBody(req, { //@\label{lst:flx-gifsocket:getRawBody}@
+%         expected: req.headers['content-length'], //@\label{lst:flx-gifsocket:req.headers}@
+%         limit: limit
+%       }, >> anonymous_1000);
+%     };
+%   }
 
-  app.post('/image/text', bodyParser(1 * 1024 * 1024), routes.writeTextToImages); //@\label{lst:flx-gifsocket:app.post}@
-  app.listen(8000);
+%   app.post('/image/text', bodyParser(1 * 1024 * 1024), routes.writeTextToImages); //@\label{lst:flx-gifsocket:app.post}@
+%   app.listen(8000);
 
-flx anonymous_1000
--> express_dispatcher
-  function (err, buffer) { //@\label{lst:flx-gifsocket:callback}@
-    req.body = buffer; //@\label{lst:flx-gifsocket:buffer}@
-    -> express_dispatcher; //@\label{lst:flx-gifsocket:next}@
-  }
+% flx anonymous_1000
+% -> express_dispatcher
+%   function (err, buffer) { //@\label{lst:flx-gifsocket:callback}@
+%     req.body = buffer; //@\label{lst:flx-gifsocket:buffer}@
+%     -> express_dispatcher; //@\label{lst:flx-gifsocket:next}@
+%   }
 
-flx express_dispatcher
--> null
-  merge(req, msg.req);
-  next();
-\end{code}
+% flx express_dispatcher
+% -> null
+%   merge(req, msg.req);
+%   next();
+% \end{code}
 
 After the modifications detailed above, the server works as expected for the subset of functionalities we modified.
 The isolated fluxion correctly receives, and returns its serialized messages.
@@ -197,11 +190,9 @@ The client successfully receives a gif frame containing the text.
 
 \subsection{Future works}
 
-We intend to improve the compiler to evaluate the idea on a broader set of applications, without any manipulations required from the developer.
-Furthermore, at the light of this limitations and to circumvent them, we intend to push the compilation process during the execution.
-This just-in-time compilation process allows the compiler to detect callbacks dynamically evaluated.
-It also allows to analyze the memory to identify side-effects propagations, instead of relying only on the source code.
-And finally, this memory analysis allows closure serialization required to compile application using higher-order functions.
+We intend to implement the compilation presented into a runtime.
+A just-in-time compiler allows to detect callbacks dynamically evaluated, and to analyze the memory to identify side-effects propagations, instead of relying only on the source code.
+This memory analysis allows closure serialization required to compile application using higher-order functions.
 
 % \subsubsection{Fluxionnal web framework}
 

@@ -188,17 +188,8 @@ This cycle starts again for each new incoming request causing another \texttt{st
 
 \subsection{Service example}
 
-To illustrate the fluxional execution model, and the compiler, we present an example of a simple web application.
+To illustrate the fluxional execution model, and the compiler, we present in listing \ref{lst:source} an example of a simple web application.
 This application reads a file, and sends it back along with a request counter.
-
-The original source code of this application is available in listing \ref{lst:source}\footnote{The listings are also available on github\cite{flx-example}.}.
-In this source code, some points are worth noticing.
-The \texttt{handler} function, line 5 to 11, receives the input stream of request.
-The \texttt{count} variable at line 3 increments the request counter.
-This object needs to be persisted in the fluxion \textit{context}.
-The \texttt{template} function simply formats the output stream to send back to the client.
-The \texttt{app.get} and \texttt{res.send} functions, respectively line 5 and 8, interface the application with the clients.
-And between these two interface functions is a chain of three functions to process the client requests : $\texttt{app.get} \twoheadrightarrow \texttt{handler} \to \texttt{reply}$.
 
 \begin{code}[js,
   caption={Example web application},
@@ -216,6 +207,15 @@ app.get('/', function handler(req, res){
 
 app.listen(8080);
 \end{code}
+
+% The original source code of this application is available in listing \ref{lst:source}\footnote{The listings are also available on github\cite{flx-example}.}.
+% In this example application, some points are worth noticing.
+The \texttt{handler} function, line 5 to 11, receives the input stream of request.
+The \texttt{count} variable at line 3 increments the request counter.
+This object needs to be persisted in the fluxion \textit{context}.
+The \texttt{template} function simply formats the output stream to send back to the client.
+The \texttt{app.get} and \texttt{res.send} functions, respectively line 5 and 8, interface the application with the clients.
+And between these two interface functions is a chain of three functions to process the client requests : $\texttt{app.get} \twoheadrightarrow \texttt{handler} \to \texttt{reply}$.
 
 This application is transformed into the high-level fluxionnal language in listing \ref{lst:fluxional} which is illustred in Figure \ref{fig:MesSys}.
 % We expect a similar result with the compiler described in section \ref{section:compiler}.

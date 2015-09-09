@@ -4,21 +4,20 @@ The growth of web platforms is partially due to Internet's capacity to allow ver
 In a matter of hours, it is possible to release a prototype and start gathering a user community.
 \textit{``Release early, release often''}, and \textit{``Fail fast''} are the punchlines of the web entrepreneurial community.
 It is crucial for the prosperity of such project to quickly validate that the proposed solution meets the needs of its users.
-Indeed, the lack of market need is the number one reason for startup failure\ftnt{https://www.cbinsights.com/blog/startup-failure-post-mortem/}.
-That is why the development team quickly concretises an MVP using a feature-driven approach and iterates on it.
+Indeed, the lack of market need is the first reason for startup failure\ftnt{https://www.cbinsights.com/blog/startup-failure-post-mortem/}.
+Hence the development team quickly concretizes an MVP using a feature-driven approach and iterates on it.
 
-If the service successfully complies with users requirements, its community might grow with its popularity.
+If the service successfully complies with users requirements, its community grows with its popularity.
 The service needs to be scalable to be able to respond to this growth.
 However, feature-based development best practices are hardly compatible with the requirement of scalability.
-The features are bundled in modules which spread through the code base.
-This organization in modules overlaps and disturbs the organization of a scalable execution.
+The features are organized in modules which overlaps and disturbs the organization of a scalable execution.
 Eventually this growth requires to discard the initial approach to adopt a more efficient processing model.
 Many of the most efficient models decompose applications into execution units, disregarding the initial feature oriented approach.
-This decomposition may be spread over a cluster of commodity machines \cite{Fox1997}.
+This decomposition may be spread over a cluster of commodity machines. % \cite{Fox1997}.
 MapReduce \cite{Dean2008} and the Staged Event-driven Architecture (SEDA) \cite{Welsh2000} are famous examples of that trend. %, using a pipeline architecture.
 Once split, the service parts are connected by an asynchronous messaging system.
 Many tools have been developed to express and manage these service parts and their communications.
-We can cite Spark \cite{Zaharia2010}, MillWheel \cite{Akidau2013}, Timestream \cite{Qian2013}, Naiad \cite{McSherry} and Storm \cite{Toshniwal2014}, and many others.
+We can cite Spark \cite{Zaharia2012}, MillWheel \cite{Akidau2013}, Naiad \cite{McSherry} and Storm \cite{Toshniwal2014}, and many others.
 However, these tools are in disruption from the initial approach.
 It requires the development team either to be trained or to hire experts, and more importantly, to start over the initial code base.
 This shift causes the development team to spend development resources in background without adding visible value for the users.
