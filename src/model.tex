@@ -54,7 +54,8 @@ The fluxions that needs to synchronize together are grouped with the same tag, a
 % Though, the different groups of fluxions are executed in parallel.
 
 There is two types of streams, \textit{start} and \textit{post}, which corresponds to the nature of the rupture point yielding the stream.
-We differentiates the two types with two different arrows, double arrow ($\twoheadrightarrow$ or \texttt{>>}) for \textit{start} rupture points and simple arrow ($\to$ or \texttt{->}) for \textit{post} rupture points.
+We differentiates the two types with two different arrows, double arrow (\texttt{>>}) for \textit{start} rupture points and simple arrow (\texttt{->}) for \textit{post} rupture points.
+%We differentiates the two types with two different arrows, double arrow ($\twoheadrightarrow$ or \texttt{>>}) for \textit{start} rupture points and simple arrow ($\to$ or \texttt{->}) for \textit{post} rupture points.
 The two different type of rupture points are further detailed in section \ref{section:compiler:analyzer:rupture}.
 
 
@@ -150,7 +151,7 @@ The plain arrows represent the actual message paths in the messaging system, whi
 
 % This first message represents the incoming of a request from a user.
 The \textit{main} fluxion is the first fluxion in the flow.
-It never receives any message, but when the application receives a request, the \textit{main} fluxion triggers the flow with a \texttt{start} message, \circled{2}.
+When the application receives a request,it triggers the flow with a \texttt{start} message containing the request, \circled{2}.
 This first message is to be received by the next fluxion \textit{handler}, \circled{3} and \circled{4}.
 The fluxion \textit{handler} sends back a message, \circled{5}, to be enqueued, \circled{6}.
 The system loops through steps \circled{3} through \circled{6} until the queue is empty.
@@ -216,7 +217,6 @@ This object needs to be persisted in the fluxion \textit{context}.
 The \texttt{template} function simply formats the output stream to send back to the client.
 The \texttt{app.get} and \texttt{res.send} functions, respectively line 5 and 8, interface the application with the clients.
 And between these two interface functions is a chain of three functions to process the client requests : $\texttt{app.get} \twoheadrightarrow \texttt{handler} \to \texttt{reply}$.
-
 This application is transformed into the high-level fluxionnal language in listing \ref{lst:fluxional} which is illustred in Figure \ref{fig:MesSys}.
 % We expect a similar result with the compiler described in section \ref{section:compiler}.
 % Horizontal dashed lines show virtual transmission of messages between fluxions although they all go through the messaging system.
@@ -226,6 +226,30 @@ This application is transformed into the high-level fluxionnal language in listi
 %   \caption{Fluxions chain manually extracted from the example application}
 %   \label{fig:fluxions}
 % \end{figure}
+
+\begin{code}[flx, caption={Example application expressed in the high-level fluxional language}, label={lst:fluxional}]
+flx main & network
+>> handler [res]
+  var app = require('express')(),
+      fs = require('fs'),
+      count = 0;
+
+  app.get('/', >> handler); //@\label{lst:fluxional-streamtohandler}@
+  app.listen(8080);
+
+flx handler & isolated
+-> reply [res]
+  function handler(req, res) {
+    fs.readFile(__filename, -> reply); //@\label{lst:fluxional-readfile}@
+  }
+
+flx reply & network {count, template}
+-> null
+  function reply(error, data) {
+    count += 1; //@\label{lst:fluxional-counter}@
+    res.send(err || template(count, data)); //@\label{lst:fluxional-ressend}@
+  }
+\end{code}
 
 The application is organized as follow.
 The flow of requests is received from the clients by the fluxion \texttt{main}, it continues in the fluxion \texttt{handler}, and finally go through the fluxion \texttt{reply} to be send back to the clients.
@@ -253,27 +277,3 @@ It allows to adapt the number of fluxions per core to adjust the resource usage 
 
 Our goal, as described in the introduction, is not to propose a new programming paradigm with this high-level language but to automate the architecture shift.
 We present the compiler to automate this architecture shift in the next section.
-
-\begin{code}[flx, caption={Example application expressed in the high-level fluxional language}, label={lst:fluxional}]
-flx main & network
->> handler [res]
-  var app = require('express')(),
-      fs = require('fs'),
-      count = 0;
-
-  app.get('/', >> handler); //@\label{lst:fluxional-streamtohandler}@
-  app.listen(8080);
-
-flx handler & isolated
--> reply [res]
-  function handler(req, res) {
-    fs.readFile(__filename, -> reply); //@\label{lst:fluxional-readfile}@
-  }
-
-flx reply & network {count, template}
--> null
-  function reply(error, data) {
-    count += 1; //@\label{lst:fluxional-counter}@
-    res.send(err || template(count, data)); //@\label{lst:fluxional-ressend}@
-  }
-\end{code}
