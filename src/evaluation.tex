@@ -9,6 +9,7 @@ For brevity, we present in this paper only one test on a real application, gifso
 % This application is part of the selection from our previous paper \cite{Brodu2015}.
 % We chosed it because it is a working application, simple enough to illustrate this evaluation.
 This application was selected from the \texttt{npm} registry because it depends on \texttt{express}, it is tested and working, and it simple enough to illustrate this evaluation.
+It is part of the selection from our previous paper [citation removed for double-blind review].%\cite{Brodu2015}.
 
 This application is an example of a real-time chat using gif-based communication channels.
 The client sends a request containing a text typed by the user.
@@ -60,7 +61,8 @@ We compile this application with the compiler detailed in section \ref{section:c
 The function call \texttt{app.post}, line \ref{lst:gifsocket:app.post}, is a rupture point.
 However, its callbacks, \texttt{bodyParser} and \texttt{routes.write\-Text\-To\-Images} are evaluated as function only at runtime.
 For this reason, the compiler ignores this rupture point, to avoid interfering with the evaluation.
-For future works, we intend to improve the compiler with a runtime part, to detect callbacks dynamically evaluated. \comment{TODO move this sentence into a future works paragraph, or explain more here ?}
+% For future works, we intend to improve the compiler with a runtime part, to detect callbacks dynamically evaluated.
+% \comment{TODO move this sentence into a future works paragraph, or explain more here ?}
 
 The compilation result is in listing \ref{lst:flx-gifsocket}.
 The compiler detects a rupture point : the function \texttt{getRawBody} and its anonymous callback, line \ref{lst:gifsocket:callback}.
@@ -121,8 +123,8 @@ The compiler is unable to identify further usages of this variable.
 However, the side effect resulting from this association impacts a variable in the scope of the next callback, \texttt{routes.writeTextToImages}.
 We modified the application to explicitly propagate this side-effect to continue the execution with the function \texttt{next}.
 
-For future works, instead of relying only on the source code, we intend to analyze the memory deeper to detect such side-effects.
-\comment{TODO move this sentence into a future works paragraph, or explain more here ?}
+% For future works, instead of relying only on the source code, we intend to analyze the memory deeper to detect such side-effects.
+% \comment{TODO move this sentence into a future works paragraph, or explain more here ?}
 
 \subsubsection{Closure \texttt{next}}
 
@@ -195,9 +197,11 @@ The client successfully receives a gif frame containing the text.
 
 \subsection{Future works}
 
-We intend to improve the compiler with a runtime part, to detect callbacks dynamically evaluated.
-Instead of relying only on the source code, we intend to analyze the memory deeper to detect such side-effects propagations.
-\comment{TODO ?}
+We intend to improve the compiler to evaluate the idea on a broader set of applications, without any manipulations required from the developer.
+Furthermore, at the light of this limitations and to circumvent them, we intend to push the compilation process during the execution.
+This just-in-time compilation process allows the compiler to detect callbacks dynamically evaluated.
+It also allows to analyze the memory to identify side-effects propagations, instead of relying only on the source code.
+And finally, this memory analysis allows closure serialization required to compile application using higher-order functions.
 
 % \subsubsection{Fluxionnal web framework}
 
