@@ -8,13 +8,13 @@ We want to show the current limitation of this isolation and the modification ne
 We present a test of our compiler on a real application, gifsockets-server\ftnt{https://github.com/twolfson/gifsockets-server}.
 % This application is part of the selection from our previous paper \cite{Brodu2015}.
 % We chosed it because it is a working application, simple enough to illustrate this evaluation.
-This application was selected from the \texttt{npm} registry because it depends on \texttt{express}, it is tested and working, and it simple enough to illustrate this evaluation.
+This application was selected from the \texttt{npm} registry because it depends on \texttt{express}, it is tested, working, and simple enough to illustrate this evaluation.
 It is part of the selection from a previous work. %\cite{Brodu2015}.
 
 This application is a real-time chat using gif-based communication channels.
 % The client sends a request containing a text typed by the user.
 The server transforms the received text into a gif frame, and pushes it back to a never-ending gif to be displayed on the client.
-Listing \ref{lst:gifsocket} is a simplified version of this application, containing only essential lines.
+Listing \ref{lst:gifsocket} is a simplified version of this application.
 
 \begin{code}[js, caption={Simplified version of gifsockets-server},label={lst:gifsocket}]
 var express = require('express'),
@@ -102,11 +102,11 @@ flx anonymous_1000
 
 \subsection{Isolation}
 
-In listing \ref{lst:flx-gifsocket}, the fluxion \texttt{anonymous\_1000} modifies the object \texttt{req}, line \ref{lst:flx-gifsocket:buffer}, to store the text of the received request,and it calls \texttt{next} to continue the execution, line \ref{lst:flx-gifsocket:next}.
-These operations produce side-effects that should propagate in the whole application, but the isolation prevent this propagation.
+In listing \ref{lst:flx-gifsocket}, the fluxion \texttt{anonymous\_1000} modifies the object \texttt{req}, line \ref{lst:flx-gifsocket:buffer}, to store the text of the received request, and it calls \texttt{next} to continue the execution, line \ref{lst:flx-gifsocket:next}.
+These operations produce side-effects that should propagate in the whole application, but the isolation prevents this propagation.
 Isolating the fluxion \texttt{anonymous\_1000} produces runtime exceptions.
-We detail in the next paragraph, how we handle this situation to allow the application to be compiled.
-This evaluation highlights the current limitations of the compiler, and present future works around them.
+We detail in the next paragraph, how we handle this situation to allow the application to be parallelized.
+This evaluation highlights the current limitations of the compiler, and present future works to circumvent them.
 
 \subsubsection{Variable \texttt{req}}
 
@@ -127,12 +127,12 @@ Instead, we modify \textit{express}, so as to be compatible with the fluxionnal 
 We explain the modification below.% , and illustrate them in listing \ref{lst:mflx-gifsocket}.
 % The \texttt{req} and \texttt{next} objects needs to stay on the master worker to preserve their closures.
 
-Originally, the function \texttt{next} is the continuation to allow the anonymous callback, to continue the execution with the next function to handle the request.
+Originally, the function \texttt{next} is the continuation to allow the anonymous callback on line \ref{lst:gifsocket:callback}, to continue the execution with the next function to handle the request.
 To isolate the anonymous callback, this function is replaced on both ends.
-The \textit{express} \texttt{Router} register a fluxion named \texttt{express\_dispatcher} to continue the execution after the fluxion \texttt{anonymous\-\_1000}.
+The \textit{express} \texttt{Router} register a fluxion named \texttt{express\-\_dispatcher} to continue the execution after the fluxion \texttt{anonymous\-\_1000}.
 This fluxion is in the same group as the \texttt{main} fluxion, hence it has access to network sockets and to the original variable \texttt{req}.
-The original \texttt{next} function in the anonymous callback is replaced by a placeholder to push the stream to the fluxion \texttt{express\_dispatcher}.
-The fluxion \texttt{express\_dispatcher} receives the stream from the upstream fluxion \texttt{anonymous\-\_1000}, merges back the modification in the variable \texttt{req}, before calling the original function \texttt{next} to continue the execution.
+The original \texttt{next} function in the anonymous callback is replaced by a placeholder to push the stream to the fluxion \texttt{express\-\_dispatcher}.
+The fluxion \texttt{express\-\_dispatcher} receives the stream from the upstream fluxion \texttt{anonymous\-\_1000}, merges back the modification in the variable \texttt{req}, before calling the original function \texttt{next} to continue the execution.
 
 %  to holds these objects on the master worker, and receives the result of the isolated fluxion \texttt{anonymous\_1000}.
 
@@ -190,8 +190,8 @@ The client successfully receives a gif frame containing the text.
 
 \subsection{Future works}
 
-We intend to implement the compilation presented into a runtime.
-A just-in-time compiler allows to detect callbacks dynamically evaluated, and to analyze the memory to identify side-effects propagations, instead of relying only on the source code.
+We intend to implement the compilation process presented into the runtime.
+A just-in-time compiler would allow to identify callbacks dynamically evaluated, and to analyze the memory to identify side-effects propagations instead of relying only on the source code.
 This memory analysis allows closure serialization required to compile application using higher-order functions.
 
 % \subsubsection{Fluxionnal web framework}
