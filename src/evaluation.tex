@@ -26,7 +26,7 @@ Its callback handles the errors, and calls \texttt{next} to continue the executi
 \begin{code}[js, caption={Simplified version of gifsockets-server},label={lst:gifsocket}]
 var express = require('express'),
     app = express(),
-    routes = require('gifsockets-middleware'); //@\label{lst:gifsocket:gif-mw}@
+    routes = require('gifsockets-middleware'), //@\label{lst:gifsocket:gif-mw}@
     getRawBody = require('raw-body');
 
 function bodyParser(limit) { //@\label{lst:gifsocket:bodyParser}@
