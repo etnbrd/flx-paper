@@ -1,21 +1,27 @@
-\section{Evaluation} \label{section:evaluation}
+\section{Real case test} \label{section:evaluation}
 
-The goal of this evaluation is to prove the possibility for an application to be compiled in order to defer parts of its execution on a remote worker.
-We want to show the limitations of this isolation for future works, and the modifications needed to circumvent these limitations.
+The goal of this evaluation is to prove the possibility for an application to be compiled into a network of independent parts.
+We want to show the current limitation of this isolation and the modification needed on the application to circumvent these limitations.
+% TODO -> and finally, we present the possibilities of future works.
+% We want to show the limitations of this isolation for future works, and the modifications needed to circumvent these limitations.
 
 For brevity, we present in this paper only one test on a real application, gifsockets-server\ftnt{https://github.com/twolfson/gifsockets-server}.
 % This application is part of the selection from our previous paper \cite{Brodu2015}.
-We chosed it because it is a working application, simple enough to illustrate this evaluation.
+% We chosed it because it is a working application, simple enough to illustrate this evaluation.
+This application was selected from the \texttt{npm} registry because it depends on \texttt{express}, it is tested and working, and it simple enough to illustrate this evaluation.
 
-This application is an example of a chat using gif-based communication channels.
-The client, a page containing a never-ending gif, sends a request containing a text typed by the user.
-The server transforms this text into a gif frame, and pushes this frame back to the never-ending gif to be displayed.
-Listing \ref{lst:gifsocket} is a simplified version of this application, containing only critical sections.
+This application is an example of a real-time chat using gif-based communication channels.
+The client sends a request containing a text typed by the user.
+The server transforms this text into a gif frame, and pushes this frame back to a never-ending gif to be displayed on the client.
+Listing \ref{lst:gifsocket} is a simplified version of this application, containing only essential lines.
 
-The web application framework used in this application, \textit{express}, allows to register chains of functions to process user requests.
-On line \ref{lst:gifsocket:app.post}, the call to \texttt{app.post} register two functions to process the requests on the url \texttt{/image/text}.
+% The web application framework used in this application, \textit{express}, allows to register chains of functions to process user requests.
+On line \ref{lst:gifsocket:app.post}, the application registers two functions to process the requests received on the url \texttt{/image/text}.
 The closure \texttt{saveBody}, line \ref{lst:gifsocket:saveBody}, returned by \texttt{bodyParser}, line \ref{lst:gifsocket:bodyParser}, and the method \texttt{routes.write\-Text\-To\-Images} from the external module \texttt{gifsockets-middleware}, line \ref{lst:gifsocket:gif-mw}.
-The closure \texttt{saveBody} gather the whole request, and let \textit{express} call the next function in the chain, \texttt{routes.write\-Text\-To\-Images}, by calling \texttt{next}, line \ref{lst:gifsocket:next}.
+The closure \texttt{saveBody} calls the asynchronous function \texttt{getRawBody} to get the request body.
+Its callback handles the errors, and calls \texttt{next} to continue the execution with the next function, \texttt{routes.write\-Text\-To\-Images}.
+
+% The closure \texttt{saveBody} gather the whole request, and let \textit{express} call the next function in the chain, \texttt{routes.write\-Text\-To\-Images}, by calling \texttt{next}, line \ref{lst:gifsocket:next}.
 
 \begin{code}[js, caption={Simplified version of gifsockets-server},label={lst:gifsocket}]
 var express = require('express'),
@@ -51,28 +57,27 @@ app.listen(8000);
 
 We compile this application with the compiler detailed in section \ref{section:compiler}.
 % The function \texttt{getRawBody}, line \ref{lst:gifsocket:getRawBody}, is asynchronous.
-The function call \texttt{app.post}, line \ref{lst:gifsocket:app.post}, is asynchronous.
-Its callbacks, \texttt{bodyParser} and \texttt{routes.writeTextToImages} are evaluated at runtime.
-For this reason, the compiler is currently unable to detect them as functions.
-For future works, we intend to improve the compiler with a runtime part, to detect callbacks dynamically evaluated.
+The function call \texttt{app.post}, line \ref{lst:gifsocket:app.post}, is a rupture point.
+However, its callbacks, \texttt{bodyParser} and \texttt{routes.write\-Text\-To\-Images} are evaluated as function only at runtime.
+For this reason, the compiler ignores this rupture point, to avoid interfering with the evaluation.
+For future works, we intend to improve the compiler with a runtime part, to detect callbacks dynamically evaluated. \comment{TODO move this sentence into a future works paragraph, or explain more here ?}
 
 The compilation result is in listing \ref{lst:flx-gifsocket}.
-The compiler detects a rupture point : the asynchronous function \texttt{getRawBody} and its anonymous callback, line \ref{lst:gifsocket:callback}.
+The compiler detects a rupture point : the function \texttt{getRawBody} and its anonymous callback, line \ref{lst:gifsocket:callback}.
 It encapsulates this callback in a fluxion named \texttt{anonymous\-\_1000}.
-The original callback is replaced with a placeholder to send a message to this downstream fluxion.
-
-The compiler identifies that this callback uses the variables \texttt{req}, and \texttt{next}.
-It puts these variables in the stream of the message to send to the downstream fluxion \texttt{anonymous\-\_1000}.
+The callback is replaced with a stream placeholder to send the message stream to this downstream fluxion.
+The variables \texttt{req}, and \texttt{next} are append to this message stream, to propagate their value from the \texttt{main} fluxion to the \texttt{anonymous\-\_1000} fluxion.
+% These variables are declared in the \texttt{main} fluxion, therefore, it adds them in the stream to the downstream fluxion \texttt{anonymous\-\_1000}.
 
 % The compilation result needs to be modified manually to fix some mistakes.
 % These mistakes comes from the compiler being unstable, and in early stages of development, but most of these mistakes could be avoided in the future.
 % The modified and simplified compilation result is in listing \ref{lst:flx-gifsocket}.
 
-When \texttt{anonymous\-\_1000} is not isolated from the \texttt{main} fluxion, as if they shared a tag, the compilation result works as expected.
-The variables used in the fluxion, \texttt{req}, \texttt{res} and \texttt{next}, are still shared between the two fluxions.
-Our goal is to isolate the two, to be able to safely parallelize their executions.
+When \texttt{anonymous\-\_1000} is not isolated from the \texttt{main} fluxion, the compilation result works as expected.
+The variables used in the fluxion, \texttt{req} and \texttt{next}, are still shared between the two fluxions.
+Our goal is to isolate the two fluxions, to be able to safely parallelize their executions.
 
-\begin{code}[flx, caption={Compilation result of the simplified version of gifsockets-server},label={lst:flx-gifsocket}]
+\begin{code}[flx, caption={Compilation result of gifsockets-server},label={lst:flx-gifsocket}]
 flx main
 >> anonymous_1000 [req, next]
   var express = require('express'),
@@ -85,7 +90,7 @@ flx main
       getRawBody(req, { //@\label{lst:flx-gifsocket:getRawBody}@
         expected: req.headers['content-length'], //@\label{lst:flx-gifsocket:req.headers}@
         limit: limit
-      }, -> anonymous_1000);
+      }, >> anonymous_1000);
     };
   }
 
@@ -95,13 +100,6 @@ flx main
 flx anonymous_1000
 -> null
   function (err, buffer) { //@\label{lst:flx-gifsocket:callback}@
-    % // If there was an error (e.g. bad length, over length), respond poorly
-    % if (err) {
-    %   res.writeHead(500, { //@\label{lst:flx-gifsocket:writeHead}@
-    %     'content-type': 'text/plain'
-    %   });
-    %   return res.end('Content was too long');  //@\label{lst:flx-gifsocket:end}@
-    % }
     req.body = buffer; //@\label{lst:flx-gifsocket:buffer}@
     next(); //@\label{lst:flx-gifsocket:next}@
   }
@@ -109,50 +107,97 @@ flx anonymous_1000
 
 \subsection{Isolation}
 
-The fluxion \texttt{anonymous\_1000} requires access over the variables \texttt{req} and \texttt{next}.
-In listing \ref{lst:flx-gifsocket}, it modifies the attribute \texttt{body} of the object \texttt{req}, line \ref{lst:flx-gifsocket:buffer}, to store the text of the received request.
-It calls \texttt{next} to continue the execution, line \ref{lst:flx-gifsocket:next}.
-These variables points to closures.
-Our messaging system is currently unable to serialize closures to send them to fluxion \texttt{anonymous\_1000}.
-Therefore, isolating the fluxion \texttt{anonymous\_1000} produces runtime exceptions because it lacks access to these closures.
-We detail in the next paragraph, how the compiler handles this situation.
+In listing \ref{lst:flx-gifsocket}, the fluxion \texttt{anonymous\_1000} modifies the object \texttt{req}, line \ref{lst:flx-gifsocket:buffer}, to store the text of the received request,and it calls \texttt{next} to continue the execution, line \ref{lst:flx-gifsocket:next}.
+These operations produce side-effects that should propagate in the whole application, but the isolation prevent this propagation.
+Isolating the fluxion \texttt{anonymous\_1000} produces runtime exceptions.
+We detail in the next paragraph, how we handle this situation to allow the application to be compiled.
+This evaluation highlights the current limitations of the compiler, and present future works around them.
 
 \subsubsection{Variable \texttt{req}}
 
-The variable \texttt{req} is read in fluxion \texttt{main}, lines \ref{lst:flx-gifsocket:getRawBody} and \ref{lst:flx-gifsocket:req.heanders}.
-Then it is modified in fluxion \texttt{anonymous\_1000}, line \ref{lst:flx-gifsocket:buffer}.
-According to the compiler, this variable is never used after, and its scope ends at the end of the anonymous callback function.
-However, the side effect of this modification impact the shared memory, and the next callback, \texttt{routes.writeTextToImages}.
+The variable \texttt{req} is read in fluxion \texttt{main}, lines \ref{lst:flx-gifsocket:getRawBody} and \ref{lst:flx-gifsocket:req.headers}.
+Then it is associated in fluxion \texttt{anonymous\_1000} to \texttt{buffer}, line \ref{lst:flx-gifsocket:buffer}.
+The compiler is unable to identify further usages of this variable.
+However, the side effect resulting from this association impacts a variable in the scope of the next callback, \texttt{routes.writeTextToImages}.
+We modified the application to explicitly propagate this side-effect to continue the execution with the function \texttt{next}.
 
-\comment{TODO continue}
+For future works, instead of relying only on the source code, we intend to analyze the memory deeper to detect such side-effects.
+\comment{TODO move this sentence into a future works paragraph, or explain more here ?}
 
-\subsubsection{Closure next}
+\subsubsection{Closure \texttt{next}}
 
-The function \texttt{next} is a closure over the \textit{express} \texttt{Router}.
-This function is provided by the \texttt{Router} itself to allow one function in the chain to call the next.
-It is impossible to send this closure to the isolated fluxion.
+The function \texttt{next} is a closure provided by the \texttt{Router} to continue the execution with the next function to handle the client request.
+Because it indirectly relies on network sockets, it is impossible to isolate its execution with the \texttt{anonymous\-\_1000} fluxion.
 Instead, we modify \textit{express}, so as to be compatible with the fluxionnal execution model.
+We explain the modification below, and illustrate them in listing \ref{lst:mflx-gifsocket}.
+% The \texttt{req} and \texttt{next} objects needs to stay on the master worker to preserve their closures.
 
-The \texttt{req}, \texttt{res} and \texttt{next} objects needs to stay on the master worker to preserve their closures.
-The \textit{express} \texttt{Router} register a local fluxion named \texttt{express\_dispatcher} to holds these objects on the master worker, and receives the result of the isolated fluxion \texttt{anonymous\_1000}.
-The application sends the original object to the fluxion \texttt{express\_dispatcher} and serialized copies to the isolated fluxion \texttt{anonymous\_1000}.
-In this latter fluxion, the anonymous callback do its computation ; it assigns the received \texttt{body} as an attribute of \texttt{req}.
+Originally, the function \texttt{next} is the continuation to allow the anonymous callback, to continue the execution with the next function to handle the request.
+To isolate the anonymous callback, this function is replaced on both ends.
+The \textit{express} \texttt{Router} register a fluxion named \texttt{express\_dispatcher} to continue the execution after the fluxion \texttt{anonymous\-\_1000}.
+This fluxion is in the same group as the \texttt{main} fluxion, hence it has access to network sockets and to the original variable \texttt{req}.
+The original \texttt{next} function in the anonymous callback is replaced by a placeholder to push the stream to the fluxion \texttt{express\_dispatcher}.
+The fluxion \texttt{express\_dispatcher} receives the stream from the upstream fluxion \texttt{anonymous\-\_1000}, merges back the modification in the variable \texttt{req}, before calling the original function \texttt{next} to continue the execution.
 
-In the original application, the anonymous callback finishes by calling the function \texttt{next} to let the \texttt{Router} call the next function to process the request.
-In the compiled application, this function \texttt{next} is not available on the isolated worker.
-Instead, the anonymous callback inside \texttt{anonymous\-\_1000} calls a function \texttt{next} specially provided by the fluxionnal execution model to send a message to the fluxion \texttt{express\-\_dispatcher} with the modified copies of \texttt{req} and \texttt{res}.
+%  to holds these objects on the master worker, and receives the result of the isolated fluxion \texttt{anonymous\_1000}.
+
+
+% The application sends the original object to the fluxion \texttt{express\_dispatcher} and serialized copies to the isolated fluxion \texttt{anonymous\_1000}.
+% In this latter fluxion, the anonymous callback do its computation ; it assigns the received \texttt{body} as an attribute of \texttt{req}.
+
+% In the original application, the anonymous callback finishes by calling the function \texttt{next} to let the \texttt{Router} call the next function to process the request.
+% In the compiled application, this function \texttt{next} is not available on the isolated worker.
+% Instead, the anonymous callback inside \texttt{anonymous\-\_1000} calls a function \texttt{next} specially provided by the fluxionnal execution model to send a message to the fluxion \texttt{express\-\_dispatcher} with the modified copies of \texttt{req} and \texttt{res}.
 % and call the original function \texttt{next} on the master worker.
 
-In the original application, \textit{express} relies on side-effects on the objects \texttt{req} and \texttt{res} to get their modifications.
-The call to \texttt{next} doesn't need them as argument.
-In the isolated fluxion, as the serialized object and their originals are isolated from each other, side-effects don't propagate.
-The special \texttt{next} function needs explicit references to the modified objects to send them back to \texttt{express\_dispatcher}.
-The fluxion \texttt{express\_dispatcher} then merges back the modified copies and their originals, before calling the original function \texttt{next}.
+% In the original application, \textit{express} relies on side-effects on the objects \texttt{req} and \texttt{res} to get their modifications.
+% The call to \texttt{next} doesn't need them as argument.
+% In the isolated fluxion, as the serialized object and their originals are isolated from each other, side-effects don't propagate.
+% The special \texttt{next} function needs explicit references to the modified objects to send them back to \texttt{express\_dispatcher}.
+% The fluxion \texttt{express\_dispatcher} then merges back the modified copies and their originals, before calling the original function \texttt{next}.
+
+\begin{code}[flx, caption={Simplified modification on the compiled result},label={lst:mflx-gifsocket}]
+flx main
+>> anonymous_1000 [req, next]
+  var express = require('express'),
+      app = express(),
+      routes = require('gifsockets-middleware'); //@\label{lst:flx-gifsocket:gif-mw}@
+      getRawBody = require('raw-body');
+
+  function bodyParser(limit) { //@\label{lst:flx-gifsocket:bodyParser}@
+    return function saveBody(req, res, next) { //@\label{lst:flx-gifsocket:saveBody}@
+      getRawBody(req, { //@\label{lst:flx-gifsocket:getRawBody}@
+        expected: req.headers['content-length'], //@\label{lst:flx-gifsocket:req.headers}@
+        limit: limit
+      }, >> anonymous_1000);
+    };
+  }
+
+  app.post('/image/text', bodyParser(1 * 1024 * 1024), routes.writeTextToImages); //@\label{lst:flx-gifsocket:app.post}@
+  app.listen(8000);
+
+flx anonymous_1000
+-> express_dispatcher
+  function (err, buffer) { //@\label{lst:flx-gifsocket:callback}@
+    req.body = buffer; //@\label{lst:flx-gifsocket:buffer}@
+    -> express_dispatcher; //@\label{lst:flx-gifsocket:next}@
+  }
+
+flx express_dispatcher
+-> null
+  merge(req, msg.req);
+  next();
+\end{code}
 
 After the modifications detailed above, the server works as expected for the subset of functionalities we modified.
 The isolated fluxion correctly receives, and returns its serialized messages.
 The client successfully receives a gif frame containing the text.
-However, in this evaluation, we ignored the case of error.
+
+\subsection{Future works}
+
+We intend to improve the compiler with a runtime part, to detect callbacks dynamically evaluated.
+Instead of relying only on the source code, we intend to analyze the memory deeper to detect such side-effects propagations.
+\comment{TODO ?}
 
 % \subsubsection{Fluxionnal web framework}
 
