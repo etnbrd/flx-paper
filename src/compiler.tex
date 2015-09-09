@@ -65,7 +65,7 @@ The analyzer identifies these rupture points, and outputs a representation of th
 A rupture point is a call of a loosely coupled function.
 It is an asynchronous call without subsequent synchronization with the caller.
 In \textit{Node.js}, I/O operations are asynchronous functions and indicates such rupture point between two application parts.
-Figure \ref{fig:basicrp} shows an example of a rupture point with the execution of the tow application parts isolated into fluxions.
+Figure \ref{fig:basicrp} shows an example of a rupture point with the execution of the two application parts isolated into fluxions.
 The two application parts are the caller of the asynchronous function call on one hand, and the callback provided to the asynchronous function call on the other hand.
 
 A callback is a function passed as a parameter to a function call.
@@ -145,7 +145,7 @@ We present these three alternative with the example figure \ref{fig:states}.
 \begin{figure}[h!]
 \begin{center}
   \includegraphics[width=\linewidth]{ressources/states.pdf}
-  \caption{Example of different usage of variables in Javascript (left) and the equivalence in the Fluxionnal representation (right).}
+  \caption{Variable management from Javascript to the high-level fluxionnal language}
   \label{fig:states}
 \end{center}
 \end{figure}
