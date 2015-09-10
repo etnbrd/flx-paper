@@ -42,7 +42,7 @@ app.listen(8000);
 On line \ref{lst:gifsocket:app.post}, the application registers two functions to process the requests received on the url \texttt{/image/text}.
 The closure \texttt{saveBody}, line \ref{lst:gifsocket:saveBody}, returned by \texttt{bodyParser}, line \ref{lst:gifsocket:bodyParser}, and the method \texttt{routes.write\-Text\-To\-Images} from the external module \texttt{gifsockets-middleware}, line \ref{lst:gifsocket:gif-mw}.
 The closure \texttt{saveBody} calls the asynchronous function \texttt{getRawBody} to get the request body.
-Its callback handles the errors, and calls \texttt{next} to continue the processing the request with the next function, \texttt{routes.write\-Text\-To\-Images}.
+Its callback handles the errors, and calls \texttt{next} to continue processing the request with the next function, \texttt{routes.write\-Text\-To\-Images}.
 
 % The closure \texttt{saveBody} gather the whole request, and let \textit{express} call the next function in the chain, \texttt{routes.write\-Text\-To\-Images}, by calling \texttt{next}, line \ref{lst:gifsocket:next}.
 
@@ -52,7 +52,7 @@ Its callback handles the errors, and calls \texttt{next} to continue the process
 We compile this application with the compiler detailed in section \ref{section:compiler}.
 % The function \texttt{getRawBody}, line \ref{lst:gifsocket:getRawBody}, is asynchronous.
 The function call \texttt{app.post}, line \ref{lst:gifsocket:app.post}, is a rupture point.
-However, its callbacks, \texttt{bodyParser} and \texttt{routes.write\-Text\-To\-Images} are evaluated as function only at runtime.
+However, its callbacks, \texttt{bodyParser} and \texttt{routes.write\-Text\-To\-Images} are evaluated as functions only at runtime.
 For this reason, the compiler ignores this rupture point, to avoid interfering with the evaluation.
 % For future works, we intend to improve the compiler with a runtime part, to detect callbacks dynamically evaluated.
 % \comment{TODO move this sentence into a future works paragraph, or explain more here ?}
