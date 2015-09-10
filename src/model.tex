@@ -49,12 +49,12 @@ The \textit{context} handles the state on which a \textit{fluxion} relies betwee
 % Message passing is unable\footnote{at reasonable costs} to replace the synchronization allowed by shared state. % and required between some of the application parts.
 In addition to message passing, the execution model allows \textit{fluxions} to communicate by sharing state between their \textit{contexts}.
 % To allow this synchronization when required, the execution model allows fluxions to share state between their contexts.
-The fluxions that needs to synchronize together are grouped with the same tag, and loose their independence.
+The fluxions that need to synchronize together are grouped with the same tag, and loose their independence.
 % To assure the consistency of the shared state, all the fluxions of a group are executed sequentially.
 % Though, the different groups of fluxions are executed in parallel.
 
-There is two types of streams, \textit{start} and \textit{post}, which corresponds to the nature of the rupture point yielding the stream.
-We differentiates the two types with two different arrows, double arrow (\texttt{>>}) for \textit{start} rupture points and simple arrow (\texttt{->}) for \textit{post} rupture points.
+There are two types of streams, \textit{start} and \textit{post}, which correspond to the nature of the rupture point yielding the stream.
+We differentiate the two types with two different arrows, double arrow (\texttt{>>}) for \textit{start} rupture points and simple arrow (\texttt{->}) for \textit{post} rupture points.
 %We differentiates the two types with two different arrows, double arrow ($\twoheadrightarrow$ or \texttt{>>}) for \textit{start} rupture points and simple arrow ($\to$ or \texttt{->}) for \textit{post} rupture points.
 The two types of rupture points are further detailed in section \ref{section:compiler:analyzer:rupture}.
 
@@ -215,7 +215,7 @@ app.listen(8080);
 The \texttt{handler} function, line 5 to 11, receives the input stream of request.
 The \texttt{count} variable at line 3 increments the request counter.
 This object needs to be persisted in the fluxion \textit{context}.
-The \texttt{template} function formats the output stream to send back to the client.
+The \texttt{template} function formats the output stream to be sent back to the client.
 The \texttt{app.get} and \texttt{res.send} functions, respectively line 5 and 8, interface the application with the clients.
 And between these two interface functions is a chain of three functions to process the client requests : $\texttt{app.get} \twoheadrightarrow \texttt{handler} \to \texttt{reply}$.
 This application is transformed into the high-level fluxionnal language in listing \ref{lst:fluxional} which is illustred in Figure \ref{fig:MesSys}.
@@ -253,14 +253,14 @@ flx reply & network {count, template}
 \end{code}
 
 The application is organized as follow.
-The flow of requests is received from the clients by the fluxion \texttt{main}, it continues in the fluxion \texttt{handler}, and finally go through the fluxion \texttt{reply} to be send back to the clients.
+The flow of requests is received from the clients by the fluxion \texttt{main}, it continues in the fluxion \texttt{handler}, and finally goes through the fluxion \texttt{reply} to be sent back to the clients.
 The fluxions \texttt{main} and \texttt{reply} have the tag \texttt{network}.
 This tag indicates their dependency over the network interface, because they  received the response from and send it back to the clients.
 The fluxion \texttt{handler} doesn't have any dependencies, hence it can be executed in parallel.
 
 The last fluxion, \texttt{reply}, depends on its context to holds the variable \texttt{count} and the function \texttt{template}.
 It also depends on the variable \texttt{res} created by the first fluxion, \texttt{main}.
-This variable is carried by the stream through the chain of fluxion until the fluxion \texttt{reply} that depends on it.
+This variable is carried by the stream through the chain of fluxion to the fluxion \texttt{reply} that depends on it.
 This variable holds the references to the network sockets.
 It is the variable the group \texttt{network} depends on.
 
@@ -268,7 +268,7 @@ Moreover, if the last fluxion, \texttt{reply}, did not relied on the variable \t
 The whole group could be replicated as many time as needed. % to cope with the incoming traffic.
 
 This execution model allows to parallelize the execution of an application.
-Some parts are arranged in pipeline, like the fluxion \texttt{handler}, some other parts are replicated, like could be the group \texttt{network}.
+Some parts are arranged in pipeline, like the fluxion \texttt{handler}, some other parts are replicated, as could be the group \texttt{network}.
 This parallelization improves the scalability of the application.
 Indeed, as a fluxion contains its state and expresses its dependencies, it can be migrated.
 It allows to adapt the number of fluxions per core to adjust the resource usage in function of the desired throughput.
