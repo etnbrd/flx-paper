@@ -29,7 +29,7 @@
 % The dependencies resulting from closures needs to be addressed, and resolved by our compiler.
 
 The source languages we focus on should present higher-order functions and be implemented as an event-loop with a global memory.
-Javascript is such a language : it doesn't require an event-loop implementation, but it is often implemented that way.
+Javascript is such a language : it doesn't require an event-loop, but it is often implemented on top of an event-loop.
 \textit{Node.js} is an example of such an implementation.
 We developed a compiler that transforms a \textit{Node.js} application into a fluxional application compliant with the execution model described in section \ref{section:model}.
 
@@ -42,7 +42,7 @@ We developed a compiler that transforms a \textit{Node.js} application into a fl
 \end{figure}
 
 The chain of compilation is described in figure \ref{fig:compilation}.
-From the source of a \textit{Node.js} application, the compiler extracts an Abstract Syntax Tree (AST).
+From the source of a \textit{Node.js} application, the compiler extracts an Abstract Syntax Tree (AST) with \texttt{esprima}.
 From this AST, the analyzer step identifies the limits of the different application parts and how they relate to form a pipeline.
 This first step outputs a pipeline representation of the application.
 Section \ref{section:compiler:analyzer} explains this first compilation step.
@@ -64,7 +64,7 @@ The analyzer identifies these rupture points, and outputs a representation of th
 
 A rupture point is a call of a loosely coupled function.
 It is an asynchronous call without subsequent synchronization with the caller.
-In \textit{Node.js}, I/O operations are asynchronous functions and indicates such rupture point between two application parts.
+In \textit{Node.js}, I/O operations are asynchronous functions and indicate such rupture point between two application parts.
 Figure \ref{fig:basicrp} shows an example of a rupture point with the execution of the two application parts isolated into fluxions.
 The two application parts are the caller of the asynchronous function call on one hand, and the callback provided to the asynchronous function call on the other hand.
 
@@ -74,7 +74,7 @@ We distinguish three kinds of callbacks, but only two are asynchronous : listene
 % \textbf{Iterators} are functions called for each item in a set, often synchronously.
 % \textbf{Listeners} are functions called asynchronously for each event in a stream.
 % \textbf{Continuations} are functions called asynchronously once a result is available.
-Similarly, there is two types of rupture points, respectively \textit{start} and \textit{post}.
+Similarly, there are two types of rupture points, respectively \textit{start} and \textit{post}.
 
 \textbf{Start rupture points} are indicated by listeners. They are on the border between the application and the outside, continuously receiving incoming user requests.
 An example of a start rupture point is in listing \ref{lst:source}, between the call to \texttt{app.get()}, and its listener \texttt{handler}.
@@ -93,8 +93,8 @@ An example of a post rupture points is in listing \ref{lst:source}, between the 
 % In listing \ref{lst:source}, the two rupture points are identified because of \texttt{app.get} and \texttt{fs.readFile}, not because of \texttt{handler} and \texttt{reply}.
 % Moreover, the asynchronism is provided by the execution engine, not the language.
 % It is impossible to identify an asynchronous function from a synchronous function based on their syntax.
-The compiler uses a list of common asynchronous callee, like the \texttt{express} and file system methods.
-This list can be augmented to match asynchronous callee individually for any application.
+The compiler uses a list of common asynchronous callees, like the \texttt{express} and file system methods.
+This list can be augmented to match asynchronous callees individually for any application.
 To identify the callee, the analyzer walks the AST to find a call expression matching this list.
 
 % The compiler is prebuilt knowing some module names exposing asynchronous functions, like the \textit{express} and the \textit{fs} module in listing \ref{lst:rupturepoints}.
@@ -106,7 +106,7 @@ After the identification of the callee, the callback needs to be identified as w
 For each asynchronous call detected, the compiler test if one of the arguments is of type \texttt{function}.
 Some callback functions are declared \textit{in situ}, and are trivially detected.
 For variable identifier, and other expressions, the analyzer tries to detect their type.
-To do so, the analyzer walks back the AST to track their assignations and modifications, and determine their last value.
+To do so, the analyzer walks back the AST to track their assignations and modifications, and to determine their last value.
 % It walks an intermediate representation of the source code to spot the statements modifying a variable.
 % From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
 
@@ -138,9 +138,9 @@ asyncCall(arguments, function callback(result){ //@\circled{2}@ });
 A rupture point eventually breaks the chain of scopes between the upstream and downstream fluxion.
 The closure in the downstream fluxion cannot access the scope in the upstream fluxion as expected.
 The pipeliner step replaces the need for this closure, allowing application parts to rely only on independent memory stores and message passing.
-It determines the distribution using the scope representation, which represents the variables dependencies between application parts.
-Depending on this representation, there is three different ways the compiler can replace the broken closure.
-We present these three alternative with the example figure \ref{fig:states}.
+It determines the distribution using the scope representation, which represents the variables' dependencies between application parts.
+Depending on this representation, the compiler can replace the broken closures in three different ways.
+We present these three alternatives with the example figure \ref{fig:states}.
 
 \begin{figure}[h!]
 \begin{center}
@@ -151,25 +151,24 @@ We present these three alternative with the example figure \ref{fig:states}.
 \end{figure}
 
 \paragraph{Scope}
-If a variable is modified inside only one application part in the current \textit{post} chain, then the pipeliner adds it the context of its fluxion.
+If a variable is modified inside only one application part in the current \textit{post} chain, then the pipeliner adds it to the context of its fluxion.
 
 In figure \ref{fig:states}, the variable \texttt{a} is updated in the function \texttt{add}.
-The pipeliner steps store this variable in the context of the fluxion \texttt{add}.
+The pipeliner step stores this variable in the context of the fluxion \texttt{add}.
 % The fluxion has an exclusive access to it.
 % If the context of a fluxion doesn't contains references shared with other fluxions, then it can be isolated on its own worker for its execution to be parallelized.
 
 \paragraph{Stream}
-If a variable is modified inside an application part, and read inside downstream application parts, then the pipeliner makes the upstreap fluxion add this variable to the message stream to be sent to the downstream fluxions.
+If a variable is modified inside an application part, and read inside downstream application parts, then the pipeliner makes the upstream fluxion add this variable to the message stream to be sent to the downstream fluxions.
 It is impossible to send variables to upstream flux\-ions, without race conditions.
 If the fluxion retro propagates the variable for an upstream fluxion to read, the upstream fluxion might use the old version while the new version is on its way.
 
 In figure \ref{fig:states}, the variable \texttt{b} is set in the function \texttt{onReq}, and read in the function \texttt{add}.
-The pipeliner steps makes the fluxion \texttt{onReq} send the updated variable \texttt{b}, in addition to the variable \texttt{v}, in the message sent to the fluxion \texttt{add}.
+The pipeliner step makes the fluxion \texttt{onReq} send the updated variable \texttt{b}, in addition to the variable \texttt{v}, in the message sent to the fluxion \texttt{add}.
 
-Exceptionally, if a variable is defined inside a \textit{post} chain, then this variable can be streamed inside this \textit{post} chain without restriction on the order of modification and read.
+Exceptionally, if a variable is defined inside a \textit{post} chain, like \texttt{b}, then this variable can be streamed inside this \textit{post} chain without restriction on the order of modification and read.
 Indeed, the execution of the upstream fluxion for the current \textit{post} chain is assured to end before the execution of the downstream fluxion.
-Therefore, no read of the variable by the upstream fluxion happen after the modification by the downstream fluxion. 
-The variable \texttt{b} is such a variable. 
+Therefore, no reading of the variable by the upstream fluxion happens after the modification by the downstream fluxion.
 % A streamed variable is eventually in the context of an upstream fluxion, or is part of the original client request.
 
 
@@ -179,15 +178,14 @@ The variable \texttt{b} is such a variable.
 
 \paragraph{Share}
 If a variable is needed for modification by several application parts, or is read by an upstream application part, then it needs to be synchronized between the fluxions.
-The synchronization of a distributed memory is a well-known subject starting with % Brewer's conjecture \cite{Gilbert2002}, and 
-the BASE semantics\cite{Fox1997}.
+% The synchronization of a distributed memory is a well-known subject starting with the BASE semantics\cite{Fox1997}.
 To respect the semantics of the source application, we cannot tolerate inconsistencies.
 Therefore, the pipeliner groups all the fluxions sharing this variable within a same tag.
 % Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
 And it adds this variable to the contexts of each fluxions.
 
 In figure \ref{fig:states}, the variable \texttt{c} is set in the function \texttt{end}, and read in the function \texttt{add}.
-As the fluxion \texttt{add} is upstream of \texttt{end}, the pipeliner steps groups the fluxion \texttt{add} and \texttt{end} with the tag \texttt{grp\_c} to allow the two fluxions to share this variable.
+As the fluxion \texttt{add} is upstream of \texttt{end}, the pipeliner step groups the fluxion \texttt{add} and \texttt{end} with the tag \texttt{grp\_c} to allow the two fluxions to share this variable.
 
 % \subsubsection{Higher-order language}
 

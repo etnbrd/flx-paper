@@ -36,7 +36,12 @@
   \hspace*{#1\callStackIndentation}%
 }
 
-
+\tikzsetexternalprefix{figures/}
+\newcommand*\circled[1]{%
+  \tikz[baseline=(char.base)]{%
+    \node[shape=circle,draw,inner sep=0.8pt] (char) {#1};%
+  }%
+}
 
 \definecolor{red}{rgb}{1,0,0.29}
 \definecolor{gray1}{rgb}{.70,.70,.70}

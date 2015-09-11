@@ -15,12 +15,6 @@
 \usepackage{pgfplots}
 \usepgfplotslibrary{external} 
 \tikzexternalize
-\tikzsetexternalprefix{figures/}
-\newcommand*\circled[1]{
-  \tikz[baseline=(char.base)]{%
-    \node[shape=circle,draw,inner sep=0.8pt] (char) {#1};
-  }%
-}
 
 
 \usepackage[hyperref=true,%
@@ -61,7 +55,7 @@
 
 % Title portion
 \title{
-  Transforming Javascript event-loop into a scalable pipeline
+  Transforming Javascript event-loop into a pipeline
 	% Toward a compiler providing pipeline parallelism for the Javascript event-loop.
   % : hide scalability constraints from the developer
 }
