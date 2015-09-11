@@ -4,7 +4,8 @@ PDFLATEX = mkdir -p .tmp && mkdir -p .tmp/figures && cd src && pdflatex -shell-e
 BIBER = mkdir -p .tmp && cd .tmp && biber ${FILE} && cd ..
 .PHONY: all, bib, _main, _bib
 
-all: import pdf bib open
+# all: import pdf bib open
+all: pdf bib open
 
 bib: _bib _post
 
