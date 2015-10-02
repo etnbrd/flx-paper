@@ -217,7 +217,7 @@ The \texttt{count} variable at line 3 increments the request counter.
 This object needs to be persisted in the fluxion \textit{context}.
 The \texttt{template} function formats the output stream to be sent back to the client.
 The \texttt{app.get} and \texttt{res.send} functions, respectively line 5 and 8, interface the application with the clients.
-And between these two interface functions is a chain of three functions to process the client requests : $\texttt{app.get} \twoheadrightarrow \texttt{handler} \to \texttt{reply}$.
+And between these two interface functions is a chain of three functions to process the client requests : \texttt{app.get} $\to$ \hspace{-1.4em} $\to$ \texttt{handler} $\to$ \texttt{reply}.
 This application is transformed into the high-level fluxionnal language in listing \ref{lst:fluxional} which is illustred in Figure \ref{fig:MesSys}.
 % We expect a similar result with the compiler described in section \ref{section:compiler}.
 % Horizontal dashed lines show virtual transmission of messages between fluxions although they all go through the messaging system.

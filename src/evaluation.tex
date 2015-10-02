@@ -130,10 +130,11 @@ We explain the modification below.% , and illustrate them in listing \ref{lst:mf
 
 Originally, the function \texttt{next} is the continuation to allow the anonymous callback on line \ref{lst:gifsocket:callback}, to continue the execution with the next function to handle the request.
 To isolate the anonymous callback, this function is replaced on both ends.
-The \texttt{express} \texttt{Router} registers a fluxion named \texttt{express\-\_dispatcher} to continue the execution after the fluxion \texttt{anonymous\-\_1000}.
-This fluxion is in the same group as the \texttt{main} fluxion, hence it has access to network sockets and to the original variable \texttt{req}.
-The original \texttt{next} function in the anonymous callback is replaced by a placeholder to push the stream to the fluxion \texttt{express\-\_dispatcher}.
-The fluxion \texttt{express\-\_dispatcher} receives the stream from the upstream fluxion \texttt{anonymous\-\_1000}, merges back the modification in the variable \texttt{req}, before calling the original function \texttt{next} to continue the execution.
+The result of this replacement is illustrated in listing \ref{lst:mflx-gifsocket}.
+The \texttt{express} \texttt{Router} registers a fluxion named \texttt{express\-\_dispatcher}, line \ref{lst:mflx-gifsocket:express-dispatcher}, to continue the execution after the fluxion \texttt{anonymous\-\_1000}.
+This fluxion is in the same group \texttt{express} as the \texttt{main} fluxion, hence it has access to network sockets, to the original variable \texttt{req}, and to the original function \texttt{next}.
+The call to the original \texttt{next} function in the anonymous callback is replaced by a placeholder to push the stream to the fluxion \texttt{express\-\_dispatcher}, line \ref{lst:mflx-gifsocket:next-placeholder}.
+The fluxion \texttt{express\-\_dispatcher} receives the stream from the upstream fluxion \texttt{anonymous\-\_1000}, merges back the modification in the variable \texttt{req} to propagate the side effects, before calling the original function \texttt{next} to continue the execution, line \ref{lst:mflx-gifsocket:next}.
 
 %  to holds these objects on the master worker, and receives the result of the isolated fluxion \texttt{anonymous\_1000}.
 
@@ -152,38 +153,38 @@ The fluxion \texttt{express\-\_dispatcher} receives the stream from the upstream
 % The special \texttt{next} function needs explicit references to the modified objects to send them back to \texttt{express\_dispatcher}.
 % The fluxion \texttt{express\_dispatcher} then merges back the modified copies and their originals, before calling the original function \texttt{next}.
 
-% \begin{code}[flx, caption={Simplified modification on the compiled result},label={lst:mflx-gifsocket}]
-% flx main
-% >> anonymous_1000 [req, next]
-%   var express = require('express'),
-%       app = express(),
-%       routes = require('gifsockets-middleware'), //@\label{lst:flx-gifsocket:gif-mw}@
-%       getRawBody = require('raw-body');
+\begin{code}[flx, caption={Simplified modification on the compiled result},label={lst:mflx-gifsocket}]
+flx main & express
+>> anonymous_1000 [req, next]
+  var express = require('express'),
+      app = express(),
+      routes = require('gifsockets-middleware'), //@\label{lst:mflx-gifsocket:gif-mw}@
+      getRawBody = require('raw-body');
 
-%   function bodyParser(limit) { //@\label{lst:flx-gifsocket:bodyParser}@
-%     return function saveBody(req, res, next) { //@\label{lst:flx-gifsocket:saveBody}@
-%       getRawBody(req, { //@\label{lst:flx-gifsocket:getRawBody}@
-%         expected: req.headers['content-length'], //@\label{lst:flx-gifsocket:req.headers}@
-%         limit: limit
-%       }, >> anonymous_1000);
-%     };
-%   }
+  function bodyParser(limit) { //@\label{lst:mflx-gifsocket:bodyParser}@
+    return function saveBody(req, res, next) { //@\label{lst:mflx-gifsocket:saveBody}@
+      getRawBody(req, { //@\label{lst:mflx-gifsocket:getRawBody}@
+        expected: req.headers['content-length'], //@\label{lst:mflx-gifsocket:req.headers}@
+        limit: limit
+      }, >> anonymous_1000);
+    };
+  }
 
-%   app.post('/image/text', bodyParser(1 * 1024 * 1024), routes.writeTextToImages); //@\label{lst:flx-gifsocket:app.post}@
-%   app.listen(8000);
+  app.post('/image/text', bodyParser(1 * 1024 * 1024), routes.writeTextToImages); //@\label{lst:mflx-gifsocket:app.post}@
+  app.listen(8000);
 
-% flx anonymous_1000
-% -> express_dispatcher
-%   function (err, buffer) { //@\label{lst:flx-gifsocket:callback}@
-%     req.body = buffer; //@\label{lst:flx-gifsocket:buffer}@
-%     -> express_dispatcher; //@\label{lst:flx-gifsocket:next}@
-%   }
+flx anonymous_1000
+-> express_dispatcher
+  function (err, buffer) { //@\label{lst:mflx-gifsocket:callback}@
+    req.body = buffer; //@\label{lst:mflx-gifsocket:buffer}@
+    next_placeholder(req, -> express_dispatcher); //@\label{lst:mflx-gifsocket:next-placeholder}@
+  }
 
-% flx express_dispatcher
-% -> null
-%   merge(req, msg.req);
-%   next();
-% \end{code}
+flx express_dispatcher & express //@\label{lst:mflx-gifsocket:express-dispatcher}@
+-> null
+  merge(req, msg.req);
+  next(); //@\label{lst:mflx-gifsocket:next}@
+\end{code}
 
 After the modifications detailed above, the server works as expected for the subset of functionalities we modified.
 The isolated fluxion correctly receives, and returns its serialized messages.
