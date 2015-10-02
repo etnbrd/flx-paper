@@ -9,7 +9,9 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{graphicx}
-\usepackage{hyperref}
+% \usepackage{hyperref}
+\usepackage{nohyperref}  % This makes hyperref commands do nothing without errors
+\usepackage{url}  % This makes \url work
 \usepackage{backnaur}
 
 \usepackage{tikz}
@@ -56,7 +58,7 @@
 
 % Title portion
 \title{
-  Transforming Javascript event-loop into a pipeline
+  Transforming Javascript Event-Loop Into a Pipeline
 	% Toward a compiler providing pipeline parallelism for the Javascript event-loop.
   % : hide scalability constraints from the developer
 }
