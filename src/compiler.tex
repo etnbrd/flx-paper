@@ -68,6 +68,18 @@ In \textit{Node.js}, I/O operations are asynchronous functions and indicate such
 Figure \ref{fig:basicrp} shows an example of a rupture point with the execution of the two application parts isolated into fluxions.
 The two application parts are the caller of the asynchronous function call on one hand, and the callback provided to the asynchronous function call on the other hand.
 
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
+  \begin{code}
+asyncCall(arguments, function callback(result){ //@\circled{2}@ });
+// Following statements //@\circled{1}@
+  \end{code}
+  \caption{Rupture point interface}
+  \label{fig:basicrp}
+\end{center}
+\end{figure}
+
 A callback is a function passed as a parameter to a function call.
 It is invoked by the callee to continue the execution with data not available in the caller context.
 We distinguish three kinds of callbacks, but only two are asynchronous : listeners and continuations.
@@ -113,18 +125,6 @@ To do so, the analyzer walks back the AST to track their assignations and modifi
 % The isolation of the execution between the asynchronous call and the callback is illustrated figure \ref{fig:basicrp}.
 % The interface line represent the limit between two fluxions.
 % It means that the upstream fluxion sends a message to the downstream fluxion to continue the execution with the callback.
-
-\begin{figure}[h!]
-\begin{center}
-  \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
-  \begin{code}
-asyncCall(arguments, function callback(result){ //@\circled{2}@ });
-// Following statements //@\circled{1}@
-  \end{code}
-  \caption{Rupture point interface}
-  \label{fig:basicrp}
-\end{center}
-\end{figure}
 
 
 % Missing callbacks by false negatives in the detection is sub-optimal, but false positives are more critical, as they eventually introduce bugs.

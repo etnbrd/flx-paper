@@ -144,12 +144,6 @@ The plain arrows represent the actual message paths in the messaging system, whi
 % To assure the consistency of their shared contexts, all the fluxions grouped with the same tag are executed sequentially and share the same message queue.
 % Though, the different groups of fluxions are executed in parallel with different event queues.
 
-\begin{figure}[h!]
-  \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
-  \caption{The fluxionnal execution model in details}
-  \label{fig:MesSys}
-\end{figure}
-
 % This first message represents the incoming of a request from a user.
 The \textit{main} fluxion is the first fluxion in the flow.
 When the application receives a request, this fluxion triggers the flow with a \texttt{start} message containing the request, \circled{2}.
@@ -157,6 +151,12 @@ This first message is to be received by the next fluxion \textit{handler}, \circ
 The fluxion \textit{handler} sends back a message, \circled{5}, to be enqueued, \circled{6}.
 The system loops through steps \circled{3} through \circled{6} until the queue is empty.
 This cycle starts again for each new incoming request causing another \texttt{start} message.
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
+  \caption{The fluxionnal execution model in details}
+  \label{fig:MesSys}
+\end{figure}
 
 % Algorithms \ref{alg:parcours} and \ref{alg:traitement} describe the behavior of the messaging system after the \texttt{start} function invocation.
 
