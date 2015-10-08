@@ -9,7 +9,7 @@ We present a test of our compiler on a real application, gifsockets-server\ftnt{
 % This application is part of the selection from our previous paper \cite{Brodu2015}.
 % We chosed it because it is a working application, simple enough to illustrate this evaluation.
 This application was selected from the \texttt{npm} registry because it depends on \texttt{express}, it is tested, working, and simple enough to illustrate this evaluation.
-It is part of the selection from a previous work. %\cite{Brodu2015}.
+It is part of the selection from a previous work \cite{Brodu2015}.
 
 This application is a real-time chat using gif-based communication channels.
 % The client sends a request containing a text typed by the user.
@@ -68,7 +68,7 @@ The variables \texttt{req}, and \texttt{next} are appended to this message strea
 % These mistakes comes from the compiler being unstable, and in early stages of development, but most of these mistakes could be avoided in the future.
 % The modified and simplified compilation result is in listing \ref{lst:flx-gifsocket}.
 
-When \texttt{anonymous\-\_1000} is not isolated from the \texttt{main} fluxion, the compilation result works as expected.
+When \texttt{anonymous\-\_1000} is not isolated from the \texttt{main} fluxion, as if they belong to the same group, the compilation result works as expected.
 The variables used in the fluxion, \texttt{req} and \texttt{next}, are still shared between the two fluxions.
 Our goal is to isolate the two fluxions, to be able to safely parallelize their executions.
 
@@ -111,7 +111,7 @@ This test highlights the current limitations of the compiler, and presents futur
 \subsubsection{Variable \texttt{req}}
 
 The variable \texttt{req} is read in fluxion \texttt{main}, lines \ref{lst:flx-gifsocket:getRawBody} and \ref{lst:flx-gifsocket:req.headers}.
-Then it is associated in fluxion \texttt{anonymous\_1000} to \texttt{buffer}, line \ref{lst:flx-gifsocket:buffer}.
+Then its property \texttt{body} is associated to \texttt{buffer} in fluxion \texttt{anonymous\_1000}, line \ref{lst:flx-gifsocket:buffer}.
 The compiler is unable to identify further usages of this variable.
 However, the side effect resulting from this association impacts a variable in the scope of the next callback, \texttt{routes.writeTextToImages}.
 We modified the application to explicitly propagate this side-effect to the next callback through the function \texttt{next}.

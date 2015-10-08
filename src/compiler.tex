@@ -43,13 +43,13 @@ We developed a compiler that transforms a \textit{Node.js} application into a fl
 
 The chain of compilation is described in figure \ref{fig:compilation}.
 From the source of a \textit{Node.js} application, the compiler extracts an Abstract Syntax Tree (AST) with \texttt{esprima}.
-From this AST, the analyzer step identifies the limits of the different application parts and how they relate to form a pipeline.
+From this AST, the \textit{Analyzer} step identifies the limits of the different application parts and how they relate to form a pipeline.
 This first step outputs a pipeline representation of the application.
 Section \ref{section:compiler:analyzer} explains this first compilation step.
 In the pipeline representation, the stages are not yet independent and encapsulated into fluxions.
 % From the AST, the compiler also builds a representation of the memory scopes of variables.
 From the AST, \texttt{escope} produces a representation of the memory scopes.
-The pipeliner step analyzes the pipeline representation and the scopes representation to distribute the shared memory into independent groups of fluxions.
+The \textit{Pipeliner} step analyzes the pipeline representation and the scopes representation to distribute the shared memory into independent groups of fluxions.
 Section \ref{section:compiler:pipeliner} explains this second compilation step.
 
 % We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
@@ -65,7 +65,7 @@ The analyzer identifies these rupture points, and outputs a representation of th
 A rupture point is a call of a loosely coupled function.
 It is an asynchronous call without subsequent synchronization with the caller.
 In \textit{Node.js}, I/O operations are asynchronous functions and indicate such rupture point between two application parts.
-Figure \ref{fig:basicrp} shows an example of a rupture point with the execution of the two application parts isolated into fluxions.
+Figure \ref{fig:basicrp} shows a code example of a rupture point with the illustration of the execution of the two application parts isolated into fluxions.
 The two application parts are the caller of the asynchronous function call on one hand, and the callback provided to the asynchronous function call on the other hand.
 
 \begin{figure}[h!]
