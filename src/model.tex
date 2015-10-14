@@ -264,7 +264,7 @@ The group \texttt{network} depends on this variable because it holds the referen
 This variable is created and consumed inside this group, therefore, it doesn't prevent the whole group from being replicated.
 
 However, the last fluxion, \texttt{reply}, depends on its context to holds the variable \texttt{count} which prevents this replication.
-If it did not relied on this state, the group \texttt{network} would be stateless, and could be replicated to cope with the incoming traffic.
+If it did not rely on this state, the group \texttt{network} would be stateless, and could be replicated to cope with the incoming traffic.
 
 This execution model allows to parallelize the execution of an application.
 Some parts are arranged in pipeline, like the fluxion \texttt{handler}, some other parts are replicated, as could be the group \texttt{network}.
