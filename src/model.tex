@@ -95,9 +95,9 @@ The two types of rupture points are further detailed in section \ref{section:com
   \bnfprod{ctx}        {\bnfts{\texttt{\{}} \bnfpn{list} \bnfts{\texttt{\}}}}\\
   \bnfprod{msg}        {\bnfts{\texttt{[}} \bnfpn{list} \bnfts{\texttt{]}}}\\
   \bnfprod{list}       {\bnfpn{id} \bnfor \bnfpn{id} \bnfsp \bnfts{,} \bnfsp \bnfpn{list}}\\
-  \bnfprod{type}         {\bnfts{\texttt{>}\texttt{>}} \bnfor \bnfts{\texttt{-}\texttt{>}}}\\
+  \bnfprod{type}       {\bnfts{\texttt{>}\texttt{>}} \bnfor \bnfts{\texttt{-}\texttt{>}}}\\
   \bnfprod{id}         {\bnftd{Identifier}}\\
-  \bnfprod{fn}         {\bnftd{Imperative language and stream syntax}}\\
+  \bnfprod{fn}         {\bnftd{Imperative language and stream indicators}}\\
 \end{bnf*}
 \vspace{-2.5\baselineskip}
 \caption{Syntax of a high-level language to represent a program in the fluxionnal form}
@@ -134,7 +134,8 @@ After the execution of a fluxion, it queues the resulting messages for the event
 % The registration is done by calling \texttt{register(<name>, <fn>, <context>)}, \circled{1}.
 % A fluxion can dynamically register other fluxions
 
-The execution cycle of an example fluxional application is illustrated in figure \ref{fig:MesSys}.
+The execution cycle of an example fluxional application is illustrated in figure \ref{fig:MesSys}. 
+\nt{the example in figure 2 is only partially explained in text, many parts (group network, program, enqueue...) are not explained.}
 Bigger circles represent registered fluxions, while smaller ones indicate the step in the execution.
 The source code for this application is in listing \ref{lst:source} and the fluxional code for this application is in listing \ref{lst:fluxional}.
 The fluxion \textit{reply} has a context containing the variable \texttt{count} and \texttt{tem\-plate}.
@@ -190,8 +191,18 @@ This cycle starts again for each new incoming request causing another \texttt{st
 
 \subsection{Service example}
 
+\nt{I would suggest adding a brief paragraph to introduce Node.js and esprima and maybe move the url of Node.js stated in the footer of the last page to the first page where Node.js is already stated.}
+
 To illustrate the fluxional execution model, and the compiler, we present in listing \ref{lst:source} an example of a simple web application.
 This application reads a file, and sends it back along with a request counter.
+
+\nt{The discussion of the execution model is only discussed on a simple example (figure 2) and not discussed in general.}
+
+\nt{In section 2.3, it is said that variable "res" holds the references to the network sockets and it is the variable group network depends on.
+This is a bit misleading since in the next paragraph groups are created automatically.
+The sentence about the group network makes the reader believe the relation between res and network has to be specified, but it is not explained how.
+It is only while ready section 3 that the reader can understand the relation is actually detected during the transformation phase.
+However it is still unclear why "res" is supposed to holds its content, and how/where it is specified in the listings (or elsewhere).}
 
 \begin{code}[js,
   caption={Example web application},
@@ -228,6 +239,12 @@ This application is transformed into the high-level fluxionnal language in listi
 %   \label{fig:fluxions}
 % \end{figure}
 
+\nt{Transformation discussed in Sec 2.3 between Listing 1 and Listing 2 is not understandable many parts are not discussed in text.
+Even the parts discussed are difficult to follow (eg. "res is created by the first fluxion main..." how is this done ?
+res is a shared variable, thus it requires to be protected how is this accomplished?)}
+
+\nt{I would also suggest adding labels to one of the fluxions in listing 2 to indicate its tags, context, steams and function.}
+
 \begin{code}[flx, caption={Example application expressed in the high-level fluxional language}, label={lst:fluxional}]
 flx main & network
 >> handler [res]
@@ -263,7 +280,7 @@ This variable is carried by the stream through the chain of fluxion to the fluxi
 The group \texttt{network} depends on this variable because it holds the references to the network sockets.
 This variable is created and consumed inside this group, therefore, it doesn't prevent the whole group from being replicated.
 
-However, the last fluxion, \texttt{reply}, depends on its context to holds the variable \texttt{count} which prevents this replication.
+However, the last fluxion, \texttt{reply}, depends on its context to hold the variable \texttt{count} which prevents this replication.
 If it did not rely on this state, the group \texttt{network} would be stateless, and could be replicated to cope with the incoming traffic.
 
 This execution model allows to parallelize the execution of an application.

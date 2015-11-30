@@ -1,5 +1,7 @@
 \section{Fluxionnal compiler} \label{section:compiler}
 
+\nt{Section 3 describing the compiler is very high level and does not discuss in depth how the different steps are implemented in practice.}
+
 % Since 2009, \textit{Node.js} proposes an alternative to the difficult threading model adopted almost universally \cite{Adya2002}.
 % % It provides a Javascript execution environment for real-time web applications.
 % Its concurrency model is based on an event-loop, and exposes performances interesting enough for half the silicon valley to migrate to.
@@ -180,7 +182,7 @@ Therefore, no reading of the variable by the upstream fluxion happens after the 
 If a variable is needed for modification by several application parts, or is read by an upstream application part, then it needs to be synchronized between the fluxions.
 % The synchronization of a distributed memory is a well-known subject starting with the BASE semantics\cite{Fox1997}.
 To respect the semantics of the source application, we cannot tolerate inconsistencies.
-Therefore, the pipeliner groups all the fluxions sharing this variable within a same tag.
+Therefore, the pipeliner groups all the fluxions sharing this variable within the same tag.
 % Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
 And it adds this variable to the contexts of each fluxions.
 

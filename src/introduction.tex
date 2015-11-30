@@ -17,7 +17,7 @@ This decomposition may be spread over a cluster of commodity machines \cite{Fox1
 MapReduce \cite{Dean2008} and the Staged Event-driven Architecture (SEDA) \cite{Welsh2000} are famous examples of that trend. %, using a pipeline architecture.
 Once split, the service parts are connected by an asynchronous messaging system.
 Many tools have been developed to express and manage these service parts and their communications.
-We can cite Spark \cite{Zaharia2012}, MillWheel \cite{Akidau2013}, Naiad \cite{McSherry} and Storm \cite{Toshniwal2014}, and many others.
+We can cite Spark \cite{Zaharia2012}, MillWheel \cite{Akidau2013}, Naiad \cite{McSherry}, Storm \cite{Toshniwal2014}, and many others.
 However, these tools are in disruption from the initial approach.
 It requires the development team either to be trained or to hire experts, and more importantly, to start over the initial code base.
 This shift causes the development team to spend development resources in background without adding visible value for the users.
@@ -31,7 +31,7 @@ To lift these risks, we propose a tool to map one level onto the other, and allo
 % in the application allowing parallelism, hence scalability.
 This tool should allow a continuous development process.
 
-We focus on web applications driven by users requests, developed in Javascript using the \textit{Node.js} execution environment.
+We focus on web applications driven by users requests, developed in Javascript using the \textit{Node.js}\ftnt{https://nodejs.org/} execution environment.
 Javascript is increasingly used to develop web applications.
 It is the most used language on Github\ftnt{http://githut.info/} and StackOverflow\ftnt{http://stackoverflow.com/tags}.
 We think that it is possible to analyze this type of application as a stream of requests, passing through a pipeline of stages.
