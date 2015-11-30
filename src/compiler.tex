@@ -54,6 +54,12 @@ From the AST, \texttt{escope} produces a representation of the memory scopes.
 The \textit{Pipeliner} step analyzes the pipeline representation and the scopes representation to distribute the shared memory into independent groups of fluxions.
 Section \ref{section:compiler:pipeliner} explains this second compilation step.
 
+%% to integrate
+Our compiler uses the \textit{estools}\ftnt{https://github.com/estools} suite to parse, manipulate and generate source code from Abstract Syntax Tree (AST).
+% It modifies AST, as described in \cite{Jones2003}.
+% The implementation of the analyzer might be inspired from the points-to analysis in future works \cite{Wei2014}.
+Our implementation is based on the work by Ryan Dahl : \textit{Node.js}, as well as on one of the best-known \textit{Node.js} web framework : \textit{Express}\ftnt{http://expressjs.com/}.
+
 % We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
 % Our goal is to compile a few real applications without modifying their code, so as to validate this approach.
 

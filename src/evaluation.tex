@@ -72,33 +72,33 @@ When \texttt{anonymous\-\_1000} is not isolated from the \texttt{main} fluxion, 
 The variables used in the fluxion, \texttt{req} and \texttt{next}, are still shared between the two fluxions.
 Our goal is to isolate the two fluxions, to be able to safely parallelize their executions.
 
-\begin{code}[flx, caption={Compilation result of gifsockets-server},label={lst:flx-gifsocket}]
-flx main
->> anonymous_1000 [req, next]
-  var express = require('express'),
-      app = express(),
-      routes = require('gifsockets-middleware'), //@\label{lst:flx-gifsocket:gif-mw}@
-      getRawBody = require('raw-body');
+% \begin{code}[flx, caption={Compilation result of gifsockets-server},label={lst:flx-gifsocket}]
+% flx main
+% >> anonymous_1000 [req, next]
+%   var express = require('express'),
+%       app = express(),
+%       routes = require('gifsockets-middleware'), //@\label{lst:flx-gifsocket:gif-mw}@
+%       getRawBody = require('raw-body');
 
-  function bodyParser(limit) { //@\label{lst:flx-gifsocket:bodyParser}@
-    return function saveBody(req, res, next) { //@\label{lst:flx-gifsocket:saveBody}@
-      getRawBody(req, { //@\label{lst:flx-gifsocket:getRawBody}@
-        expected: req.headers['content-length'], //@\label{lst:flx-gifsocket:req.headers}@
-        limit: limit
-      }, >> anonymous_1000);
-    };
-  }
+%   function bodyParser(limit) { //@\label{lst:flx-gifsocket:bodyParser}@
+%     return function saveBody(req, res, next) { //@\label{lst:flx-gifsocket:saveBody}@
+%       getRawBody(req, { //@\label{lst:flx-gifsocket:getRawBody}@
+%         expected: req.headers['content-length'], //@\label{lst:flx-gifsocket:req.headers}@
+%         limit: limit
+%       }, >> anonymous_1000);
+%     };
+%   }
 
-  app.post('/image/text', bodyParser(1 * 1024 * 1024), routes.writeTextToImages); //@\label{lst:flx-gifsocket:app.post}@
-  app.listen(8000);
+%   app.post('/image/text', bodyParser(1 * 1024 * 1024), routes.writeTextToImages); //@\label{lst:flx-gifsocket:app.post}@
+%   app.listen(8000);
 
-flx anonymous_1000
--> null
-  function (err, buffer) { //@\label{lst:flx-gifsocket:callback}@
-    req.body = buffer; //@\label{lst:flx-gifsocket:buffer}@
-    next(); //@\label{lst:flx-gifsocket:next}@
-  }
-\end{code}
+% flx anonymous_1000
+% -> null
+%   function (err, buffer) { //@\label{lst:flx-gifsocket:callback}@
+%     req.body = buffer; //@\label{lst:flx-gifsocket:buffer}@
+%     next(); //@\label{lst:flx-gifsocket:next}@
+%   }
+% \end{code}
 
 \subsection{Isolation}
 
