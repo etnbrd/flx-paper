@@ -1,11 +1,10 @@
 \section{Related Works} \label{section:related}
 
-The idea to split a task into independent parts goes back to the Actor's model \cite{Hewitt1973a}, functional programming \cite{Hughes1989} and the following works on Data\-Flow leading up to Flow-based Programming (FBP) and Functional Reactive program\-ming  (FRP) \cite{Elliott1997}.
-Both FBP and FRP, recently got some attention in the Javascript community with the projects \textit{NoFlo}\ftnt{http://noflojs.org/}, \textit{Bacon.js}\ftnt{https://baconjs.github.io/} and \textit{react}\ftnt{https://facebook.github.io/react/}.
+Splitting a task into independent parts goes back to the Actor's model, functional programming \cite{Hughes1989} and the following works on Data\-Flow leading to Flow-based Programming (FBP) and Functional Reactive program\-ming (FRP) \cite{Elliott1997}.
+Both FBP and FRP, recently got some attention in the Javascript community with \textit{NoFlo}\ftnt{http://noflojs.org/}, \textit{Bacon.js}\ftnt{https://baconjs.github.io/} and \textit{react}\ftnt{https://facebook.github.io/react/}.
 
-The execution model we presented in section \ref{section:model}, is inspired by some works on scalability for very large systems, like the Staged Event-Driven Architecture (SEDA) by Matt Welsh \cite{Welsh2000} and later by the MapReduce architecture \cite{Dean2008}.
-It also drew its inspiration from more recent work following SEDA.
-Among the best-known following works, we cited in the introduction Spark \cite{Zaharia2012}, MillWheel \cite{Akidau2013}, Naiad \cite{McSherry} and Storm \cite{Toshniwal2014}.
+The execution model we presented in section \ref{section:model}, is inspired by some works on scalability for very large systems, like the Staged Event-Driven Architecture (SEDA) by Matt Welsh \cite{Welsh2000} and by the MapReduce architecture \cite{Dean2008}.
+It also drew its inspiration from more recent work following SEDA like Spark \cite{Zaharia2012}, MillWheel \cite{Akidau2013}, Naiad \cite{McSherry} and Storm \cite{Toshniwal2014}.
 The first part of our work stands upon these thorough studies.
 However, we believe that it is difficult for most developers to distribute the state of an application.
 % However, we believe that it is too difficult for most developers to express an application into a network of independent parts communicating through messages.
