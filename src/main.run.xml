@@ -79,16 +79,7 @@
       <file>main.bcf</file>
     </requires>
     <requires type="editable">
-      <file>../src/bib/MyPublications.bib</file>
-      <file>../src/bib/Concurrency-Actor Model.bib</file>
-      <file>../src/bib/Concurrency-Distributed systems.bib</file>
-      <file>../src/bib/Concurrency-Parallelization.bib</file>
-      <file>../src/bib/Concurrency-Scalability.bib</file>
-      <file>../src/bib/Concurrency-Streaming.bib</file>
-      <file>../src/bib/Concurrency-Synchronization.bib</file>
-      <file>../src/bib/Flow-Based Programming.bib</file>
-      <file>../src/bib/Functional Programming-Functional Reactive Programming.bib</file>
-      <file>../src/bib/System design.bib</file>
+      <file>../src/bib/bibliography.bib</file>
     </requires>
   </external>
 </requests>

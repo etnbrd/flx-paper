@@ -11,13 +11,10 @@
 % In this section, we present an execution model to allow the execution of functions in parallel of a main thread.
 % Each parallel function is encapsulated in an autonomous execution container with its own memory.
 
-In this section, we present an execution model to provide scalability to web applications.
-% The execution of functions may dynamically be reallocated at run time depending on the load of servers.
-To achieve this, the execution model provides a granularity of parallelism at the function level.
-Functions are encapsulated in autonomous execution containers with their state, so as to be reallocated and executed in parallel.
-This execution model is close to the actors model, as the execution containers are independent and communicate by messages.
-The communications are assimilated to stream of messages, similarly to the dataflow programming model.
-It allows to reason on the throughput of these streams, and to react to load increases \cite{Bartenstein2014}.
+This section presents an execution model to provide scalability to web applications with a granularity of parallelism at the function level.
+Functions are encapsulated in autonomous execution containers with their state, so as to be mobile and parallel, similarly to the actors model.
+And the communications are similar to the dataflow programming model, which allows to reason on the throughput of these streams, and to react to load increases \cite{Bartenstein2014}.
+% This execution model is close to the actors model, as the execution containers are independent and communicate by messages.
 % As we focus on real-time web applications, the streams of message correspond to the input stream of requests.
 
 % This execution model is also close to the functional paradigm, as the execution container contains function to execute at each message reception.
@@ -25,11 +22,9 @@ It allows to reason on the throughput of these streams, and to react to load inc
 
 The fluxional execution model executes programs written in our high-level fluxionnal language, whose grammar is presented in figure \ref{fig:flx-lang}.
 An application $\bnfpn{program}$ is partitioned into parts encapsulated in autonomous execution containers named \textit{fluxions} $\bnfpn{flx}$.
-In the following paragraphs, we present the \textit{fluxions}.
-Then we present the messaging system to carry the communications between \textit{fluxions}.
-Finally, we present an example application using this execution model.
+The following paragraphs present the \textit{fluxions} and the messaging system to carry the communications between \textit{fluxions}, and then an example application using this execution model.
 
-\subsection{Fluxions}
+\subsection{Fluxions and Messaging System}
 % $\bnfpn{flx}$
 % $\bnfpn{id}$
 % $\bnfpn{fn}$
@@ -43,10 +38,15 @@ A \textit{fluxion} $\bnfpn{flx}$ is named by a unique identifier $\bnfpn{id}$ to
 A \textit{fluxion} is composed of a processing function $\bnfpn{fn}$, and a local memory called a \textit{context} $\bnfpn{ctx}$.
 % Figure \ref{fig:flx-lang} presents the fluxionnal language we designed to express fluxions.
 % The function encapsulated by a \textit{fluxion} consumes an input stream and generates one or more outputs streams.
+
 At a message reception, the \textit{fluxion} modifies its \textit{context}, and sends messages on its output streams $\bnfpn{streams}$ to downstream \textit{fluxions}.
 The \textit{context} stores the state on which a \textit{fluxion} relies between two message receptions.
+% The messaging system carries the stream communications between fluxions based on the names of the recipient fluxions.
+% After the execution of a \textit{fluxion},
+The messaging system queues the output messages for the event loop to process them later by calling the downstream \textit{fluxions}.
 % A message is composed of the recipient fluxions' names and a body.
 % Message passing is unable\footnote{at reasonable costs} to replace the synchronization allowed by shared state. % and required between some of the application parts.
+
 In addition to message passing, the execution model allows \textit{fluxions} to communicate by sharing state between their \textit{contexts}.
 % To allow this synchronization when required, the execution model allows fluxions to share state between their contexts.
 The fluxions that need this synchronization are grouped with the same tag, and loose their independence.
@@ -54,10 +54,34 @@ The fluxions that need this synchronization are grouped with the same tag, and l
 % Though, the different groups of fluxions are executed in parallel.
 
 There are two types of streams, \textit{start} and \textit{post}, which correspond to the nature of the rupture point yielding the stream.
+A variable created within a chain of \textit{post} streams requires more synchronization than a variable created upstream a \textit{start} stream.
+The two types and implications of rupture points are further detailed in section \ref{section:compiler}.
 % We differentiate the two types with two different arrows, double arrow (\texttt{>>})                         for \textit{start} rupture points and simple arrow (\texttt{->})          for \textit{post} rupture points.
-We differentiate the two types with two different arrows, double arrow ($\to$ \hspace{-1.4em} $\to$ or \texttt{>>}) for \textit{start} rupture points and simple arrow ($\to$ or \texttt{->}) for \textit{post} rupture points.
-The two types of rupture points are further detailed in section \ref{section:compiler:analyzer:rupture}.
+\textit{Start} rupture points are indicated with double arrow ($\to$ \hspace{-1.4em} $\to$ or \texttt{>>}) and \textit{post} rupture points with simple arrow ($\to$ or \texttt{->}).
 
+
+% It is the target for our compiler.
+\begin{figure}[h]
+\vspace{-0.6\baselineskip}
+\begin{bnf*}
+  \bnfprod{program}    {\bnfpn{flx} \bnfor \bnfpn{flx} \bnfsp \bnftd{eol} \bnfsp \bnfpn{program}}\\
+  \bnfprod{flx}        {\bnfts{\texttt{flx}} \bnfsp \bnfpn{id} \bnfsp \bnfpn{tags} \bnfsp \bnfpn{ctx} \bnfsp \bnftd{eol} \bnfsp \bnfpn{streams} \bnfsp \bnftd{eol} \bnfsp \bnfpn{fn}}\\
+  % \bnfprod{tags}       {\bnfts{\bnfpn{id}} \bnfor \bnfpn{id} \bnfsp \bnftd{eol} \bnfsp \bnfpn{tags} \bnfor \bnftd{empty string}}\\
+  \bnfprod{tags}       {\bnfts{\texttt{\&}} \bnfsp \bnfpn{list} \bnfor \bnftd{empty string}}\\
+  \bnfprod{streams}    {\bnfts{\texttt{null}} \bnfor \bnfpn{stream} \bnfor \bnfpn{stream} \bnfsp \bnftd{eol} \bnfsp \bnfpn{streams}}\\
+  \bnfprod{stream}     {\bnfpn{type} \bnfsp \bnfpn{dest} \bnfsp [\bnfpn{msg}]}\\
+  \bnfprod{dest}       {\bnfpn{list}}\\
+  \bnfprod{ctx}        {\bnfts{\texttt{\{}} \bnfpn{list} \bnfts{\texttt{\}}}}\\
+  \bnfprod{msg}        {\bnfts{\texttt{[}} \bnfpn{list} \bnfts{\texttt{]}}}\\
+  \bnfprod{list}       {\bnfpn{id} \bnfor \bnfpn{id} \bnfsp \bnfts{,} \bnfsp \bnfpn{list}}\\
+  \bnfprod{type}       {\bnfts{\texttt{>}\texttt{>}} \bnfor \bnfts{\texttt{-}\texttt{>}}}\\
+  \bnfprod{id}         {\bnftd{Identifier}}\\
+  \bnfprod{fn}         {\bnftd{Source language with~} \bnfpn{stream} \bnftd{~placeholders}}\\
+\end{bnf*}
+\vspace{-2.5\baselineskip}
+\caption{Syntax of a high-level language to represent a program in the fluxionnal form}
+\label{fig:flx-lang}
+\end{figure}
 
 % Fluxions are executed on an event-loop with an isolated heap ; it is a \textit{Node.js} instance.
 % We propose to stretch the execution of an application by distributing the fluxions on different event-loops.
@@ -78,33 +102,7 @@ The two types of rupture points are further detailed in section \ref{section:com
 
 
 
-
-
-
-% It is the target for our compiler.
-\begin{figure}
-\vspace{-0.6\baselineskip}
-\begin{bnf*}
-  \bnfprod{program}    {\bnfpn{flx} \bnfor \bnfpn{flx} \bnfsp \bnftd{eol} \bnfsp \bnfpn{program}}\\
-  \bnfprod{flx}        {\bnfts{\texttt{flx}} \bnfsp \bnfpn{id} \bnfsp \bnfpn{tags} \bnfsp \bnfpn{ctx} \bnfsp \bnftd{eol} \bnfsp \bnfpn{streams} \bnfsp \bnftd{eol} \bnfsp \bnfpn{fn}}\\
-  % \bnfprod{tags}       {\bnfts{\bnfpn{id}} \bnfor \bnfpn{id} \bnfsp \bnftd{eol} \bnfsp \bnfpn{tags} \bnfor \bnftd{empty string}}\\
-  \bnfprod{tags}       {\bnfts{\texttt{\&}} \bnfsp \bnfpn{list} \bnfor \bnftd{empty string}}\\
-  \bnfprod{streams}    {\bnfts{\texttt{null}} \bnfor \bnfpn{stream} \bnfor \bnfpn{stream} \bnfsp \bnftd{eol} \bnfsp \bnfpn{streams}}\\
-  \bnfprod{stream}     {\bnfpn{type} \bnfsp \bnfpn{dest} \bnfsp [\bnfpn{msg}]}\\
-  \bnfprod{dest}       {\bnfpn{list}}\\
-  \bnfprod{ctx}        {\bnfts{\texttt{\{}} \bnfpn{list} \bnfts{\texttt{\}}}}\\
-  \bnfprod{msg}        {\bnfts{\texttt{[}} \bnfpn{list} \bnfts{\texttt{]}}}\\
-  \bnfprod{list}       {\bnfpn{id} \bnfor \bnfpn{id} \bnfsp \bnfts{,} \bnfsp \bnfpn{list}}\\
-  \bnfprod{type}         {\bnfts{\texttt{>}\texttt{>}} \bnfor \bnfts{\texttt{-}\texttt{>}}}\\
-  \bnfprod{id}         {\bnftd{Identifier}}\\
-  \bnfprod{fn}         {\bnftd{Imperative language and stream syntax}}\\
-\end{bnf*}
-\vspace{-2.5\baselineskip}
-\caption{Syntax of a high-level language to represent a program in the fluxionnal form}
-\label{fig:flx-lang}
-\end{figure}
-
-\subsection{Messaging system}
+% \subsection{Messaging system}
 
 % In a distributed approach, the messages between fluxions would be carried over a distributed message broker.
 % However this execution model is only a simulation of a distributed execution environement.
@@ -115,9 +113,6 @@ The two types of rupture points are further detailed in section \ref{section:com
 % Locally, the master worker hosts fluxions that need access to the external network or the global memory.
 % Using a message queue allows to execute multiple processing chains fairly and concurrently, without difference in scheduling local messages, or network messages.
 
-The messaging system assures the stream communications between fluxions.
-It carries messages based on the names of the recipient fluxions.
-After the execution of a fluxion, it queues the resulting messages for the event loop to process.
 % The messages are queued for the event-loop to execute the associated fluxions sequentially.
 
 % The execution model allows each group of fluxions to be executed on a remote event-loop.
@@ -134,29 +129,7 @@ After the execution of a fluxion, it queues the resulting messages for the event
 % The registration is done by calling \texttt{register(<name>, <fn>, <context>)}, \circled{1}.
 % A fluxion can dynamically register other fluxions
 
-The execution cycle of an example fluxional application is illustrated in figure \ref{fig:MesSys}.
-Bigger circles represent registered fluxions, while smaller ones indicate the step in the execution.
-The source code for this application is in listing \ref{lst:source} and the fluxional code for this application is in listing \ref{lst:fluxional}.
-The fluxion \textit{reply} has a context containing the variable \texttt{count} and \texttt{tem\-plate}.
-The plain arrows represent the actual message paths in the messaging system, while the dashed arrows between fluxions represent the message streams as seen in the fluxionnal application.
-% The streams between workers are serialized.
-
-% To assure the consistency of their shared contexts, all the fluxions grouped with the same tag are executed sequentially and share the same message queue.
-% Though, the different groups of fluxions are executed in parallel with different event queues.
-
-% This first message represents the incoming of a request from a user.
-The \textit{main} fluxion is the first fluxion in the flow.
-When the application receives a request, this fluxion triggers the flow with a \texttt{start} message containing the request, \circled{2}.
-This first message is to be received by the next fluxion \textit{handler}, \circled{3} and \circled{4}.
-The fluxion \textit{handler} sends back a message, \circled{5}, to be enqueued, \circled{6}.
-The system loops through steps \circled{3} through \circled{6} until the queue is empty.
-This cycle starts again for each new incoming request causing another \texttt{start} message.
-
-\begin{figure}[h!]
-  \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
-  \caption{The fluxionnal execution model in details}
-  \label{fig:MesSys}
-\end{figure}
+% \nt{the example in figure 2 is only partially explained in text, many parts (group network, program, enqueue...) are not explained.}
 
 % Algorithms \ref{alg:parcours} and \ref{alg:traitement} describe the behavior of the messaging system after the \texttt{start} function invocation.
 
@@ -188,10 +161,7 @@ This cycle starts again for each new incoming request causing another \texttt{st
 % \end{algorithmic}
 % \end{algorithm}
 
-\subsection{Service example}
-
-To illustrate the fluxional execution model, and the compiler, we present in listing \ref{lst:source} an example of a simple web application.
-This application reads a file, and sends it back along with a request counter.
+\subsection{Example}
 
 \begin{code}[js,
   caption={Example web application},
@@ -203,22 +173,50 @@ var app = require('express')(),
 app.get('/', function handler(req, res){ //@\label{lst:source-handler}@
   fs.readFile(__filename, function reply(err, data) {
     count += 1;
-    res.send(err || template(count, data));
+    res.send(err || template(count, data)); //@\label{lst:source-send}@
   });
 }); //@\label{lst:source-handler-end}@
 
 app.listen(8080);
 \end{code}
 
+The fluxional execution model is illustrated with an example application presented in listing \ref{lst:source}.
+This application reads a file, and sends it back along with a request counter.
+The \texttt{handler} function, line \ref{lst:source-handler} to \ref{lst:source-handler-end}, receives the input stream of requests.
+The \texttt{count} variable at line \ref{lst:source-counter} counts the requests, and needs to be persisted between two messages receptions.% in the fluxion \textit{context}.
+The \texttt{template} function formats the output stream to be sent back to the client.
+The \texttt{app.get} and \texttt{res.send} functions, lines \ref{lst:source-handler} and \ref{lst:source-send}, interface the application with the clients.
+And between these two interface functions is a chain of three functions to process the client requests : \texttt{app.get} $\to$ \hspace{-1.4em} $\to$ \texttt{handler} $\to$ \texttt{reply}.
+This chain of functions is transformed into a pipeline, expressed in the high-level fluxionnal language in listing \ref{lst:fluxional}.
+The transformation pocess between the source and the fluxional code is explained later, in section \ref{section:compiler}.
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
+  \caption{The fluxionnal execution model in details}
+  \label{fig:MesSys}
+\end{figure}
+
+The execution is illsutrated in figure \ref{fig:MesSys}.
+The dashed arrows between fluxions represent the message streams as seen in the fluxionnal application.
+The plain arrows represent the operations of the messaging system during the execution.
+These steps are indicated by numeroted circles.
+% In the execution cycle of the example, illustrated in figure \ref{fig:MesSys}, numeroted circles indicate the step in the execution.
+% The bigger circles represent the registered fluxions.
+The \textit{program} register the fluxions in the messageing system, \circled{1}.
+The fluxion \textit{reply} has a context containing the variable \texttt{count} and \texttt{tem\-plate}.
+% The streams between workers are serialized.
+% To assure the consistency of their shared contexts, all the fluxions grouped with the same tag are executed sequentially and share the same message queue.
+% Though, the different groups of fluxions are executed in parallel with different event queues.
+% This first message represents the incoming of a request from a user.
+When the application receives a request, the first fluxion in the stream, \textit{main}, queues a \texttt{start} message containing the request, \circled{2}.
+This first message is to be received by the next fluxion \textit{handler}, \circled{3}, and triggers its execution, \circled{4}.
+The fluxion \textit{handler} sends back a message, \circled{5}, to be enqueued, \circled{6}.
+The system loops through steps \circled{3} through \circled{6} until the queue is empty.
+This cycle starts again for each new incoming request causing another \texttt{start} message.
+
 % The original source code of this application is available in listing \ref{lst:source}\footnote{The listings are also available on github\cite{flx-example}.}.
 % In this example application, some points are worth noticing.
-The \texttt{handler} function, line \ref{lst:source-handler} to \ref{lst:source-handler-end}, receives the input stream of request.
-The \texttt{count} variable at line \ref{lst:source-counter} counts the requests.
-This variable needs to be persisted in the fluxion \textit{context}.
-The \texttt{template} function formats the output stream to be sent back to the client.
-The \texttt{app.get} and \texttt{res.send} functions, respectively line 5 and 8, interface the application with the clients.
-And between these two interface functions is a chain of three functions to process the client requests : \texttt{app.get} $\to$ \hspace{-1.4em} $\to$ \texttt{handler} $\to$ \texttt{reply}.
-This application is transformed into the high-level fluxionnal language in listing \ref{lst:fluxional} which is illustred in Figure \ref{fig:MesSys}.
+
 % We expect a similar result with the compiler described in section \ref{section:compiler}.
 % Horizontal dashed lines show virtual transmission of messages between fluxions although they all go through the messaging system.
 
@@ -229,7 +227,7 @@ This application is transformed into the high-level fluxionnal language in listi
 % \end{figure}
 
 \begin{code}[flx, caption={Example application expressed in the high-level fluxional language}, label={lst:fluxional}]
-flx main & network
+flx main & grp_res
 >> handler [res]
   var app = require('express')(),
       fs = require('fs'),
@@ -244,7 +242,7 @@ flx handler
     fs.readFile(__filename, -> reply); //@\label{lst:fluxional-readfile}@
   }
 
-flx reply & network {count, template}
+flx reply & grp_res {count, template}
 -> null
   function reply(error, data) {
     count += 1; //@\label{lst:fluxional-counter}@
@@ -252,28 +250,30 @@ flx reply & network {count, template}
   }
 \end{code}
 
-The application is organized as follow.
-The flow of requests is received from the clients by the fluxion \texttt{main}, it continues in the fluxion \texttt{handler}, and finally goes through the fluxion \texttt{reply} to be sent back to the clients.
-The fluxions \texttt{main} and \texttt{reply} have the tag \texttt{network}.
-This tag indicates their dependency over the network interface, because they  received the response from and send it back to the clients.
-The fluxion \texttt{handler} doesn't have any dependencies, hence it can be executed in parallel, and replicated.
+% The application is organized as follow.
+The extracted chain of operations is expressed in the fluxional language in listing \ref{lst:fluxional}.
+% The stream of requests is received from the clients by the fluxion \texttt{main}, it continues in the fluxion \texttt{handler}, and finally goes through the fluxion \texttt{reply} to be sent back to the clients.
+The fluxion \texttt{handler} doesn't have any dependencies, so it can be executed in a parallel event-loop.
+The fluxions \texttt{main} and \texttt{reply} belong to the group \texttt{grp\_res}, indicating their dependency over the variable \texttt{res}.
+The group name is arbitrarily chosen by the compiler.
+% The last fluxion, \texttt{reply}, depends on the variable \texttt{res} created by the first fluxion, \texttt{main}.
+% This variable is carried by the stream through the chain of fluxion to the fluxion \texttt{reply} that depends on it.
+% The group \texttt{network} depends on this variable because it holds the references to the network sockets.
+All the fluxions inside a group are executed sequentially on the same event-loop, to protect against concurrent accesses.
 
-The last fluxion, \texttt{reply}, depends on the variable \texttt{res} created by the first fluxion, \texttt{main}.
-This variable is carried by the stream through the chain of fluxion to the fluxion \texttt{reply} that depends on it.
-The group \texttt{network} depends on this variable because it holds the references to the network sockets.
-This variable is created and consumed inside this group, therefore, it doesn't prevent the whole group from being replicated.
-
-However, the last fluxion, \texttt{reply}, depends on its context to holds the variable \texttt{count} which prevents this replication.
-If it did not relied on this state, the group \texttt{network} would be stateless, and could be replicated to cope with the incoming traffic.
+The variable \texttt{res} is created and consumed within a chain of \textit{post} stream.
+Therefore, it is exclusive to one request and cannot be propagated to another request.
+It doesn't prevent the whole group from being replicated.
+However, the fluxion \texttt{reply} depends on the variable \texttt{count} created upstream the \textit{start} stream, which prevents this replication.
+If it did not rely on this state, the group \texttt{grp\_res} would be stateless, and could be replicated to cope with the incoming traffic.
 
 This execution model allows to parallelize the execution of an application.
-Some parts are arranged in pipeline, like the fluxion \texttt{handler}, some other parts are replicated, as could be the group \texttt{network}.
+Some parts are arranged in pipeline, like the fluxion \texttt{handler}, some other parts are replicated, as could be the group \texttt{grp\_res}.
 This parallelization improves the scalability of the application.
 Indeed, as a fluxion contains its state and expresses its dependencies, it can be migrated.
 It allows to adapt the number of fluxions per core to adjust the resource usage in function of the desired throughput.
 
-
-% Fluxions with no state could be replicated to make data parallelism, additionally to the pipeline parallelism.
-
-Our goal, as described in the introduction, is not to propose a new programming paradigm with this high-level language but to automate the architecture shift.
+Our goal, as described in the introduction, is not to propose a new high-level language but to automate the architecture shift.
 We present the compiler to automate this architecture shift in the next section.
+
+\nt{I would also suggest adding labels to one of the fluxions in listing 2 to indicate its tags, context, steams and function.}

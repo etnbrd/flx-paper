@@ -29,20 +29,19 @@
 % The dependencies resulting from closures needs to be addressed, and resolved by our compiler.
 
 The source languages we focus on should present higher-order functions and be implemented as an event-loop with a global memory.
-Javascript is such a language : it doesn't require an event-loop, but it is often implemented on top of an event-loop.
-\textit{Node.js} is an example of such an implementation.
+Javascript is such a language and it is often implemented on top of an event-loop, like in \textit{Node.js}.
 We developed a compiler that transforms a \textit{Node.js} application into a fluxional application compliant with the execution model described in section \ref{section:model}.
+Our compiler uses the \textit{estools}\ftnt{https://github.com/estools} suite to parse, manipulate and generate source code from Abstract Syntax Tree (AST).
+And it is tailored for -- but not limited to -- web applications using \textit{Express}\ftnt{http://expressjs.com/}, the most used \textit{Node.js} web framework.
 
-\begin{figure}[h!]
-\begin{center}
+\begin{figure}
   \includegraphics[width=\linewidth]{ressources/compiler-stream.pdf}
   \caption{Compilation chain}
   \label{fig:compilation}
-\end{center}
 \end{figure}
 
 The chain of compilation is described in figure \ref{fig:compilation}.
-From the source of a \textit{Node.js} application, the compiler extracts an Abstract Syntax Tree (AST) with \texttt{esprima}.
+The compiler extracts an AST from the source with \texttt{esprima}.
 From this AST, the \textit{Analyzer} step identifies the limits of the different application parts and how they relate to form a pipeline.
 This first step outputs a pipeline representation of the application.
 Section \ref{section:compiler:analyzer} explains this first compilation step.
@@ -51,6 +50,11 @@ In the pipeline representation, the stages are not yet independent and encapsula
 From the AST, \texttt{escope} produces a representation of the memory scopes.
 The \textit{Pipeliner} step analyzes the pipeline representation and the scopes representation to distribute the shared memory into independent groups of fluxions.
 Section \ref{section:compiler:pipeliner} explains this second compilation step.
+
+%% to integrate
+
+% It modifies AST, as described in \cite{Jones2003}.
+% The implementation of the analyzer might be inspired from the points-to analysis in future works \cite{Wei2014}.
 
 % We do not target all Javascript Web-based application as this work is only a proof of concept for the compilation.
 % Our goal is to compile a few real applications without modifying their code, so as to validate this approach.
@@ -69,7 +73,6 @@ Figure \ref{fig:basicrp} shows a code example of a rupture point with the illust
 The two application parts are the caller of the asynchronous function call on one hand, and the callback provided to the asynchronous function call on the other hand.
 
 \begin{figure}[h!]
-\begin{center}
   \includegraphics[width=\linewidth]{ressources/basicrp.pdf}
   \begin{code}
 asyncCall(arguments, function callback(result){ //@\circled{2}@ });
@@ -77,23 +80,21 @@ asyncCall(arguments, function callback(result){ //@\circled{2}@ });
   \end{code}
   \caption{Rupture point interface}
   \label{fig:basicrp}
-\end{center}
 \end{figure}
 
 A callback is a function passed as a parameter to a function call.
 It is invoked by the callee to continue the execution with data not available in the caller context.
-We distinguish three kinds of callbacks, but only two are asynchronous : listeners and continuations.
+There are three kinds of callbacks, but only two are asynchronous: listeners and continuations.
 % \textbf{Iterators} are functions called for each item in a set, often synchronously.
 % \textbf{Listeners} are functions called asynchronously for each event in a stream.
 % \textbf{Continuations} are functions called asynchronously once a result is available.
-Similarly, there are two types of rupture points, respectively \textit{start} and \textit{post}.
+The two corresponding types of rupture points are \textit{start} and \textit{post}.
 
-\textbf{Start rupture points} are indicated by listeners. They are on the border between the application and the outside, continuously receiving incoming user requests.
+\textbf{Start rupture points} (listeners) are on the border between the application and the outside, continuously receiving incoming user requests.
 An example of a start rupture point is in listing \ref{lst:source}, between the call to \texttt{app.get()}, and its listener \texttt{handler}.
 These rupture points indicate the input of a data stream in the program, and the beginning of a chain of fluxions to process this stream.
 
-\textbf{Post rupture points} are indicated by continuations.
-They represent a continuity in the execution flow after an asynchronous operation yielding a unique result, such as reading a file, or querying a database.
+\textbf{Post rupture points} (continuations) represent a continuity in the execution flow after an asynchronous operation yielding a unique result, such as reading a file, or a database.
 An example of a post rupture points is in listing \ref{lst:source}, between the call to \texttt{fs.readFile()}, and its continuation \texttt{reply}.
 
 % The compilation results for these rupture points is illustrated in listing \ref{lst:ex-jsres} and explained in section \ref{section:example}.
@@ -114,11 +115,11 @@ To identify the callee, the analyzer walks the AST to find a call expression mat
 % In listing \ref{lst:rupturepoints}, the compiler adds both variables \texttt{app} and \texttt{fs} in this list.
 % When the compiler encounters a call expression, it compares its callee name with this list to spot asynchronous functions.
 
-After the identification of the callee, the callback needs to be identified as well to be encapsulated in the downstream fluxion.
+After the identification of the callee, the callback needs to be identified as well, to be encapsulated in the downstream fluxion.
 For each asynchronous call detected, the compiler test if one of the arguments is of type \texttt{function}.
 Some callback functions are declared \textit{in situ}, and are trivially detected.
 For variable identifier, and other expressions, the analyzer tries to detect their type.
-To do so, the analyzer walks back the AST to track their assignations and modifications, and to determine their last value.
+The analyzer walks back the AST to track their assignations and modifications, so as to determine their last value.
 % It walks an intermediate representation of the source code to spot the statements modifying a variable.
 % From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
 
@@ -143,11 +144,9 @@ Depending on this representation, the compiler can replace the broken closures i
 We present these three alternatives with the example figure \ref{fig:states}.
 
 \begin{figure}[h!]
-\begin{center}
   \includegraphics[width=\linewidth]{ressources/states.pdf}
   \caption{Variable management from Javascript to the high-level fluxionnal language}
   \label{fig:states}
-\end{center}
 \end{figure}
 
 \paragraph{Scope}
@@ -180,7 +179,7 @@ Therefore, no reading of the variable by the upstream fluxion happens after the 
 If a variable is needed for modification by several application parts, or is read by an upstream application part, then it needs to be synchronized between the fluxions.
 % The synchronization of a distributed memory is a well-known subject starting with the BASE semantics\cite{Fox1997}.
 To respect the semantics of the source application, we cannot tolerate inconsistencies.
-Therefore, the pipeliner groups all the fluxions sharing this variable within a same tag.
+Therefore, the pipeliner groups all the fluxions sharing this variable within the same tag.
 % Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
 And it adds this variable to the contexts of each fluxions.
 
