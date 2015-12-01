@@ -3,19 +3,19 @@
 Splitting a task into independent parts goes back to the Actor's model, functional programming \cite{Hughes1989} and the following works on Data\-Flow leading to Flow-based Programming (FBP) and Functional Reactive program\-ming (FRP) \cite{Elliott1997}.
 Both FBP and FRP, recently got some attention in the Javascript community with \textit{NoFlo}\ftnt{http://noflojs.org/}, \textit{Bacon.js}\ftnt{https://baconjs.github.io/} and \textit{react}\ftnt{https://facebook.github.io/react/}.
 
-The execution model we presented in section \ref{section:model}, is inspired by some works on scalability for very large systems, like the Staged Event-Driven Architecture (SEDA) by Matt Welsh \cite{Welsh2000} and by the MapReduce architecture \cite{Dean2008}.
+The execution model we presented in section \ref{section:model}, is inspired by works on scalability for very large systems, like the Staged Event-Driven Architecture (SEDA) by Matt Welsh \cite{Welsh2000} and by the MapReduce architecture \cite{Dean2008}.
 It also drew its inspiration from more recent work following SEDA like Spark \cite{Zaharia2012}, MillWheel \cite{Akidau2013}, Naiad \cite{McSherry} and Storm \cite{Toshniwal2014}.
 The first part of our work stands upon these thorough studies.
 However, we believe that it is difficult for most developers to distribute the state of an application.
 % However, we believe that it is too difficult for most developers to express an application into a network of independent parts communicating through messages.
-This belief motivated us to propose a compiler from an imparative programming model to these more scalable, distributed execution engines.
+This belief motivated us to propose a compiler from an imperative programming model to these more scalable, distributed execution engines.
 
 % The compiler makes use of the work on the BASE\cite{Fox1997} data semantics to justify trading off consitency for availability.
 % We cite the work on the BASE\cite{Fox1997} and ACID data semantics, but the compiler doesn't use these works.
 
 The transformation of an imperative programming model to be executed onto a parallel execution engine was recently addressed by Fernandez \textit{et. al.} \cite{Fernandez2014a}.
 However, as in similar works \cite{Power2010}, it requires annotations from developers, therefore partially conserves the disruption with the feature-based development.
-Our approach avoids the need for annotations, thus targets a broader range of developers, and not only ones experienced with parallel development.
+Our approach avoids the need for annotations, thus targets a broader range of developers than only ones experienced with parallel development.
 % aims at improving furthermore the accessibility.
 % Developers seems to have little difficulties programming in an asynchronous concurrent programming model, like the Javascript event-loop.
 % In such programming model, the memory is global but the algorithm is ripped into multiple, asynchronous steps.

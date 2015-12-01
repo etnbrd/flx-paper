@@ -29,7 +29,7 @@
 % The dependencies resulting from closures needs to be addressed, and resolved by our compiler.
 
 The source languages we focus on should present higher-order functions and be implemented as an event-loop with a global memory.
-Javascript is such a language as it is often implemented on top of an event-loop, like in \textit{Node.js}.
+Javascript is such a language and it is often implemented on top of an event-loop, like in \textit{Node.js}.
 We developed a compiler that transforms a \textit{Node.js} application into a fluxional application compliant with the execution model described in section \ref{section:model}.
 Our compiler uses the \textit{estools}\ftnt{https://github.com/estools} suite to parse, manipulate and generate source code from Abstract Syntax Tree (AST).
 And it is tailored for -- but not limited to -- web applications using \textit{Express}\ftnt{http://expressjs.com/}, the most used \textit{Node.js} web framework.
@@ -41,7 +41,7 @@ And it is tailored for -- but not limited to -- web applications using \textit{E
 \end{figure}
 
 The chain of compilation is described in figure \ref{fig:compilation}.
-The compiler extracts an AST with \texttt{esprima} from the source.
+The compiler extracts an AST from the source with \texttt{esprima}.
 From this AST, the \textit{Analyzer} step identifies the limits of the different application parts and how they relate to form a pipeline.
 This first step outputs a pipeline representation of the application.
 Section \ref{section:compiler:analyzer} explains this first compilation step.
@@ -115,11 +115,11 @@ To identify the callee, the analyzer walks the AST to find a call expression mat
 % In listing \ref{lst:rupturepoints}, the compiler adds both variables \texttt{app} and \texttt{fs} in this list.
 % When the compiler encounters a call expression, it compares its callee name with this list to spot asynchronous functions.
 
-After the identification of the callee, the callback needs to be identified as well to be encapsulated in the downstream fluxion.
+After the identification of the callee, the callback needs to be identified as well, to be encapsulated in the downstream fluxion.
 For each asynchronous call detected, the compiler test if one of the arguments is of type \texttt{function}.
 Some callback functions are declared \textit{in situ}, and are trivially detected.
 For variable identifier, and other expressions, the analyzer tries to detect their type.
-To do so, the analyzer walks back the AST to track their assignations and modifications, and to determine their last value.
+The analyzer walks back the AST to track their assignations and modifications, so as to determine their last value.
 % It walks an intermediate representation of the source code to spot the statements modifying a variable.
 % From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
 
