@@ -29,7 +29,7 @@
 % The dependencies resulting from closures needs to be addressed, and resolved by our compiler.
 
 The source languages we focus on should present higher-order functions and be implemented as an event-loop with a global memory.
-Javascript is such a language and it is often implemented on top of an event-loop, like in \textit{Node.js}.
+Javascript is such a language and is often implemented on top of an event-loop, like in \textit{Node.js}.
 We developed a compiler that transforms a \textit{Node.js} application into a fluxional application compliant with the execution model described in section \ref{section:model}.
 Our compiler uses the \textit{estools}\ftnt{https://github.com/estools} suite to parse, manipulate and generate source code from Abstract Syntax Tree (AST).
 And it is tailored for -- but not limited to -- web applications using \textit{Express}\ftnt{http://expressjs.com/}, the most used \textit{Node.js} web framework.
@@ -116,9 +116,9 @@ To identify the callee, the analyzer walks the AST to find a call expression mat
 % When the compiler encounters a call expression, it compares its callee name with this list to spot asynchronous functions.
 
 After the identification of the callee, the callback needs to be identified as well, to be encapsulated in the downstream fluxion.
-For each asynchronous call detected, the compiler test if one of the arguments is of type \texttt{function}.
+For each asynchronous call detected, the compiler tests if one of the arguments is of type \texttt{function}.
 Some callback functions are declared \textit{in situ}, and are trivially detected.
-For variable identifier, and other expressions, the analyzer tries to detect their type.
+For variable identifiers, and other expressions, the analyzer tries to detect their type.
 The analyzer walks back the AST to track their assignations and modifications, so as to determine their last value.
 % It walks an intermediate representation of the source code to spot the statements modifying a variable.
 % From this intermediate representation, the variable tracker builds a dependency graph which helps the analyzer to detect the type of a variable at a certain point in the execution.
@@ -179,7 +179,7 @@ Therefore, no reading of the variable by the upstream fluxion happens after the 
 If a variable is needed for modification by several application parts, or is read by an upstream application part, then it needs to be synchronized between the fluxions.
 % The synchronization of a distributed memory is a well-known subject starting with the BASE semantics\cite{Fox1997}.
 To respect the semantics of the source application, we cannot tolerate inconsistencies.
-Therefore, the pipeliner groups all the fluxions sharing this variable within the same tag.
+Therefore, the pipeliner groups all the fluxions sharing this variable with the same tag.
 % Similarly, if a fluxion shares references or closures with other fluxions, either in its context, or streams, they need to be hosted on the same worker.
 And it adds this variable to the contexts of each fluxions.
 

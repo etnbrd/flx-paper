@@ -22,9 +22,9 @@ Our approach avoids the need for annotations, thus targets a broader range of de
 % While the synchronous concurrent programming model, based on multi-threading and locks to assure the consistency of shared states, is known to be more difficult to apprehend by novice developers \cite{Adya2002}.
 
 A great body of work focus on parallelizing sequential programs \cite{Banerjee2013,Li2012,Matsakis2012a,Radoi2014}. % \comment{TODO citation ?}
-Because of the synchronous execution of a sequential program, the speedup of parallelization is inherently limited.
+Because of the synchronous execution of a sequential program, the speedup of parallelization is inherently limited \cite{Amdahl1967,Gunther2008}.
 On the other hand, our approach is based on an asynchronous programming model.
-Hence the attainable speedup is not limited by the main synchronous thread of execution \cite{Amdahl1967,Gunther2008}.
+Hence the attainable speedup is not limited by the main synchronous thread of execution.
 
 % TODO
 % There is some work on the transformation of a program into distributed parts\cite{Amini2012, Petit2009}.

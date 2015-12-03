@@ -5,6 +5,7 @@ This section presents a test of the compiler on a real application, gifsockets-s
 % We chosed it because it is a working application, simple enough to illustrate this evaluation.
 This test proves the possibility for an application to be compiled into a network of independent parts.
 It shows the current limitations of this isolation and the modifications needed on the application to circumvent them.
+This section then presents future works.
 
 \begin{code}[js, caption={Simplified version of gifsockets-server},label={lst:gifsocket}]
 var express = require('express'),
@@ -54,7 +55,7 @@ For this reason, the compiler ignores this rupture point, to avoid interfering w
 
 
 \begin{code}[flx, caption={Compilation result of gifsockets-server},label={lst:flx-gifsocket}]
-flx main & express
+flx main & express {req}
 >> anonymous_1000 [req, next]
   var express = require('express'),
       app = express(),
@@ -95,15 +96,17 @@ When \texttt{anonymous\_\-1000} is not isolated from the \texttt{main} fluxion, 
 The variables used in the fluxion, \texttt{req} and \texttt{next}, are still shared between the two fluxions.
 Our goal is to isolate the two fluxions, to be able to safely parallelize their executions.
 
+\eject
+
 \subsection{Isolation}
 
-\vspace{-\baselineskip}
+% \vspace{-\baselineskip}
 
 In listing \ref{lst:flx-gifsocket}, the fluxion \texttt{anonymous\_1000} modifies the object \texttt{req}, line \ref{lst:flx-gifsocket:buffer}, to store the text of the received request, and it calls \texttt{next} to continue the execution, line \ref{lst:flx-gifsocket:next}.
 These operations produce side-effects that should propagate in the whole application, but the isolation prevents this propagation.
 Isolating the fluxion \texttt{anonymous\_1000} produces runtime exceptions.
 We detail in the next paragraph, how we handle this situation to allow the application to be parallelized.
-This test highlights the current limitations of the compiler, and presents future works to circumvent them.
+% This test highlights the current limitations of the compiler, and presents future works to circumvent them.
 
 \subsubsection{Variable \texttt{req}}
 
@@ -122,7 +125,7 @@ We explain further modification of this function in the next paragraph.
 The function \texttt{next} is a closure provided by the \texttt{express} \texttt{Router} to continue the execution with the next function to handle the client request.
 Because it indirectly relies on the variable \texttt{req}, it is impossible to isolate its execution with the \texttt{anonymous\_\-1000} fluxion.
 Instead, we modify \texttt{express}, so as to be compatible with the fluxionnal execution model.
-We explain the modification below.% , and illustrate them in listing \ref{lst:mflx-gifsocket}.
+We explain the modifications below.% , and illustrate them in listing \ref{lst:mflx-gifsocket}.
 % The \texttt{req} and \texttt{next} objects needs to stay on the master worker to preserve their closures.
 
 % \begin{code}[flx, caption={Simplified modification on the compiled result},label={lst:mflx-gifsocket}]
@@ -155,7 +158,7 @@ flx anonymous_1000
     next_placeholder(req, -> express_dispatcher); //@\label{lst:mflx-gifsocket:next-placeholder}@
   }
 
-flx express_dispatcher & express //@\label{lst:mflx-gifsocket:express-dispatcher}@
+flx express_dispatcher & express {req} //@\label{lst:mflx-gifsocket:express-dispatcher}@
 -> null
   function (modified_req) {
     merge(req, modified_req);

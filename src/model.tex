@@ -39,7 +39,7 @@ A \textit{fluxion} is composed of a processing function $\bnfpn{fn}$, and a loca
 % Figure \ref{fig:flx-lang} presents the fluxionnal language we designed to express fluxions.
 % The function encapsulated by a \textit{fluxion} consumes an input stream and generates one or more outputs streams.
 
-At a message reception, the \textit{fluxion} modifies its \textit{context}, and sends messages on its output streams $\bnfpn{streams}$ to downstream \textit{fluxions}.
+At a message reception, the \textit{fluxion} modifies its \textit{context}, and sends messages to downstream \textit{fluxions} on its output streams $\bnfpn{streams}$.
 The \textit{context} stores the state on which a \textit{fluxion} relies between two message receptions.
 % The messaging system carries the stream communications between fluxions based on the names of the recipient fluxions.
 % After the execution of a \textit{fluxion},
@@ -251,7 +251,7 @@ flx reply & grp_res {count, template}
 \end{code}
 
 % The application is organized as follow.
-The extracted chain of operations is expressed in the fluxional language in listing \ref{lst:fluxional}.
+The chain of functions from listing \ref{lst:source} is expressed in the fluxional language in listing \ref{lst:fluxional}.
 % The stream of requests is received from the clients by the fluxion \texttt{main}, it continues in the fluxion \texttt{handler}, and finally goes through the fluxion \texttt{reply} to be sent back to the clients.
 The fluxion \texttt{handler} doesn't have any dependencies, so it can be executed in a parallel event-loop.
 The fluxions \texttt{main} and \texttt{reply} belong to the group \texttt{grp\_res}, indicating their dependency over the variable \texttt{res}.
@@ -267,8 +267,8 @@ It doesn't prevent the whole group from being replicated.
 However, the fluxion \texttt{reply} depends on the variable \texttt{count} created upstream the \textit{start} stream, which prevents this replication.
 If it did not rely on this state, the group \texttt{grp\_res} would be stateless, and could be replicated to cope with the incoming traffic.
 
-This execution model allows to parallelize the execution of an application.
-Some parts are arranged in pipeline, like the fluxion \texttt{handler}, some other parts are replicated, as could be the group \texttt{grp\_res}.
+This execution model allows to parallelize the execution of an application as a pipeline, like with the fluxion \texttt{handler}.
+And some parts are replicated, as could be the group \texttt{grp\_res}.
 This parallelization improves the scalability of the application.
 Indeed, as a fluxion contains its state and expresses its dependencies, it can be migrated.
 It allows to adapt the number of fluxions per core to adjust the resource usage in function of the desired throughput.
