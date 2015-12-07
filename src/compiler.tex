@@ -28,7 +28,7 @@
 % To execute a callback in parallel, its memory needs to be independent from the global memory.
 % The dependencies resulting from closures needs to be addressed, and resolved by our compiler.
 
-The source languages we focus on should present higher-order functions and be implemented as an event-loop with a global memory.
+The source languages we focus on should offer higher-order functions and be implemented as an event-loop with a global memory.
 Javascript is such a language and is often implemented on top of an event-loop, like in \textit{Node.js}.
 We developed a compiler that transforms a \textit{Node.js} application into a fluxional application compliant with the execution model described in section \ref{section:model}.
 Our compiler uses the \textit{estools}\ftnt{https://github.com/estools} suite to parse, manipulate and generate source code from Abstract Syntax Tree (AST).
@@ -62,13 +62,14 @@ Section \ref{section:compiler:pipeliner} explains this second compilation step.
 \subsection{Analyzer step} \label{section:compiler:analyzer}
 
 The limit between two application parts is defined by a rupture point.
-The analyzer identifies these rupture points, and outputs a representation of the application in a pipeline form, with application parts as the stages, and rupture points as the message streams of this pipeline.
+The analyzer identifies these rupture points, and outputs a representation of the application in a pipeline form.
+Application parts are the stages, and rupture points are the message streams of this pipeline.
 
 \subsubsection{Rupture points} \label{section:compiler:analyzer:rupture}
 
 A rupture point is a call of a loosely coupled function.
 It is an asynchronous call without subsequent synchronization with the caller.
-In \textit{Node.js}, I/O operations are asynchronous functions and indicate such rupture point between two application parts.
+In \textit{Node.js}, I/O operations are asynchronous functions and indicate rupture points between two application parts.
 Figure \ref{fig:basicrp} shows a code example of a rupture point with the illustration of the execution of the two application parts isolated into fluxions.
 The two application parts are the caller of the asynchronous function call on one hand, and the callback provided to the asynchronous function call on the other hand.
 
@@ -141,7 +142,7 @@ The closure in the downstream fluxion cannot access the scope in the upstream fl
 The pipeliner step replaces the need for this closure, allowing application parts to rely only on independent memory stores and message passing.
 It determines the distribution using the scope representation, which represents the variables' dependencies between application parts.
 Depending on this representation, the compiler can replace the broken closures in three different ways.
-We present these three alternatives with the example figure \ref{fig:states}.
+We present these three alternatives in figure \ref{fig:states}.
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/states.pdf}
@@ -158,8 +159,9 @@ The pipeliner step stores this variable in the context of the fluxion \texttt{ad
 % If the context of a fluxion doesn't contains references shared with other fluxions, then it can be isolated on its own worker for its execution to be parallelized.
 
 \paragraph{Stream}
-If a variable is modified inside an application part, and read inside downstream application parts, then the pipeliner makes the upstream fluxion add this variable to the message stream to be sent to the downstream fluxions.
-It is impossible to send variables to upstream flux\-ions, without race conditions.
+% If a variable is modified inside an application part, and read inside downstream application parts, then the pipeliner makes the upstream fluxion add this variable to the message stream to be sent to the downstream fluxions.
+If a modified variable is read by downstream application parts, then the pipeliner makes the upstream fluxion add this variable to the message stream to be sent to the downstream fluxions.
+It is impossible to send variables to upstream flux\-ions, without causing inconsistencies.
 If the fluxion retro propagates the variable for an upstream fluxion to read, the upstream fluxion might use the old version while the new version is on its way.
 
 In figure \ref{fig:states}, the variable \texttt{b} is set in the function \texttt{onReq}, and read in the function \texttt{add}.

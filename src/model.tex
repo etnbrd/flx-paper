@@ -13,7 +13,7 @@
 
 This section presents an execution model to provide scalability to web applications with a granularity of parallelism at the function level.
 Functions are encapsulated in autonomous execution containers with their state, so as to be mobile and parallel, similarly to the actors model.
-And the communications are similar to the dataflow programming model, which allows to reason on the throughput of these streams, and to react to load increases \cite{Bartenstein2014}.
+The communications are similar to the dataflow programming model, which allows to reason on the throughput of these streams, and to react to load increases \cite{Bartenstein2014}.
 % This execution model is close to the actors model, as the execution containers are independent and communicate by messages.
 % As we focus on real-time web applications, the streams of message correspond to the input stream of requests.
 
@@ -53,11 +53,11 @@ The fluxions that need this synchronization are grouped with the same tag, and l
 % To assure the consistency of the shared state, all the fluxions of a group are executed sequentially.
 % Though, the different groups of fluxions are executed in parallel.
 
-There are two types of streams, \textit{start} and \textit{post}, which correspond to the nature of the rupture point yielding the stream.
+There are two types of streams, \textit{start} and \textit{post}, which correspond to the nature of the rupture point producing the stream.
 A variable created within a chain of \textit{post} streams requires more synchronization than a variable created upstream a \textit{start} stream.
 The two types and implications of rupture points are further detailed in section \ref{section:compiler}.
 % We differentiate the two types with two different arrows, double arrow (\texttt{>>})                         for \textit{start} rupture points and simple arrow (\texttt{->})          for \textit{post} rupture points.
-\textit{Start} rupture points are indicated with double arrow ($\to$ \hspace{-1.4em} $\to$ or \texttt{>>}) and \textit{post} rupture points with simple arrow ($\to$ or \texttt{->}).
+\textit{Start} rupture points are indicated with a double arrow ($\to$ \hspace{-1.4em} $\to$ or \texttt{>>}) and \textit{post} rupture points with a simple arrow ($\to$ or \texttt{->}).
 
 
 % It is the target for our compiler.
@@ -183,12 +183,12 @@ app.listen(8080);
 The fluxional execution model is illustrated with an example application presented in listing \ref{lst:source}.
 This application reads a file, and sends it back along with a request counter.
 The \texttt{handler} function, line \ref{lst:source-handler} to \ref{lst:source-handler-end}, receives the input stream of requests.
-The \texttt{count} variable at line \ref{lst:source-counter} counts the requests, and needs to be persisted between two messages receptions.% in the fluxion \textit{context}.
+The \texttt{count} variable at line \ref{lst:source-counter} counts the requests, and needs to be saved between two messages receptions.% in the fluxion \textit{context}.
 The \texttt{template} function formats the output stream to be sent back to the client.
 The \texttt{app.get} and \texttt{res.send} functions, lines \ref{lst:source-handler} and \ref{lst:source-send}, interface the application with the clients.
-And between these two interface functions is a chain of three functions to process the client requests : \texttt{app.get} $\to$ \hspace{-1.4em} $\to$ \texttt{handler} $\to$ \texttt{reply}.
+Between these two interface functions is a chain of three functions to process the client requests : \texttt{app.get} $\to$ \hspace{-1.4em} $\to$ \texttt{handler} $\to$ \texttt{reply}.
 This chain of functions is transformed into a pipeline, expressed in the high-level fluxionnal language in listing \ref{lst:fluxional}.
-The transformation pocess between the source and the fluxional code is explained later, in section \ref{section:compiler}.
+The transformation process between the source and the fluxional code is explained in section \ref{section:compiler}.
 
 \begin{figure}[h!]
   \includegraphics[width=\linewidth]{ressources/schema-message.pdf}
@@ -196,13 +196,13 @@ The transformation pocess between the source and the fluxional code is explained
   \label{fig:MesSys}
 \end{figure}
 
-The execution is illsutrated in figure \ref{fig:MesSys}.
+The execution is illustrated in figure \ref{fig:MesSys}.
 The dashed arrows between fluxions represent the message streams as seen in the fluxionnal application.
 The plain arrows represent the operations of the messaging system during the execution.
 These steps are indicated by numeroted circles.
 % In the execution cycle of the example, illustrated in figure \ref{fig:MesSys}, numeroted circles indicate the step in the execution.
 % The bigger circles represent the registered fluxions.
-The \textit{program} register the fluxions in the messageing system, \circled{1}.
+The \textit{program} registers its fluxions in the messageing system, \circled{1}.
 The fluxion \textit{reply} has a context containing the variable \texttt{count} and \texttt{tem\-plate}.
 % The streams between workers are serialized.
 % To assure the consistency of their shared contexts, all the fluxions grouped with the same tag are executed sequentially and share the same message queue.
@@ -267,13 +267,13 @@ It doesn't prevent the whole group from being replicated.
 However, the fluxion \texttt{reply} depends on the variable \texttt{count} created upstream the \textit{start} stream, which prevents this replication.
 If it did not rely on this state, the group \texttt{grp\_res} would be stateless, and could be replicated to cope with the incoming traffic.
 
-This execution model allows to parallelize the execution of an application as a pipeline, like with the fluxion \texttt{handler}.
+This execution model allows to parallelize the execution of an application as a pipeline, as with the fluxion \texttt{handler}.
 And some parts are replicated, as could be the group \texttt{grp\_res}.
 This parallelization improves the scalability of the application.
 Indeed, as a fluxion contains its state and expresses its dependencies, it can be migrated.
 It allows to adapt the number of fluxions per core to adjust the resource usage in function of the desired throughput.
 
-Our goal, as described in the introduction, is not to propose a new high-level language but to automate the architecture shift.
-We present the compiler to automate this architecture shift in the next section.
+Our goal, as described in the introduction, is not to propose a new high-level language but to automate the architectural shift.
+We present the compiler to automate this architectural shift in the next section.
 
-\nt{I would also suggest adding labels to one of the fluxions in listing 2 to indicate its tags, context, steams and function.}
+% \nt{I would also suggest adding labels to one of the fluxions in listing 2 to indicate its tags, context, steams and function.}

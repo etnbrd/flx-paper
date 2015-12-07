@@ -1,4 +1,4 @@
-\section{Real case test} \label{section:evaluation}
+\section{Real test case} \label{section:evaluation}
 
 This section presents a test of the compiler on a real application, gifsockets-server\ftnt{https://github.com/twolfson/gifsockets-server}.
 % This application is part of the selection from our previous paper \cite{Brodu2015}.
@@ -45,7 +45,7 @@ Its callback handles the errors, and calls \texttt{next} to continue processing 
 \subsection{Compilation}
 
 We compile this application with the compiler detailed in section \ref{section:compiler}.
-The compilation result is in listing \ref{lst:flx-gifsocket}.
+Listing \ref{lst:flx-gifsocket} presents the compilation result.
 % The function \texttt{getRawBody}, line \ref{lst:gifsocket:getRawBody}, is asynchronous.
 The function call \texttt{app.post}, line \ref{lst:gifsocket:app.post}, is a rupture point.
 However, its callbacks, \texttt{bodyParser} and \texttt{routes.write\-Text\-To\-Images} are evaluated as functions only at runtime.

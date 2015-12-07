@@ -15,13 +15,13 @@ This belief motivated us to propose a compiler from an imperative programming mo
 
 The transformation of an imperative programming model to be executed onto a parallel execution engine was recently addressed by Fernandez \textit{et. al.} \cite{Fernandez2014a}.
 However, as in similar works \cite{Power2010}, it requires annotations from developers, therefore partially conserves the disruption with the feature-based development.
-Our approach avoids the need for annotations, thus targets a broader range of developers than only ones experienced with parallel development.
+Our approach discards the need for annotations, thus targets a broader range of developers than only ones experienced with parallel development.
 % aims at improving furthermore the accessibility.
 % Developers seems to have little difficulties programming in an asynchronous concurrent programming model, like the Javascript event-loop.
 % In such programming model, the memory is global but the algorithm is ripped into multiple, asynchronous steps.
 % While the synchronous concurrent programming model, based on multi-threading and locks to assure the consistency of shared states, is known to be more difficult to apprehend by novice developers \cite{Adya2002}.
 
-A great body of work focus on parallelizing sequential programs \cite{Banerjee2013,Li2012,Matsakis2012a,Radoi2014}. % \comment{TODO citation ?}
+A great body of work focuses on parallelizing sequential programs \cite{Banerjee2013,Li2012,Matsakis2012a,Radoi2014}. % \comment{TODO citation ?}
 Because of the synchronous execution of a sequential program, the speedup of parallelization is inherently limited \cite{Amdahl1967,Gunther2008}.
 On the other hand, our approach is based on an asynchronous programming model.
 Hence the attainable speedup is not limited by the main synchronous thread of execution.
