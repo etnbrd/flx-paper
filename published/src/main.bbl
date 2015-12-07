@@ -1,0 +1,426 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.5 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \sortlist{nty}{nty}
+    \entry{Akidau2013}{article}{}
+      \name{author}{2}{}{%
+        {{hash=9b03535781b5c447925402c3ac5aec0f}{Akidau}{A\bibinitperiod}{T}{T\bibinitperiod}{}{}{}{}}%
+        {{hash=b1dd2d63a817c9591bd3533ccbd5fdef}{Balikov}{B\bibinitperiod}{A}{A\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{2275261dda800fb6b33cdbd8bb8d7b51}
+      \strng{fullhash}{2275261dda800fb6b33cdbd8bb8d7b51}
+      \field{sortinit}{A}
+      \field{sortinithash}{b685c7856330eaee22789815b49de9bb}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{VLDB}
+      \field{title}{MillWheel: Fault-Tolerant Stream Processing at Internet Scale}
+      \field{year}{2013}
+      \verb{url}
+      \verb http://research.google.com/pubs/archive/41378.pdf
+      \endverb
+    \endentry
+    \entry{Amdahl1967}{article}{}
+      \name{author}{1}{}{%
+        {{hash=49ce982cc189c493494ef88566096795}{Amdahl}{A\bibinitperiod}{G}{G\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{49ce982cc189c493494ef88566096795}
+      \strng{fullhash}{49ce982cc189c493494ef88566096795}
+      \field{sortinit}{A}
+      \field{sortinithash}{b685c7856330eaee22789815b49de9bb}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{AFIPS}
+      \field{title}{Validity of the Single Processor Approach to Achieving Large Scale Computing Capabilities}
+      \field{year}{1967}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=1465560%20http://delivery.acm.org/10.1145/1470000/1465560/p483-amdahl.pdf?ip=202.189.127.238&id=1465560&acc=ACTIVE%20SERVICE&key=CDD1E79C27AC4E65.DE0A32330AE3471B.4D4702B0C3E38B35.4D4702B0C3E38B35&CFID=646862329&CFTOKEN=33418
+      \endverb
+    \endentry
+    \entry{Banerjee2013}{book}{}
+      \name{author}{1}{}{%
+        {{hash=dd61d6c0cd18ba94c6044484b2c7536d}{Banerjee}{B\bibinitperiod}{U}{U\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{dd61d6c0cd18ba94c6044484b2c7536d}
+      \strng{fullhash}{dd61d6c0cd18ba94c6044484b2c7536d}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Loop parallelization}
+      \field{year}{2013}
+      \verb{url}
+      \verb https://books.google.com/books?hl=en&lr=&id=9xXrBwAAQBAJ&oi=fnd&pg=PR13&dq=loop+parallelization&ots=flLbnvNcCM&sig=a1VFNFLS3_TRjBVdpPr8mrH-0DE
+      \endverb
+    \endentry
+    \entry{Bartenstein2014}{article}{}
+      \name{author}{2}{}{%
+        {{hash=ced8bb847d91b61f00cec532c3b1643a}{Bartenstein}{B\bibinitperiod}{T}{T\bibinitperiod}{}{}{}{}}%
+        {{hash=ce084360cc68e7db4fe6cae1287b3adf}{Liu}{L\bibinitperiod}{Y}{Y\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{1dde6faddf552f2408a74a7bfdc5abae}
+      \strng{fullhash}{1dde6faddf552f2408a74a7bfdc5abae}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{OOPSLA}
+      \field{title}{Rate Types for Stream Programs}
+      \field{year}{2014}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=2660225
+      \endverb
+    \endentry
+    \entry{Brodu2015}{article}{}
+      \name{author}{3}{}{%
+        {{hash=e62610f1613142128c563758ab844d8f}{Brodu}{B\bibinitperiod}{E}{E\bibinitperiod}{}{}{}{}}%
+        {{hash=38c6428be6dbaf7b3bac7c8d45857637}{Frénot}{F\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=753d82425f5cd0797afd19423b504871}{Oblé}{O\bibinitperiod}{F}{F\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{6faf65ee851ce9123f637e2da3afc115}
+      \strng{fullhash}{6faf65ee851ce9123f637e2da3afc115}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{AWeS}
+      \field{title}{Toward automatic update from callbacks to Promises}
+      \field{year}{2015}
+      \verb{url}
+      \verb https://hal.archives-ouvertes.fr/hal-01132776/
+      \endverb
+    \endentry
+    \entry{Clements2013a}{article}{}
+      \name{author}{5}{}{%
+        {{hash=479ca1d484ab735f6aea4ad2161f97ab}{Clements}{C\bibinitperiod}{A}{A\bibinitperiod}{}{}{}{}}%
+        {{hash=a12a3e62391bf848ea8308962da256cc}{Kaashoek}{K\bibinitperiod}{M}{M\bibinitperiod}{}{}{}{}}%
+        {{hash=432265c3226d7484cabd4babe5feb4de}{Zeldovich}{Z\bibinitperiod}{N}{N\bibinitperiod}{}{}{}{}}%
+        {{hash=a995f0aca91224a5fb16a79eb45baee9}{Morris}{M\bibinitperiod}{R}{R\bibinitperiod}{}{}{}{}}%
+        {{hash=588b39f12d7e8fc981e47629753f128c}{Kohler}{K\bibinitperiod}{E}{E\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{eafe53967e38f931f71aee1e0b035211}
+      \strng{fullhash}{f8b654c767a341c2adc90d34c605d941}
+      \field{sortinit}{C}
+      \field{sortinithash}{59f25d509f3381b07695554a9f35ecb2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{SOSP}
+      \field{title}{The scalable commutativity rule}
+      \field{year}{2013}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=2517349.2522712
+      \endverb
+    \endentry
+    \entry{Dean2008}{article}{}
+      \name{author}{2}{}{%
+        {{hash=d344df02661ad14c26e86c5871d77951}{Dean}{D\bibinitperiod}{J}{J\bibinitperiod}{}{}{}{}}%
+        {{hash=61406081ee9c4d86126d6ca1792b0e43}{Ghemawat}{G\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{124ab255a153c3390c70d1c1945a1553}
+      \strng{fullhash}{124ab255a153c3390c70d1c1945a1553}
+      \field{sortinit}{D}
+      \field{sortinithash}{78f7c4753a2004675f316a80bdb31742}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{OSDI}
+      \field{title}{MapReduce: Simplified Data Processing on Large Clusters}
+      \field{year}{2004}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=1327492%20http://doi.acm.org/10.1145/1327452.1327492%20http://citeseerx.ist.psu.edu/viewdoc/summary;jsessionid=53CA72B524B9A6153BFE89FE26FBB832?doi=10.1.1.163.5292
+      \endverb
+    \endentry
+    \entry{Elliott1997}{article}{}
+      \name{author}{2}{}{%
+        {{hash=cc268fc4cad08c3b9981e6620f3396c2}{Elliott}{E\bibinitperiod}{C}{C\bibinitperiod}{}{}{}{}}%
+        {{hash=5ba5602371903fba894399764a8326eb}{Hudak}{H\bibinitperiod}{P}{P\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{b8477990231ccf6a969b8be063854716}
+      \strng{fullhash}{b8477990231ccf6a969b8be063854716}
+      \field{sortinit}{E}
+      \field{sortinithash}{fefc5210ef4721525b2a478df41efcd4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{SIGPLAN}
+      \field{title}{Functional reactive animation}
+      \field{year}{1997}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=258973
+      \endverb
+    \endentry
+    \entry{Fernandez2014a}{article}{}
+      \name{author}{4}{}{%
+        {{hash=9f3bd992f2fe36ae6b3679f0ccab3db7}{Fernandez}{F\bibinitperiod}{R}{R\bibinitperiod}{}{}{}{}}%
+        {{hash=28e514e21ca90a6d4365154c27707187}{Migliavacca}{M\bibinitperiod}{M}{M\bibinitperiod}{}{}{}{}}%
+        {{hash=f90f8ec5d32f7f25d31e15c9eb28b8b7}{Kalyvianaki}{K\bibinitperiod}{E}{E\bibinitperiod}{}{}{}{}}%
+        {{hash=fa43f077152a9c54517bedf55bab29d4}{Pietzuch}{P\bibinitperiod}{P}{P\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{ba0f176a0a714d20b66c4c2f961f3cfb}
+      \strng{fullhash}{b21b0e2609a91283d9ea641a2632947c}
+      \field{sortinit}{F}
+      \field{sortinithash}{c6a7d9913bbd7b20ea954441c0460b78}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{USENIX ATC}
+      \field{title}{Making state explicit for imperative big data processing}
+      \field{year}{2014}
+      \verb{url}
+      \verb https://www.usenix.org/system/files/conference/atc14/atc14-paper-castro_fernandez.pdf
+      \endverb
+    \endentry
+    \entry{Fox1997}{article}{}
+      \name{author}{5}{}{%
+        {{hash=8f92a733d865a9707977890a3e7d9bf4}{Fox}{F\bibinitperiod}{A}{A\bibinitperiod}{}{}{}{}}%
+        {{hash=14f9f044f65861be3b8a44e5c3a2836d}{Gribble}{G\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=8570c576e9724e69eb6b35da8e05c425}{Chawathe}{C\bibinitperiod}{Y}{Y\bibinitperiod}{}{}{}{}}%
+        {{hash=280d221db337c3558edebb32419e25e7}{Brewer}{B\bibinitperiod}{E}{E\bibinitperiod}{}{}{}{}}%
+        {{hash=f7dd9f4784985a8cff925206911e3e40}{Gauthier}{G\bibinitperiod}{P}{P\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{d8998d3751d30f4588978bc7301863b4}
+      \strng{fullhash}{a4ecc89145d8582e82010f670461e4b4}
+      \field{sortinit}{F}
+      \field{sortinithash}{c6a7d9913bbd7b20ea954441c0460b78}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{SOSP}
+      \field{title}{Cluster-based scalable network services}
+      \field{year}{1997}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=266662
+      \endverb
+    \endentry
+    \entry{Gunther2008}{article}{}
+      \name{author}{1}{}{%
+        {{hash=725732b1ccbaf570b37074195ae50f2a}{Gunther}{G\bibinitperiod}{N}{N\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{725732b1ccbaf570b37074195ae50f2a}
+      \strng{fullhash}{725732b1ccbaf570b37074195ae50f2a}
+      \field{sortinit}{G}
+      \field{sortinithash}{1c854ef9177a91bf894e66485bdbd3ed}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{ArXiv e-prints}
+      \field{title}{A general theory of computational scalability based on rational functions}
+      \field{year}{2008}
+      \verb{url}
+      \verb http://arxiv.org/abs/0808.1431
+      \endverb
+    \endentry
+    \entry{Hughes1989}{article}{}
+      \name{author}{1}{}{%
+        {{hash=17306022d26b5b916ea2fd714a64b831}{Hughes}{H\bibinitperiod}{J}{J\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{17306022d26b5b916ea2fd714a64b831}
+      \strng{fullhash}{17306022d26b5b916ea2fd714a64b831}
+      \field{sortinit}{H}
+      \field{sortinithash}{82012198d5dfa657b8c4a168793268a6}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{The computer journal}
+      \field{title}{Why functional programming matters}
+      \field{year}{1989}
+      \verb{url}
+      \verb https://www.cs.kent.ac.uk/people/staff/dat/miranda/whyfp90.pdf%20http://comjnl.oxfordjournals.org/content/32/2/98.short
+      \endverb
+    \endentry
+    \entry{Li2012}{article}{}
+      \name{author}{3}{}{%
+        {{hash=6026ccfc90df3a5fa9c8628348d98cc0}{Li}{L\bibinitperiod}{F}{F\bibinitperiod}{}{}{}{}}%
+        {{hash=ba2ec19dbec212c424b5914b712487ce}{Pop}{P\bibinitperiod}{A}{A\bibinitperiod}{}{}{}{}}%
+        {{hash=5258a6d1cefdefb9223e82231a1193e8}{Cohen}{C\bibinitperiod}{A}{A\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{5c136a3bfb279f7f89a0a581bf6f0779}
+      \strng{fullhash}{5c136a3bfb279f7f89a0a581bf6f0779}
+      \field{sortinit}{L}
+      \field{sortinithash}{872351f18d0f736066eda0bf18bfa4f7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Micro}
+      \field{title}{Automatic Extraction of Coarse-Grained Data-Flow Threads from Imperative Programs}
+      \field{year}{2012}
+      \verb{url}
+      \verb http://www.computer.org/csdl/mags/mi/2012/04/mmi2012040019.html
+      \endverb
+    \endentry
+    \entry{Matsakis2012a}{article}{}
+      \name{author}{1}{}{%
+        {{hash=2ba73bfa1cd749c7b7b2513e83e3819c}{Matsakis}{M\bibinitperiod}{N}{N\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{2ba73bfa1cd749c7b7b2513e83e3819c}
+      \strng{fullhash}{2ba73bfa1cd749c7b7b2513e83e3819c}
+      \field{sortinit}{M}
+      \field{sortinithash}{2684bec41e9697b92699b46491061da2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{HotPar}
+      \field{title}{Parallel Closures A new twist on an old idea}
+      \field{year}{2012}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=2342793%20https://www.usenix.org/system/files/conference/hotpar12/hotpar12-final5.pdf
+      \endverb
+    \endentry
+    \entry{McSherry}{article}{}
+      \name{author}{4}{}{%
+        {{hash=4c9ef1ede5b1b6e18267a222e86b4c1f}{McSherry}{M\bibinitperiod}{F}{F\bibinitperiod}{}{}{}{}}%
+        {{hash=0348591ed77aa956f1788356d4c87946}{Isaacs}{I\bibinitperiod}{R}{R\bibinitperiod}{}{}{}{}}%
+        {{hash=da95c854234834b882d60d205bb17fe0}{Isard}{I\bibinitperiod}{M}{M\bibinitperiod}{}{}{}{}}%
+        {{hash=b1637056143b0f8f96f5c4a94b41a981}{Murray}{M\bibinitperiod}{D}{D\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{3b0c814e43143ec0dcc9be1a9f974ddf}
+      \strng{fullhash}{2d6e45bf81a502dbfb2af232494430d9}
+      \field{sortinit}{M}
+      \field{sortinithash}{2684bec41e9697b92699b46491061da2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Microsoft Research}
+      \field{title}{Composable Incremental and Iterative Data-Parallel Computation with Naiad}
+      \field{year}{2012}
+      \verb{url}
+      \verb http://202.114.89.42/resource/pdf/6992.pdf
+      \endverb
+    \endentry
+    \entry{Parnas1972}{article}{}
+      \name{author}{1}{}{%
+        {{hash=35c8489543318c5ece47fa63a751147e}{Parnas}{P\bibinitperiod}{D}{D\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{35c8489543318c5ece47fa63a751147e}
+      \strng{fullhash}{35c8489543318c5ece47fa63a751147e}
+      \field{sortinit}{P}
+      \field{sortinithash}{c0a4896d0e424f9ca4d7f14f2b3428e7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Communications of the ACM}
+      \field{title}{On the criteria to be used in decomposing systems into modules}
+      \field{year}{1972}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=361623
+      \endverb
+    \endentry
+    \entry{Power2010}{article}{}
+      \name{author}{2}{}{%
+        {{hash=83a8d509b9f0989ca28e0c9c93a03b98}{Power}{P\bibinitperiod}{R}{R\bibinitperiod}{}{}{}{}}%
+        {{hash=ef065b28c31984323fd6d3483d29aafd}{Li}{L\bibinitperiod}{J}{J\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{9ea179ea4cfd4cacfdf18c3f85db7530}
+      \strng{fullhash}{9ea179ea4cfd4cacfdf18c3f85db7530}
+      \field{sortinit}{P}
+      \field{sortinithash}{c0a4896d0e424f9ca4d7f14f2b3428e7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{OSDI}
+      \field{title}{Piccolo: Building Fast, Distributed Programs with Partitioned Tables.}
+      \field{year}{2010}
+      \verb{url}
+      \verb http://static.usenix.org/event/osdi10/tech/full_papers/Power.pdf
+      \endverb
+    \endentry
+    \entry{Radoi2014}{article}{}
+      \name{author}{4}{}{%
+        {{hash=3da594c7344ac4bfd419cb1f23e5b714}{Radoi}{R\bibinitperiod}{C}{C\bibinitperiod}{}{}{}{}}%
+        {{hash=72c93c8788a7b1903d4a44928b9faa81}{Fink}{F\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=6c5329d18f21bda5c7a98ae3dfa10987}{Rabbah}{R\bibinitperiod}{R}{R\bibinitperiod}{}{}{}{}}%
+        {{hash=e436e015208fd2bea30687567561df44}{Sridharan}{S\bibinitperiod}{M}{M\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{72976085d7d69f9924448ae2a31ae0c5}
+      \strng{fullhash}{d6c7548689ada885770b5003f1cf6d4d}
+      \field{sortinit}{R}
+      \field{sortinithash}{c7387613477035a752d935acfc3e3ea2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{OOPSLA}
+      \field{title}{Translating imperative code to MapReduce}
+      \field{year}{2014}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=2660228
+      \endverb
+    \endentry
+    \entry{Toshniwal2014}{article}{}
+      \name{author}{13}{}{%
+        {{hash=d480aba065dbb1d29f748da31ac9b98a}{Toshniwal}{T\bibinitperiod}{A}{A\bibinitperiod}{}{}{}{}}%
+        {{hash=ed2f065a8e05fdf4afdded7da564509a}{Donham}{D\bibinitperiod}{J}{J\bibinitperiod}{}{}{}{}}%
+        {{hash=dca00d98ede60d63da97569222c26cf5}{Bhagat}{B\bibinitperiod}{N}{N\bibinitperiod}{}{}{}{}}%
+        {{hash=d87aa50506e79cc4f27ddbe54deca5cd}{Mittal}{M\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=096904dbf272e7847ff3a2d2dc3e5920}{Ryaboy}{R\bibinitperiod}{D}{D\bibinitperiod}{}{}{}{}}%
+        {{hash=6c730d838868326cc1b0f111d91f9080}{Taneja}{T\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=90f568eee8b77cc8afb64513a0b59093}{Shukla}{S\bibinitperiod}{A}{A\bibinitperiod}{}{}{}{}}%
+        {{hash=71e875bdd7be948e1de6c25a88426a3a}{Ramasamy}{R\bibinitperiod}{K}{K\bibinitperiod}{}{}{}{}}%
+        {{hash=f9ad24ac92ba5847fc5815084deedeca}{Patel}{P\bibinitperiod}{J}{J\bibinitperiod}{}{}{}{}}%
+        {{hash=5e59682dd5989c5499323f76490f6ddb}{Kulkarni}{K\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=cd716b9f89f6fa4c683750740480f22c}{Jackson}{J\bibinitperiod}{J}{J\bibinitperiod}{}{}{}{}}%
+        {{hash=d57a1d97df5df618ed76faa3e1d6a7bc}{Gade}{G\bibinitperiod}{K}{K\bibinitperiod}{}{}{}{}}%
+        {{hash=f237775324408429037492587034b61c}{Fu}{F\bibinitperiod}{M}{M\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{56913321f769e773b680e9a94b69e380}
+      \strng{fullhash}{012ebe62dc5363d7ff8b8b1a8658c06b}
+      \field{sortinit}{T}
+      \field{sortinithash}{423d138a005a533b47e6475e39378bf2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{SIGMOD}
+      \field{title}{Storm@ twitter}
+      \field{year}{2014}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=2595641%20http://dl.acm.org/citation.cfm?id=2588555.2595641
+      \endverb
+    \endentry
+    \entry{Welsh2000}{article}{}
+      \name{author}{4}{}{%
+        {{hash=0830d0f04071ebda60005863ee632994}{Welsh}{W\bibinitperiod}{M}{M\bibinitperiod}{}{}{}{}}%
+        {{hash=14f9f044f65861be3b8a44e5c3a2836d}{Gribble}{G\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=280d221db337c3558edebb32419e25e7}{Brewer}{B\bibinitperiod}{E}{E\bibinitperiod}{}{}{}{}}%
+        {{hash=c9a0bb7bb5c6ebcaf96c0d420b430a28}{Culler}{C\bibinitperiod}{D}{D\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{ea7bc947c84e70fb49247a46d2513a5f}
+      \strng{fullhash}{2c7ad29a06bddddf83d54679d3b5d176}
+      \field{sortinit}{W}
+      \field{sortinithash}{99e3ba1b3f78bb6f073e7fa7ac11636b}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{University of California, Berkeley}
+      \field{title}{A design framework for highly concurrent systems}
+      \field{year}{2000}
+      \verb{url}
+      \verb http://www.cs.berkeley.edu/$%5Csim$culler/papers/events.pdf%20http://www.cs.berkeley.edu/$%5Csim$culler/papers/events.pdf%5Cnhttp://www.eecs.harvard.edu/$%5Csim$mdw/papers/events.pdf
+      \endverb
+    \endentry
+    \entry{Zaharia2012}{article}{}
+      \name{author}{5}{}{%
+        {{hash=86d6b22c3ca4f039f99819c13d6ecec7}{Zaharia}{Z\bibinitperiod}{M}{M\bibinitperiod}{}{}{}{}}%
+        {{hash=1bae790a84cf802a7ac481c9c9e5f85b}{Das}{D\bibinitperiod}{T}{T\bibinitperiod}{}{}{}{}}%
+        {{hash=e2e65bc31792929cfaa15cecf7f23965}{Li}{L\bibinitperiod}{H}{H\bibinitperiod}{}{}{}{}}%
+        {{hash=5eff2ff1177e432d0ef04145d255074c}{Shenker}{S\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=6c0e25b703ac672324ac72dba3eb4446}{Stoica}{S\bibinitperiod}{I}{I\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{1f901a980ea163d61dc5e277f6545734}
+      \strng{fullhash}{9f23f9fdfaf2c84873a9248a41233763}
+      \field{sortinit}{Z}
+      \field{sortinithash}{fdda4caaa6b5fa63e0c081dcb159543a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the 4th USENIX conference on Hot Topics in Cloud Ccomputing}
+      \field{title}{Discretized streams: an efficient and fault-tolerant model for stream processing on large clusters}
+      \field{year}{2012}
+      \verb{url}
+      \verb https://www.usenix.org/system/files/conference/hotcloud12/hotcloud12-final28.pdf
+      \endverb
+    \endentry
+  \endsortlist
+\endrefsection
+\endinput
+

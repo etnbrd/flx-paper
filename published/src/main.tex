@@ -1,6 +1,28 @@
+\documentclass{sig-alternate}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[french, english]{babel}
+\usepackage{graphicx}
+\usepackage{nohyperref}
+\usepackage{url}
+\usepackage{backnaur}
+\usepackage{tikz}
+\usepackage{xcolor}
 \usepackage{color}
 \usepackage{listings}
 \usepackage{inconsolata}
+
+\usepackage[hyperref=true,%
+            url=false,%
+            isbn=false,%
+            style=numeric,%
+            maxcitenames=3,%
+            maxbibnames=100,%
+            backend=biber,%
+            block=none]{biblatex}
+\bibliography{references.bib}
 
 \definecolor{red}{rgb}{1,0,0.29}
 \definecolor{green}{rgb}{0,0.91,0.75}
@@ -83,3 +105,60 @@
   \userlstset{#1}%
   \lstinputlisting{#2}%
 }
+
+\newcommand{\ftnt}[1]{%
+\footnote{\small{\url{#1}}}%
+}
+
+\newcommand*\circled[1]{%
+  \tikz[baseline=(char.base)]{%
+    \node[shape=circle,draw,inner sep=0.8pt] (char) {#1};%
+  }%
+}
+
+\begin{document}
+
+\title{
+  Transforming Javascript Event-Loop Into a Pipeline
+}
+
+\numberofauthors{2}
+\author{
+\alignauthor
+Etienne Brodu, Stéphane Frénot\\
+  \email{\textsf{\normalsize{\{etienne.brodu, stephane.frenot\}@insa-lyon.fr}}}\\
+  \affaddr{\textsf{\small{Univ Lyon, INSA Lyon, Inria, CITI, F-69621 Villeurbanne, France}}}
+\and
+\alignauthor
+Frédéric Oblé\\
+  \email{\textsf{\normalsize{frederic.oble@worldline.com}}}\\
+  \affaddr{\textsf{\small{Worldline, Bât. Le Mirage, 53 avenue Paul Krüger}}}\\
+  \affaddr{\textsf{\small{CS 60195, 69624 Villeurbanne Cedex}}}\\
+}
+
+\CopyrightYear{2016}
+\setcopyright{licensedothergov}
+\conferenceinfo{SAC 2016,}{April 04 - 08, 2016, Pisa, Italy}
+\isbn{978-1-4503-3739-7/16/04}\acmPrice{\$15.00}
+\doi{http://dx.doi.org/10.1145/2851613.2851745}
+
+\maketitle
+
+\input{abstract}
+
+\category{Software and its engineering}{Software notations and tools}{Compilers}[Runtime environments]
+\terms{Compilation, dataflow, code transformation}
+\keywords{Flow programming, Web, Javascript}
+
+\eject
+
+\input{introduction}
+\input{model}
+\input{compiler}
+\input{evaluation}
+\input{related_works}
+\input{conclusion}
+
+\printbibliography[]
+
+\end{document}
