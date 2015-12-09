@@ -7,7 +7,7 @@ Our compiler uses the \textit{estools}\ftnt{https://github.com/estools} suite to
 And it is tailored for -- but not limited to -- web applications using \textit{Express}\ftnt{http://expressjs.com/}, the most used \textit{Node.js} web framework.
 
 \begin{figure}
-  \includegraphics[width=\linewidth]{compiler-stream.pdf}
+  \includegraphics[width=\linewidth]{compiler-stream.ps}
   \caption{Compilation chain}
   \label{fig:compilation}
 \end{figure}
@@ -37,7 +37,7 @@ Figure \ref{fig:basicrp} shows a code example of a rupture point with the illust
 The two application parts are the caller of the asynchronous function call on one hand, and the callback provided to the asynchronous function call on the other hand.
 
 \begin{figure}[h!]
-  \includegraphics[width=\linewidth]{basicrp.pdf}
+  \includegraphics[width=\linewidth]{basicrp.ps}
   \begin{code}
 asyncCall(arguments, function callback(result){ //@\circled{2}@ });
 // Following statements //@\circled{1}@
@@ -80,7 +80,7 @@ Depending on this representation, the compiler can replace the broken closures i
 We present these three alternatives in figure \ref{fig:states}.
 
 \begin{figure}[h!]
-  \includegraphics[width=\linewidth]{states.pdf}
+  \includegraphics[width=\linewidth]{states.ps}
   \caption{Variable management from Javascript to the high-level fluxionnal language}
   \label{fig:states}
 \end{figure}
