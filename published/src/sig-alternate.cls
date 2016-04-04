@@ -1654,7 +1654,7 @@
 \newtoks\copyrightetc
 \ifnum\ACM@basesize=9\relax
 \global\copyrightetc{%
-{\noindent\confname\ \the\conf\ \the\confinfo}\par\smallskip
+{\noindent\confname\the\conf\ \the\confinfo}\par\smallskip
   \if@printcopyright
     \copyright\ \the\copyrtyr\ \@copyrightowner
   \fi
@@ -1667,7 +1667,7 @@
 \fi
 \ifnum\ACM@basesize=10\relax
 \global\copyrightetc{%
-{\noindent\confname\ \the\conf\ \the\confinfo}\par\smallskip
+{\noindent\confname\the\conf\ \the\confinfo}\par\smallskip
   \if@printcopyright
     \copyright\ \the\copyrtyr\ \@copyrightowner
   \fi

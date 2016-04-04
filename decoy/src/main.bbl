@@ -1,0 +1,665 @@
+% $ biblatex auxiliary file $
+% $ biblatex version 2.5 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\entry{Akidau2013}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Akidau}{A.}%
+     {T}{T}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Balikov}{B.}%
+     {A}{A}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{ATBA1}
+  \strng{fullhash}{ATBA1}
+  \field{sortinit}{A}
+  \field{title}{MillWheel: Fault-Tolerant Stream Processing at Internet Scale}
+  \verb{url}
+  \verb http://research.google.com/pubs/archive/41378.pdf
+  \endverb
+  \field{journaltitle}{VLDB}
+  \field{year}{2013}
+\endentry
+
+\entry{Amdahl1967}{article}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Amdahl}{A.}%
+     {G}{G}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{AG1}
+  \strng{fullhash}{AG1}
+  \field{sortinit}{A}
+  \field{booktitle}{AFIPS}
+  \field{title}{Validity of the Single Processor Approach to Achieving Large
+  Scale Computing Capabilities}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=1465560 http://delivery.acm.org/10.11
+  \verb 45/1470000/1465560/p483-amdahl.pdf?ip=202.189.127.238&id=1465560&acc=AC
+  \verb TIVE SERVICE&key=CDD1E79C27AC4E65.DE0A32330AE3471B.4D4702B0C3E38B35.4D4
+  \verb 702B0C3E38B35&CFID=646862329&CFTOKEN=33418
+  \endverb
+  \field{year}{1967}
+\endentry
+
+\entry{Banerjee2013}{book}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Banerjee}{B.}%
+     {U}{U}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{BU1}
+  \strng{fullhash}{BU1}
+  \field{sortinit}{B}
+  \field{title}{Loop parallelization}
+  \verb{url}
+  \verb https://books.google.com/books?hl=en&lr=&id=9xXrBwAAQBAJ&oi=fnd&pg=PR13
+  \verb &dq=loop+parallelization&ots=flLbnvNcCM&sig=a1VFNFLS3_TRjBVdpPr8mrH-0DE
+  \endverb
+  \field{year}{2013}
+\endentry
+
+\entry{Bartenstein2014}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Bartenstein}{B.}%
+     {T}{T}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Liu}{L.}%
+     {Y}{Y}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{BTLY1}
+  \strng{fullhash}{BTLY1}
+  \field{sortinit}{B}
+  \field{title}{Rate Types for Stream Programs}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=2660225
+  \endverb
+  \field{journaltitle}{OOPSLA}
+  \field{year}{2014}
+\endentry
+
+\entry{Brodu2015}{article}{}
+  \name{author}{3}{}{%
+    {{}%
+     {Brodu}{B.}%
+     {E}{E}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Fr{\'{e}}not}{F.}%
+     {S}{S}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Obl{\'{e}}}{O.}%
+     {F}{F}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{BEFSOF1}
+  \strng{fullhash}{BEFSOF1}
+  \field{sortinit}{B}
+  \field{title}{Toward automatic update from callbacks to Promises}
+  \verb{url}
+  \verb https://hal.archives-ouvertes.fr/hal-01132776/
+  \endverb
+  \field{journaltitle}{AWeS}
+  \field{year}{2015}
+\endentry
+
+\entry{Clements2013a}{article}{}
+  \name{author}{5}{}{%
+    {{}%
+     {Clements}{C.}%
+     {A}{A}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Kaashoek}{K.}%
+     {M}{M}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Zeldovich}{Z.}%
+     {N}{N}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Morris}{M.}%
+     {R}{R}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Kohler}{K.}%
+     {E}{E}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{CA+1}
+  \strng{fullhash}{CAKMZNMRKE1}
+  \field{sortinit}{C}
+  \field{title}{The scalable commutativity rule}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=2517349.2522712
+  \endverb
+  \field{journaltitle}{SOSP}
+  \field{year}{2013}
+\endentry
+
+\entry{Dean2008}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Dean}{D.}%
+     {J}{J}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Ghemawat}{G.}%
+     {S}{S}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{DJGS1}
+  \strng{fullhash}{DJGS1}
+  \field{sortinit}{D}
+  \field{title}{MapReduce: Simplified Data Processing on Large Clusters}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=1327492 http://doi.acm.org/10.1145/13
+  \verb 27452.1327492 http://citeseerx.ist.psu.edu/viewdoc/summary;jsessionid=5
+  \verb 3CA72B524B9A6153BFE89FE26FBB832?doi=10.1.1.163.5292
+  \endverb
+  \field{journaltitle}{OSDI}
+  \field{year}{2004}
+\endentry
+
+\entry{Elliott1997}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Elliott}{E.}%
+     {C}{C}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Hudak}{H.}%
+     {P}{P}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{ECHP1}
+  \strng{fullhash}{ECHP1}
+  \field{sortinit}{E}
+  \field{title}{Functional reactive animation}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=258973
+  \endverb
+  \field{journaltitle}{SIGPLAN}
+  \field{year}{1997}
+\endentry
+
+\entry{Fernandez2014a}{article}{}
+  \name{author}{4}{}{%
+    {{}%
+     {Fernandez}{F.}%
+     {R}{R}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Migliavacca}{M.}%
+     {M}{M}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Kalyvianaki}{K.}%
+     {E}{E}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Pietzuch}{P.}%
+     {P}{P}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{FR+1}
+  \strng{fullhash}{FRMMKEPP1}
+  \field{sortinit}{F}
+  \field{title}{Making state explicit for imperative big data processing}
+  \verb{url}
+  \verb https://www.usenix.org/system/files/conference/atc14/atc14-paper-castro
+  \verb _fernandez.pdf
+  \endverb
+  \field{journaltitle}{USENIX ATC}
+  \field{year}{2014}
+\endentry
+
+\entry{Fox1997}{article}{}
+  \name{author}{5}{}{%
+    {{}%
+     {Fox}{F.}%
+     {A}{A}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Gribble}{G.}%
+     {S}{S}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Chawathe}{C.}%
+     {Y}{Y}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Brewer}{B.}%
+     {E}{E}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Gauthier}{G.}%
+     {P}{P}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{FA+1}
+  \strng{fullhash}{FAGSCYBEGP1}
+  \field{sortinit}{F}
+  \field{title}{Cluster-based scalable network services}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=266662
+  \endverb
+  \field{journaltitle}{SOSP}
+  \field{year}{1997}
+\endentry
+
+\entry{Gunther2008}{article}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Gunther}{G.}%
+     {N}{N}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{GN1}
+  \strng{fullhash}{GN1}
+  \field{sortinit}{G}
+  \field{title}{A general theory of computational scalability based on rational
+  functions}
+  \verb{url}
+  \verb http://arxiv.org/abs/0808.1431
+  \endverb
+  \field{journaltitle}{ArXiv e-prints}
+  \field{year}{2008}
+\endentry
+
+\entry{Hughes1989}{article}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Hughes}{H.}%
+     {J}{J}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{HJ1}
+  \strng{fullhash}{HJ1}
+  \field{sortinit}{H}
+  \field{title}{Why functional programming matters}
+  \verb{url}
+  \verb https://www.cs.kent.ac.uk/people/staff/dat/miranda/whyfp90.pdf http://c
+  \verb omjnl.oxfordjournals.org/content/32/2/98.short
+  \endverb
+  \field{journaltitle}{The computer journal}
+  \field{year}{1989}
+\endentry
+
+\entry{Li2012}{article}{}
+  \name{author}{3}{}{%
+    {{}%
+     {Li}{L.}%
+     {F}{F}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Pop}{P.}%
+     {A}{A}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Cohen}{C.}%
+     {A}{A}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{LFPACA1}
+  \strng{fullhash}{LFPACA1}
+  \field{sortinit}{L}
+  \field{title}{Automatic Extraction of Coarse-Grained Data-Flow Threads from
+  Imperative Programs}
+  \verb{url}
+  \verb http://www.computer.org/csdl/mags/mi/2012/04/mmi2012040019.html
+  \endverb
+  \field{journaltitle}{IEEE Micro}
+  \field{year}{2012}
+\endentry
+
+\entry{Matsakis2012a}{article}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Matsakis}{M.}%
+     {N}{N}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{MN1}
+  \strng{fullhash}{MN1}
+  \field{sortinit}{M}
+  \field{title}{Parallel Closures A new twist on an old idea}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=2342793 https://www.usenix.org/system
+  \verb /files/conference/hotpar12/hotpar12-final5.pdf
+  \endverb
+  \field{journaltitle}{HotPar}
+  \field{year}{2012}
+\endentry
+
+\entry{McSherry}{article}{}
+  \name{author}{4}{}{%
+    {{}%
+     {McSherry}{M.}%
+     {F}{F}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Isaacs}{I.}%
+     {R}{R}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Isard}{I.}%
+     {M}{M}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Murray}{M.}%
+     {D}{D}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{MF+1}
+  \strng{fullhash}{MFIRIMMD1}
+  \field{sortinit}{M}
+  \field{title}{Composable Incremental and Iterative Data-Parallel Computation
+  with Naiad}
+  \verb{url}
+  \verb http://202.114.89.42/resource/pdf/6992.pdf
+  \endverb
+  \field{journaltitle}{Microsoft Research}
+  \field{year}{2012}
+\endentry
+
+\entry{Parnas1972}{article}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Parnas}{P.}%
+     {D}{D}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{PD1}
+  \strng{fullhash}{PD1}
+  \field{sortinit}{P}
+  \field{title}{On the criteria to be used in decomposing systems into modules}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=361623
+  \endverb
+  \field{journaltitle}{Communications of the ACM}
+  \field{year}{1972}
+\endentry
+
+\entry{Power2010}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Power}{P.}%
+     {R}{R}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Li}{L.}%
+     {J}{J}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{PRLJ1}
+  \strng{fullhash}{PRLJ1}
+  \field{sortinit}{P}
+  \field{title}{Piccolo: Building Fast, Distributed Programs with Partitioned
+  Tables.}
+  \verb{url}
+  \verb http://static.usenix.org/event/osdi10/tech/full_papers/Power.pdf
+  \endverb
+  \field{journaltitle}{OSDI}
+  \field{year}{2010}
+\endentry
+
+\entry{Radoi2014}{article}{}
+  \name{author}{4}{}{%
+    {{}%
+     {Radoi}{R.}%
+     {C}{C}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Fink}{F.}%
+     {S}{S}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Rabbah}{R.}%
+     {R}{R}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Sridharan}{S.}%
+     {M}{M}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{RC+1}
+  \strng{fullhash}{RCFSRRSM1}
+  \field{sortinit}{R}
+  \field{title}{Translating imperative code to MapReduce}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=2660228
+  \endverb
+  \field{journaltitle}{OOPSLA}
+  \field{year}{2014}
+\endentry
+
+\entry{Toshniwal2014}{article}{}
+  \name{author}{13}{}{%
+    {{}%
+     {Toshniwal}{T.}%
+     {A}{A}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Donham}{D.}%
+     {J}{J}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Bhagat}{B.}%
+     {N}{N}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Mittal}{M.}%
+     {S}{S}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Ryaboy}{R.}%
+     {D}{D}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Taneja}{T.}%
+     {S}{S}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Shukla}{S.}%
+     {A}{A}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Ramasamy}{R.}%
+     {K}{K}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Patel}{P.}%
+     {J}{J}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Kulkarni}{K.}%
+     {S}{S}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Jackson}{J.}%
+     {J}{J}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Gade}{G.}%
+     {K}{K}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Fu}{F.}%
+     {M}{M}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{TA+1}
+  \strng{fullhash}{TADJBNMSRDTSSARKPJKSJJGKFM1}
+  \field{sortinit}{T}
+  \field{title}{Storm@ twitter}
+  \verb{url}
+  \verb http://dl.acm.org/citation.cfm?id=2595641 http://dl.acm.org/citation.cf
+  \verb m?id=2588555.2595641
+  \endverb
+  \field{journaltitle}{SIGMOD}
+  \field{year}{2014}
+\endentry
+
+\entry{Welsh2000}{article}{}
+  \name{author}{4}{}{%
+    {{}%
+     {Welsh}{W.}%
+     {M}{M}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Gribble}{G.}%
+     {S}{S}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Brewer}{B.}%
+     {E}{E}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Culler}{C.}%
+     {D}{D}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{WM+1}
+  \strng{fullhash}{WMGSBECD1}
+  \field{sortinit}{W}
+  \field{title}{A design framework for highly concurrent systems}
+  \verb{url}
+  \verb http://www.cs.berkeley.edu/$\sim$culler/papers/events.pdf http://www.cs
+  \verb .berkeley.edu/$\sim$culler/papers/events.pdf\nhttp://www.eecs.harvard.e
+  \verb du/$\sim$mdw/papers/events.pdf
+  \endverb
+  \field{journaltitle}{University of California, Berkeley}
+  \field{year}{2000}
+\endentry
+
+\entry{Zaharia2012}{article}{}
+  \name{author}{5}{}{%
+    {{}%
+     {Zaharia}{Z.}%
+     {M}{M}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Das}{D.}%
+     {T}{T}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Li}{L.}%
+     {H}{H}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Shenker}{S.}%
+     {S}{S}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Stoica}{S.}%
+     {I}{I}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{ZM+1}
+  \strng{fullhash}{ZMDTLHSSSI1}
+  \field{sortinit}{Z}
+  \field{title}{Discretized streams: an efficient and fault-tolerant model for
+  stream processing on large clusters}
+  \verb{url}
+  \verb https://www.usenix.org/system/files/conference/hotcloud12/hotcloud12-fi
+  \verb nal28.pdf
+  \endverb
+  \field{journaltitle}{Proceedings of the 4th USENIX conference on Hot Topics
+  in Cloud Ccomputing}
+  \field{year}{2012}
+\endentry
+
+\lossort
+\endlossort
+
+\endinput
